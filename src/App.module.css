@@ -1,0 +1,30 @@
+.appContainer {
+  display: grid;
+  grid-template-rows: var(--header-height) 1fr var(--bottom-bar-height);
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--bg-app);
+}
+
+.workspaceGrid {
+  display: grid;
+  grid-template-columns: 280px 1fr 310px;
+  height: calc(100vh - var(--header-height) - var(--bottom-bar-height));
+  overflow: hidden;
+  background: var(--bg-app);
+}
+
+@media (max-width: 960px) {
+  .appContainer {
+    height: auto;
+    overflow-y: auto;
+  }
+
+  .workspaceGrid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 440px auto;
+    height: auto;
+    overflow-y: auto;
+  }
+}

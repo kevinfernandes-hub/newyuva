@@ -13,7 +13,7 @@ for line in Path(".env").read_text().splitlines():
 config.sh_base_url = "https://sh.dataspace.copernicus.eu"
 config.sh_token_url = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
 
-hingna_bbox = BBox([78.965, 21.095, 79.005, 21.135], crs=CRS.WGS84)
+hingna_bbox = BBox((78.965, 21.095, 79.005, 21.135), crs=CRS.WGS84)
 
 catalog = SentinelHubCatalog(config=config)
 data_collection = DataCollection.SENTINEL2_L2A.define_from(

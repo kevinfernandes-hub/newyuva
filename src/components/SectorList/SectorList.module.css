@@ -1,0 +1,309 @@
+.rail {
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-hairline);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.subHeaderRow {
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.countGroup {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.heading {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.countBadge {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.viewModeTabs {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-surface-subtle);
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.viewBtn {
+  background: transparent;
+  border: none;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 2px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  font-family: var(--font-sans);
+}
+
+.viewBtn:hover {
+  color: var(--text-primary);
+}
+
+.viewBtnActive {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.mapSection {
+  height: 190px;
+  min-height: 160px;
+  border-bottom: 1px solid var(--border-hairline);
+  position: relative;
+}
+
+.mapFull {
+  flex: 1;
+  height: auto;
+  min-height: 100%;
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.listCompact {
+  flex: 1;
+}
+
+.card {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: background 0.12s ease;
+  position: relative;
+}
+
+.card:hover {
+  background-color: var(--bg-surface-hover);
+}
+
+.card.active {
+  background-color: var(--bg-surface-active);
+}
+
+.card.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--accent-primary);
+}
+
+.previewCard {
+  border-left: 2px dashed var(--accent-primary);
+  background-color: rgba(201, 111, 62, 0.02);
+}
+
+.liveCard {
+  border-left: 2px solid var(--status-stable);
+}
+
+.nameGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.previewBadge {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: var(--accent-primary);
+  color: #FFFFFF;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+.liveBadge {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: var(--status-stable);
+  color: #FFFFFF;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+.liveMeta {
+  font-size: 9.5px;
+  color: var(--status-stable);
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+.previewNote {
+  font-size: 9px;
+  color: var(--accent-primary);
+  margin-top: 6px;
+  line-height: 1.3;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.locationName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.statusIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.statusDot.stable { background-color: var(--status-stable); }
+.statusDot.elevated { background-color: var(--status-elevated); }
+.statusDot.flagged { background-color: var(--status-flagged); }
+
+.subtitle {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.metricItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.metricLabel {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.metricValue {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.emptyState {
+  padding: 24px 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.resetFilterBtn {
+  background: var(--bg-surface-subtle);
+  border: 1px solid var(--border-hairline);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: var(--text-primary);
+  cursor: pointer;
+  margin: 0 auto;
+}
+
+.resetFilterBtn:hover {
+  background: var(--bg-surface-hover);
+}
+
+.scanningBanner {
+  background: var(--accent-primary-subtle);
+  border-bottom: 1px solid rgba(201, 111, 62, 0.2);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: pulseBg 1.5s infinite alternate;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(201, 111, 62, 0.3);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.scanningText {
+  display: flex;
+  flex-direction: column;
+  font-size: 10px;
+  color: var(--text-primary);
+}
+
+.scanningText span {
+  font-size: 9px;
+  color: var(--accent-primary);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulseBg {
+  from { background-color: rgba(201, 111, 62, 0.05); }
+  to { background-color: rgba(201, 111, 62, 0.12); }
+}
+
+@media (max-width: 768px) {
+  .rail {
+    height: auto;
+    max-height: 480px;
+    border-right: none;
+    border-bottom: 1px solid var(--border-hairline);
+  }
+}

@@ -39,10 +39,14 @@ def load_dotenv_if_present() -> None:
 
 # Preset Bounding Boxes in Nagpur
 BBOX_PRESETS = {
-	"mihan": BBox([79.020, 21.030, 79.074, 21.090], crs=CRS.WGS84),  # MIHAN / Outer Ring Road
-	"sadar": BBox([79.065, 21.145, 79.100, 21.180], crs=CRS.WGS84),  # Sadar / Central Nagpur
-	"manish_nagar": BBox([79.055, 21.080, 79.095, 21.118], crs=CRS.WGS84),  # Manish Nagar / Wardha Rd Corridor
-	"hingna": BBox([78.965, 21.095, 79.005, 21.135], crs=CRS.WGS84),  # Hingna MIDC / Industrial Zone
+	"mihan": BBox((79.020, 21.030, 79.074, 21.090), crs=CRS.WGS84),  # MIHAN / Outer Ring Road
+	"sadar": BBox((79.065, 21.145, 79.100, 21.180), crs=CRS.WGS84),  # Sadar / Central Nagpur
+	"manish_nagar": BBox((79.055, 21.080, 79.095, 21.118), crs=CRS.WGS84),  # Manish Nagar / Wardha Rd Corridor
+	"hingna": BBox((78.965, 21.095, 79.005, 21.135), crs=CRS.WGS84),  # Hingna MIDC / Industrial Zone
+	"civil_lines": BBox((79.050, 21.135, 79.088, 21.170), crs=CRS.WGS84),  # Civil Lines / High Court / Vidhan Bhavan
+	"gittikhadan": BBox((79.015, 21.155, 79.055, 21.195), crs=CRS.WGS84),  # Gittikhadan / Katol Rd / Quarry Precinct
+	"dharampeth": BBox((79.040, 21.125, 79.080, 21.165), crs=CRS.WGS84),  # Dharampeth / West Nagpur
+	"wardha_road": BBox((79.040, 21.065, 79.085, 21.105), crs=CRS.WGS84),  # Wardha Road Corridor
 }
 
 LOCATION_LABELS = {
@@ -50,6 +54,10 @@ LOCATION_LABELS = {
 	"sadar": "Sadar, Nagpur",
 	"manish_nagar": "Manish Nagar, Nagpur",
 	"hingna": "Hingna MIDC, Nagpur",
+	"civil_lines": "Civil Lines, Nagpur",
+	"gittikhadan": "Gittikhadan, Nagpur",
+	"dharampeth": "Dharampeth, Nagpur",
+	"wardha_road": "Wardha Road, Nagpur",
 }
 
 
@@ -130,7 +138,7 @@ def get_satellite_image(time_interval, bbox: BBox, size: tuple[int, int], config
 
 
 def normalize_contrast(img: np.ndarray) -> np.ndarray:
-	return cv2.normalize(img, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+	return cv2.normalize(img, np.zeros_like(img), alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
 
 
 def validate_image(path: str, reference_size: tuple[int, int]) -> None:
@@ -301,13 +309,22 @@ def generate_4panel_comparison(
 	print(f"Generated 4-panel comparison: {output_panel_path}")
 
 
+def parse_location(loc: str) -> str:
+	normalized = loc.strip().lower().replace("-", "_").replace(" ", "_")
+	if normalized in BBOX_PRESETS:
+		return normalized
+	raise argparse.ArgumentTypeError(
+		f"Unknown location '{loc}'. Available locations: {', '.join(BBOX_PRESETS.keys())}"
+	)
+
+
 def main() -> None:
 	parser = argparse.ArgumentParser(description="Fetch Sentinel-2 images and generate a change overlay.")
 	parser.add_argument(
 		"--location",
-		choices=list(BBOX_PRESETS.keys()),
+		type=parse_location,
 		default="sadar",
-		help="Preset location to evaluate (mihan, sadar, manish_nagar, hingna). Default: sadar.",
+		help=f"Preset location to evaluate ({', '.join(BBOX_PRESETS.keys())}). Default: sadar.",
 	)
 	parser.add_argument(
 		"--catalog-search",

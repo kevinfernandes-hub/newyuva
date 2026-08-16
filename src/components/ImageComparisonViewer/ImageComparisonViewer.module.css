@@ -1,0 +1,226 @@
+.viewerSection {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px;
+  overflow: hidden;
+  background: var(--bg-app);
+  gap: 10px;
+  height: 100%;
+}
+
+.headerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.metaGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.locationTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.previewTag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: var(--accent-primary);
+  color: #FFFFFF;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.liveTag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: var(--status-stable);
+  color: #FFFFFF;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.previewNoticeBar {
+  background: var(--accent-primary-subtle);
+  border: 1px dashed var(--accent-primary);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.35;
+}
+
+.previewIcon {
+  font-weight: bold;
+  color: var(--accent-primary);
+  font-size: 13px;
+}
+
+.coordsPill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.segmentedControl {
+  display: inline-flex;
+  background: #ECEBE6;
+  padding: 2px;
+  border-radius: 6px;
+  gap: 2px;
+}
+
+.segmentBtn {
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  font-family: var(--font-sans);
+}
+
+.segmentBtn:hover {
+  color: var(--text-primary);
+}
+
+.segmentBtn.active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.canvasCard {
+  flex: 1;
+  background: #111413;
+  border: 1px solid var(--border-hairline);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: crosshair;
+  user-select: none;
+  min-height: 360px;
+}
+
+.canvasLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  object-fit: cover;
+}
+
+.clippedWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  transition: clip-path 0.02s linear;
+}
+
+.sliderDivider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.85);
+  cursor: ew-resize;
+  z-index: 30;
+  transform: translateX(-50%);
+}
+
+.sliderHandle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: var(--shadow-slider);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: ew-resize;
+  pointer-events: auto;
+  transition: transform 0.1s ease;
+}
+
+.sliderHandle:hover {
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+.sliderHandle svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--text-primary);
+}
+
+.cornerBadge {
+  position: absolute;
+  bottom: 12px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-primary);
+  z-index: 25;
+  backdrop-filter: blur(4px);
+}
+
+.cornerBadge.left {
+  left: 12px;
+}
+
+.cornerBadge.right {
+  right: 12px;
+}
+
+.hudCoords {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+  z-index: 25;
+  backdrop-filter: blur(4px);
+}

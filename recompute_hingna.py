@@ -17,7 +17,7 @@ for line in Path(".env").read_text().splitlines():
 config.sh_base_url = "https://sh.dataspace.copernicus.eu"
 config.sh_token_url = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
 
-hingna_bbox = BBox([78.965, 21.095, 79.005, 21.135], crs=CRS.WGS84)
+hingna_bbox = BBox((78.965, 21.095, 79.005, 21.135), crs=CRS.WGS84)
 hingna_size = bbox_to_dimensions(hingna_bbox, resolution=10)
 
 evalscript = """
@@ -62,12 +62,14 @@ Image.fromarray(after_arr).save("hingna_after_fixed.png")
 
 before = cv2.imread("hingna_before_fixed.png")
 after = cv2.imread("hingna_after_fixed.png")
+if before is None or after is None:
+    raise FileNotFoundError("Could not load hingna_before_fixed.png or hingna_after_fixed.png")
 
 # Run Color Diff (threshold 20)
 before_gray = cv2.cvtColor(before, cv2.COLOR_BGR2GRAY)
 after_gray = cv2.cvtColor(after, cv2.COLOR_BGR2GRAY)
-before_gray_norm = cv2.normalize(before_gray, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
-after_gray_norm = cv2.normalize(after_gray, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+before_gray_norm = cv2.normalize(before_gray, np.zeros_like(before_gray), alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+after_gray_norm = cv2.normalize(after_gray, np.zeros_like(after_gray), alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
 before_blur = cv2.GaussianBlur(before_gray_norm, (5, 5), 0)
 after_blur = cv2.GaussianBlur(after_gray_norm, (5, 5), 0)
 
