@@ -2,7 +2,7 @@ import os
 import re
 import hashlib
 from pathlib import Path
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, Dict, Any, List, Optional
 
 import cv2
 import numpy as np
@@ -36,6 +36,9 @@ function evaluatePixel(sample) {
 }
 """
 
+# In-memory cache for available dates catalog query
+DATES_CACHE: Dict[str, List[Dict[str, Any]]] = {}
+
 def build_bbox_from_point(lat: float, lng: float, padding: float = 0.024) -> BBox:
     """
     Builds a bounding box around (lat, lng) with ~0.024 deg padding (~2.5km span).
@@ -45,6 +48,60 @@ def build_bbox_from_point(lat: float, lng: float, padding: float = 0.024) -> BBo
     max_lng = lng + padding
     max_lat = lat + padding
     return BBox((min_lng, min_lat, max_lng, max_lat), crs=CRS.WGS84)
+
+
+def get_available_scene_dates(
+    bbox: BBox,
+    start_date: str = "2020-01-01",
+    end_date: str = "2025-03-01",
+    config: Optional[SHConfig] = None
+) -> List[Dict[str, Any]]:
+    """
+    Queries Sentinel Hub Catalog API for all available Sentinel-2 scenes in the date window.
+    Returns deduplicated, sorted list with date, cloud_cover, and usability flag.
+    """
+    if config is None:
+        config = get_sh_config()
+
+    cache_key = f"{bbox.min_x:.4f}_{bbox.min_y:.4f}_{bbox.max_x:.4f}_{bbox.max_y:.4f}_{start_date}_{end_date}"
+    if cache_key in DATES_CACHE:
+        return DATES_CACHE[cache_key]
+
+    catalog = SentinelHubCatalog(config=config)
+    data_collection = DataCollection.SENTINEL2_L2A.define_from(
+        name="s2l2a", service_url="https://sh.dataspace.copernicus.eu"
+    )
+
+    try:
+        results = list(catalog.search(data_collection, bbox=bbox, time=(start_date, end_date)))
+    except Exception as e:
+        print(f"Catalog search error for available dates ({start_date} to {end_date}): {e}")
+        return []
+
+    # Map dates to best cloud cover
+    date_map: Dict[str, Dict[str, Any]] = {}
+    for r in results:
+        p = r.get("properties", {})
+        dt = p.get("datetime", "")
+        if not dt or len(dt) < 10:
+            continue
+        date_str = dt[:10]
+        cc = p.get("eo:cloud_cover", p.get("cloudCover", None))
+        if cc is None:
+            cc = 0.0
+        cc_val = round(float(cc), 1)
+
+        if date_str not in date_map or cc_val < date_map[date_str]["cloud_cover"]:
+            date_map[date_str] = {
+                "date": date_str,
+                "cloud_cover": cc_val,
+                "usable": cc_val < 15.0,
+                "scene_id": r.get("id", "")
+            }
+
+    sorted_dates = sorted(date_map.values(), key=lambda x: x["date"])
+    DATES_CACHE[cache_key] = sorted_dates
+    return sorted_dates
 
 
 def search_catalog_best_scene(
@@ -195,12 +252,14 @@ def run_analysis_pipeline(
     lat: float,
     lng: float,
     location_name: str,
+    before_date: Optional[str] = None,
+    after_date: Optional[str] = None,
     base_url: str = "http://localhost:8000"
 ) -> Dict[str, Any]:
     """
     Complete end-to-end execution:
     1. BBox construction
-    2. Catalog cloud-cover validation
+    2. Date resolution (either explicit dates or auto catalog search)
     3. Process API imagery fetch
     4. Color-diff and SSIM computation
     5. Static image generation & URL return
@@ -209,34 +268,36 @@ def run_analysis_pipeline(
     bbox = build_bbox_from_point(lat, lng, padding=0.024)
     size = (600, 500)
 
-    # 1. Seasonally matched date windows (January-February winter baseline vs current winter)
-    # Matching calendar month eliminates seasonal vegetation/temperature differences
-    before_start, before_end = "2022-01-01", "2022-02-28"
-    after_start, after_end = "2025-01-01", "2025-02-28"
+    if before_date and after_date:
+        before_date_str = before_date.strip()
+        after_date_str = after_date.strip()
+    else:
+        # Seasonally matched auto-search
+        before_start, before_end = "2022-01-01", "2022-02-28"
+        after_start, after_end = "2025-01-01", "2025-02-28"
 
-    # 2. Check catalog cloud cover
-    best_before = search_catalog_best_scene(bbox, before_start, before_end, config, max_cloud_cover=15.0)
-    best_after = search_catalog_best_scene(bbox, after_start, after_end, config, max_cloud_cover=15.0)
+        best_before = search_catalog_best_scene(bbox, before_start, before_end, config, max_cloud_cover=15.0)
+        best_after = search_catalog_best_scene(bbox, after_start, after_end, config, max_cloud_cover=15.0)
 
-    if not best_before or not best_after:
-        missing = []
-        if not best_before:
-            missing.append(f"baseline window ({before_start} to {before_end})")
-        if not best_after:
-            missing.append(f"recent window ({after_start} to {after_end})")
-        raise ValueError(
-            f"No clear satellite scenes with <15% cloud cover found for '{location_name}' in {', '.join(missing)}. "
-            f"Please select an adjacent sector or verified landmark."
-        )
+        if not best_before or not best_after:
+            missing = []
+            if not best_before:
+                missing.append(f"baseline window ({before_start} to {before_end})")
+            if not best_after:
+                missing.append(f"recent window ({after_start} to {after_end})")
+            raise ValueError(
+                f"No clear satellite scenes with <15% cloud cover found for '{location_name}' in {', '.join(missing)}. "
+                f"Please select an adjacent sector or verified landmark."
+            )
 
-    before_date_str = best_before[0][:10]
-    after_date_str = best_after[0][:10]
+        before_date_str = best_before[0][:10]
+        after_date_str = best_after[0][:10]
 
     # Exact 1-day time interval for precise scene retrieval
     before_interval = (f"{before_date_str}T00:00:00Z", f"{before_date_str}T23:59:59Z")
     after_interval = (f"{after_date_str}T00:00:00Z", f"{after_date_str}T23:59:59Z")
 
-    # 3. Fetch satellite imagery
+    # Fetch satellite imagery
     raw_before = fetch_satellite_image(before_interval, bbox, size, config)
     raw_after = fetch_satellite_image(after_interval, bbox, size, config)
 
@@ -244,7 +305,7 @@ def run_analysis_pipeline(
     before_bgr = cv2.cvtColor(raw_before, cv2.COLOR_RGB2BGR)
     after_bgr = cv2.cvtColor(raw_after, cv2.COLOR_RGB2BGR)
 
-    # 4. Run change detection algorithms
+    # Run change detection algorithms
     color_diff_pct, color_mask, color_overlay = compute_color_diff(
         before_bgr, after_bgr, threshold=20, kernel_size=3
     )
@@ -252,10 +313,11 @@ def run_analysis_pipeline(
         before_bgr, after_bgr, threshold=0.55, kernel_size=3
     )
 
-    # 5. Persist output files to static directory
+    # Persist output files to static directory
     slug = re.sub(r"[^a-zA-Z0-9_-]", "_", location_name.lower())[:32]
-    loc_hash = hashlib.md5(f"{lat:.4f}_{lng:.4f}_{location_name}".encode()).hexdigest()[:8]
-    output_dir = RESULTS_DIR / f"{slug}_{loc_hash}"
+    date_tag = f"{before_date_str.replace('-', '')}_{after_date_str.replace('-', '')}"
+    loc_hash = hashlib.md5(f"{lat:.4f}_{lng:.4f}_{location_name}_{date_tag}".encode()).hexdigest()[:8]
+    output_dir = RESULTS_DIR / f"{slug}_{date_tag}_{loc_hash}"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     before_path = output_dir / "before.png"
@@ -268,7 +330,15 @@ def run_analysis_pipeline(
     cv2.imwrite(str(color_overlay_path), color_overlay)
     cv2.imwrite(str(ssim_overlay_path), ssim_overlay)
 
-    # 6. Compute sensor convergence & confidence
+    # Also sync into public directory for frontend instant access
+    public_dir = Path(__file__).resolve().parent.parent / "public"
+    public_results = public_dir / "results" / output_dir.name
+    public_results.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(public_results / "before.png"), before_bgr)
+    cv2.imwrite(str(public_results / "after.png"), after_bgr)
+    cv2.imwrite(str(public_results / "color_overlay.png"), color_overlay)
+    cv2.imwrite(str(public_results / "ssim_overlay.png"), ssim_overlay)
+
     divergence = abs(color_diff_pct - ssim_pct)
     confidence = "high" if divergence <= 3.0 else "needs_review"
 

@@ -20,6 +20,8 @@ dist-ssr/
 # Backend generated live cache
 backend/static/results/*
 !backend/static/results/.gitkeep
+public/results/*
+!public/results/.gitkeep
 
 # OS / IDE artifacts
 .DS_Store

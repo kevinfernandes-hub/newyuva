@@ -51,7 +51,7 @@ export function App() {
     progressTimersRef.current = [];
   };
 
-  // Real live analysis request calling POST /api/analyze
+  // Real live analysis request calling POST /api/analyze for new location search
   const handleRequestLiveAnalysis = useCallback(
     async (locationName) => {
       const cleanName = locationName.trim();
@@ -183,6 +183,118 @@ export function App() {
     [locationsList]
   );
 
+  // Custom date pair analysis from TimelineSelector
+  const handleAnalyzeCustomDates = useCallback(
+    async (beforeDate, afterDate) => {
+      if (!selectedLocation?.coordinates) return;
+      const [lat, lng] = selectedLocation.coordinates;
+
+      setErrorMessage('');
+      setIsScanning(true);
+      setScanningStatusText(`1/3 Fetching Process API granules for ${beforeDate} & ${afterDate}...`);
+      clearProgressTimers();
+
+      progressTimersRef.current.push(
+        setTimeout(() => {
+          setScanningStatusText('2/3 Computing optical pixel delta & contrast normalization...');
+        }, 3000)
+      );
+
+      progressTimersRef.current.push(
+        setTimeout(() => {
+          setScanningStatusText('3/3 Generating SSIM structural divergence matrix & overlays...');
+        }, 6000)
+      );
+
+      try {
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lat,
+            lng,
+            location_name: selectedLocation.name,
+            before_date: beforeDate,
+            after_date: afterDate
+          })
+        });
+
+        clearProgressTimers();
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          const reason =
+            errData?.detail?.reason ||
+            errData?.reason ||
+            `Could not process imagery for date pair (${beforeDate} → ${afterDate}).`;
+          setErrorMessage(reason);
+          setIsScanning(false);
+          setScanningStatusText('');
+          return;
+        }
+
+        const data = await response.json();
+        const ssimArea = data.ssim_pct;
+        const colorDiff = data.color_diff_pct;
+        const status = ssimArea > 15 ? 'flagged' : colorDiff > 7.0 ? 'elevated' : 'stable';
+        const statusLabel =
+          status === 'flagged'
+            ? 'Flagged / Divergent'
+            : status === 'elevated'
+            ? 'Elevated Change'
+            : 'Moderate / Stable';
+
+        // Update current location in locationsList with custom date results
+        setLocationsList((prev) =>
+          prev.map((loc) => {
+            if (loc.id === selectedLocation.id) {
+              return {
+                ...loc,
+                colorDiff,
+                ssimArea,
+                ssimScore: data.ssim_score,
+                status,
+                statusLabel,
+                confidence: data.confidence,
+                beforeDate: data.before_date,
+                afterDate: data.after_date,
+                subtitle: `${loc.subtitle.split('—')[0].trim()} — Analyzed ${data.before_date} → ${data.after_date}`,
+                localImages: {
+                  before: data.before_image_url,
+                  after: data.after_image_url,
+                  colorOverlay: data.color_diff_overlay_url,
+                  ssimOverlay: data.ssim_overlay_url
+                },
+                isLiveAnalyzed: true
+              };
+            }
+            return loc;
+          })
+        );
+
+        setIsScanning(false);
+        setScanningStatusText('');
+      } catch (err) {
+        clearProgressTimers();
+        console.error('Custom date analysis failed:', err);
+        setErrorMessage('Failed to fetch imagery for selected date pair.');
+        setIsScanning(false);
+        setScanningStatusText('');
+      }
+    },
+    [selectedLocation]
+  );
+
+  const handleResetDates = useCallback(() => {
+    // Reset back to preset values if available
+    const orig = initialLocations.find((l) => l.id === selectedLocation?.id);
+    if (orig) {
+      setLocationsList((prev) =>
+        prev.map((loc) => (loc.id === orig.id ? { ...orig } : loc))
+      );
+    }
+  }, [selectedLocation]);
+
   return (
     <div className={styles.appContainer}>
       <Header />
@@ -204,6 +316,9 @@ export function App() {
         <ImageComparisonViewer
           location={selectedLocation}
           threshold={threshold}
+          onAnalyzeDates={handleAnalyzeCustomDates}
+          isAnalyzing={isScanning}
+          onResetDates={handleResetDates}
         />
 
         <MetricsPanel

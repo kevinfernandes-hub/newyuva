@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ComparisonSlider } from './ComparisonSlider';
 import { ViewModeToggle } from './ViewModeToggle';
+import { TimelineSelector } from '../TimelineSelector/TimelineSelector';
 import { useDraggable } from '../../hooks/useDraggable';
 import styles from './ImageComparisonViewer.module.css';
 
@@ -66,10 +67,16 @@ function drawTerrainTexture(ctx, w, h, seed, isAfter, overlayMode, threshold) {
   }
 }
 
-export function ImageComparisonViewer({ location, threshold }) {
+export function ImageComparisonViewer({
+  location,
+  threshold,
+  onAnalyzeDates,
+  isAnalyzing,
+  onResetDates
+}) {
   const [viewMode, setViewMode] = useState('raw');
   const [cursorCoords, setCursorCoords] = useState('21.0542° N, 79.0518° E');
-  
+
   const canvasBeforeRef = useRef(null);
   const canvasAfterRef = useRef(null);
 
@@ -84,7 +91,7 @@ export function ImageComparisonViewer({ location, threshold }) {
   // Render canvas layers with real Sentinel-2 PNGs or procedural fallback
   useEffect(() => {
     const width = 600;
-    const height = 500;
+    const height = 460;
     const canvasBefore = canvasBeforeRef.current;
     const canvasAfter = canvasAfterRef.current;
     if (!canvasBefore || !canvasAfter) return;
@@ -118,7 +125,6 @@ export function ImageComparisonViewer({ location, threshold }) {
         ctxBefore.drawImage(imgBefore, 0, 0, width, height);
       };
       imgBefore.onerror = () => {
-        console.warn('Falling back for before image:', beforeSrc);
         const seed = location.id.charCodeAt(0) * 19 + location.id.length * 37;
         drawTerrainTexture(ctxBefore, width, height, seed, false, 0, threshold);
       };
@@ -136,7 +142,6 @@ export function ImageComparisonViewer({ location, threshold }) {
         ctxAfter.drawImage(imgAfter, 0, 0, width, height);
       };
       imgAfter.onerror = () => {
-        console.warn('Falling back for after/overlay image:', afterSrc);
         const seed = location.id.charCodeAt(0) * 19 + location.id.length * 37;
         const overlayType = viewMode === 'color' ? 1 : viewMode === 'ssim' ? 2 : 0;
         drawTerrainTexture(ctxAfter, width, height, seed, true, overlayType, threshold);
@@ -170,7 +175,7 @@ export function ImageComparisonViewer({ location, threshold }) {
   }, [setSliderPos]);
 
   return (
-    <section className={styles.viewerSection} aria-label="Satellite Imagery Comparison">
+    <section className={styles.viewerSection} aria-label="Satellite Imagery Comparison and Timeline">
       <div className={styles.headerBar}>
         <div className={styles.metaGroup}>
           <span className={styles.locationTitle}>{location.name}</span>
@@ -191,6 +196,7 @@ export function ImageComparisonViewer({ location, threshold }) {
         </div>
       )}
 
+      {/* Centerpiece Image Split Canvas Card */}
       <div
         className={styles.canvasCard}
         ref={containerRef}
@@ -227,6 +233,16 @@ export function ImageComparisonViewer({ location, threshold }) {
         </div>
         <div className={styles.hudCoords}>{cursorCoords}</div>
       </div>
+
+      {/* Sentinel-2 Interactive Timeline Selector */}
+      <TimelineSelector
+        location={location}
+        onAnalyzeDates={onAnalyzeDates}
+        isAnalyzing={isAnalyzing}
+        currentBeforeDate={location.beforeDate}
+        currentAfterDate={location.afterDate}
+        onResetDates={onResetDates}
+      />
     </section>
   );
 }
