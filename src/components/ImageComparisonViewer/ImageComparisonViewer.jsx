@@ -7,6 +7,21 @@ import { useDraggable } from '../../hooks/useDraggable';
 import styles from './ImageComparisonViewer.module.css';
 
 /**
+ * Normalizes image URLs to relative proxy paths to prevent cross-origin issues
+ */
+const normalizeImageUrl = (url) => {
+  if (!url) return '';
+  if (typeof url !== 'string') return '';
+  if (url.includes('localhost:8000/static/')) {
+    return url.replace('http://localhost:8000', '');
+  }
+  if (url.includes('127.0.0.1:8000/static/')) {
+    return url.replace('http://127.0.0.1:8000', '');
+  }
+  return url;
+};
+
+/**
  * Procedural Terrain Simulation generator
  * Used ONLY as fallback when real satellite imagery assets are unavailable
  */
@@ -56,7 +71,6 @@ function drawTerrainTexture(ctx, w, h, seed, isAfter, overlayMode, threshold) {
     drawGrid(w * 0.48, h * 0.42, 6, 5);
     drawGrid(w * 0.72, h * 0.25, 4, 3);
 
-    // Sparse localized highlight fallback (~10% area)
     if (overlayMode === 1) {
       const alpha = Math.min(0.85, Math.max(0.3, (35 - threshold) / 25));
       ctx.fillStyle = `rgba(201, 111, 62, ${alpha})`;
@@ -102,8 +116,8 @@ export function ImageComparisonViewer({
     handleTouchStart: handleSliderTouchStart
   } = useDraggable({ initialValue: 50, min: 2, max: 98 });
 
-  const hasHighResTier = Boolean(location?.tiers?.['0.6m']);
-  const isHighRes = selectedTier === '0.6m' && hasHighResTier;
+  const hasHighResTier = Boolean(location?.tiers?.['0.6m'] || location?.id === 'mihan');
+  const isHighRes = selectedTier === '0.6m';
   const tier06 = location?.tiers?.['0.6m'];
   const tier10 = location?.tiers?.['10m'];
 
@@ -114,26 +128,23 @@ export function ImageComparisonViewer({
     setActiveFocusKey('overview');
   }, [location?.id, selectedTier]);
 
-  // Automatically switch viewMode to 'color' if on 0.6m and user was on 'ssim'
+  // If user switches to 0.6m and was on 'ssim', switch to 'color'
   useEffect(() => {
     if (isHighRes && viewMode === 'ssim') {
       setViewMode('color');
     }
   }, [isHighRes, viewMode]);
 
-  // Zoom handlers
   const handleZoomIn = () => {
-    setZoomLevel((z) => Math.min(4.5, Number((z + 0.35).toFixed(2))));
-    setActiveFocusKey('custom');
+    setZoomLevel((prev) => Math.min(prev + 0.5, 4.5));
   };
 
   const handleZoomOut = () => {
-    setZoomLevel((z) => {
-      const next = Math.max(1.0, Number((z - 0.35).toFixed(2)));
+    setZoomLevel((prev) => {
+      const next = Math.max(prev - 0.5, 1.0);
       if (next === 1.0) setPanOffset({ x: 0, y: 0 });
       return next;
     });
-    setActiveFocusKey('custom');
   };
 
   const handleResetZoom = () => {
@@ -142,68 +153,123 @@ export function ImageComparisonViewer({
     setActiveFocusKey('overview');
   };
 
-  const handleSetFocusPreset = (key, zoom, panX, panY, hotspotId = null) => {
+  const handleSetFocusPreset = (key, zoom, x, y, hotspotId) => {
     setActiveFocusKey(key);
     setZoomLevel(zoom);
-    setPanOffset({ x: panX, y: panY });
+    setPanOffset({ x, y });
     if (hotspotId && onSelectHotspot) {
       onSelectHotspot(hotspotId);
     }
   };
 
-  // Mouse wheel zoom
-  const handleWheel = useCallback(
-    (e) => {
-      e.preventDefault();
-      const delta = e.deltaY < 0 ? 0.2 : -0.2;
-      setZoomLevel((z) => {
-        const next = Math.min(4.5, Math.max(1.0, Number((z + delta).toFixed(2))));
-        if (next === 1.0) setPanOffset({ x: 0, y: 0 });
-        return next;
+  const handleMouseDown = (e) => {
+    if (zoomLevel <= 1.0) return;
+    setIsPanning(true);
+    panStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      panX: panOffset.x,
+      panY: panOffset.y
+    };
+  };
+
+  const handleMouseMove = (e) => {
+    if (isPanning && zoomLevel > 1.0) {
+      const dx = e.clientX - panStartRef.current.x;
+      const dy = e.clientY - panStartRef.current.y;
+      const maxPan = (zoomLevel - 1) * 350;
+      setPanOffset({
+        x: Math.max(-maxPan, Math.min(maxPan, panStartRef.current.panX + dx)),
+        y: Math.max(-maxPan, Math.min(maxPan, panStartRef.current.panY + dy))
       });
-      setActiveFocusKey('custom');
-    },
-    []
-  );
+    }
 
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    el.addEventListener('wheel', handleWheel, { passive: false });
-    return () => el.removeEventListener('wheel', handleWheel);
-  }, [handleWheel, containerRef]);
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const pctX = Math.max(0, Math.min(1, x / rect.width));
+    const pctY = Math.max(0, Math.min(1, y / rect.height));
 
-  // Render canvas layers with edge-to-edge balanced fill and zoom/pan
+    const [lat, lng] = location?.coordinates || [21.0542, 79.0518];
+    const latSpan = 0.048;
+    const lngSpan = 0.048;
+    const curLat = lat + latSpan / 2 - pctY * latSpan;
+    const curLng = lng - lngSpan / 2 + pctX * lngSpan;
+
+    setCursorCoords(`${curLat.toFixed(4)}° N, ${curLng.toFixed(4)}° E`);
+  };
+
+  const handleMouseUp = () => {
+    setIsPanning(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowLeft') {
+      setSliderPos((prev) => Math.max(prev - 2, 2));
+    } else if (e.key === 'ArrowRight') {
+      setSliderPos((prev) => Math.min(prev + 2, 98));
+    }
+  };
+
+  // Canvas render loop
   useEffect(() => {
-    const width = 800;
-    const height = 600;
     const canvasBefore = canvasBeforeRef.current;
     const canvasAfter = canvasAfterRef.current;
     if (!canvasBefore || !canvasAfter) return;
+
+    const ctxBefore = canvasBefore.getContext('2d');
+    const ctxAfter = canvasAfter.getContext('2d');
+    if (!ctxBefore || !ctxAfter) return;
+
+    const width = containerRef.current ? containerRef.current.clientWidth : 800;
+    const height = containerRef.current ? containerRef.current.clientHeight : 540;
 
     canvasBefore.width = width;
     canvasBefore.height = height;
     canvasAfter.width = width;
     canvasAfter.height = height;
 
-    const ctxBefore = canvasBefore.getContext('2d');
-    const ctxAfter = canvasAfter.getContext('2d');
+    let beforeSrc, afterSrc;
 
-    // Pick image source based on active resolution tier & view mode
-    let beforeSrc = '';
-    let afterSrc = '';
+    if (isHighRes) {
+      beforeSrc =
+        tier06?.beforeImage ||
+        tier10?.beforeImage ||
+        location?.localImages?.before;
 
-    if (isHighRes && tier06) {
-      beforeSrc = tier06.beforeImage;
-      afterSrc = viewMode === 'color' ? tier06.colorDiffOverlay : tier06.afterImage;
-    } else {
-      beforeSrc = tier10?.beforeImage || location.localImages?.before;
       if (viewMode === 'color') {
-        afterSrc = tier10?.colorDiffOverlay || location.localImages?.colorOverlay || location.localImages?.after;
-      } else if (viewMode === 'ssim') {
-        afterSrc = tier10?.ssimOverlay || location.localImages?.ssimOverlay || location.localImages?.after;
+        afterSrc =
+          tier06?.colorDiffOverlay ||
+          tier06?.colorOverlay ||
+          tier10?.colorDiffOverlay ||
+          location?.localImages?.colorOverlay ||
+          location?.localImages?.after;
       } else {
-        afterSrc = tier10?.afterImage || location.localImages?.after;
+        afterSrc =
+          tier06?.afterImage ||
+          tier10?.afterImage ||
+          location?.localImages?.after;
+      }
+    } else {
+      beforeSrc =
+        tier10?.beforeImage ||
+        location?.localImages?.before;
+
+      if (viewMode === 'color') {
+        afterSrc =
+          tier10?.colorDiffOverlay ||
+          location?.localImages?.colorOverlay ||
+          location?.localImages?.after;
+      } else if (viewMode === 'ssim') {
+        afterSrc =
+          tier10?.ssimOverlay ||
+          location?.localImages?.ssimOverlay ||
+          location?.localImages?.after;
+      } else {
+        afterSrc =
+          tier10?.afterImage ||
+          location?.localImages?.after;
       }
     }
 
@@ -220,17 +286,15 @@ export function ImageComparisonViewer({
       ctx.translate(-width / 2, -height / 2);
     };
 
-    // Calculate balanced fill box so the satellite imagery fills the canvas without empty black side bars
     const calculateDrawBox = (imgW, imgH) => {
-      const imgAspect = imgW / imgH; // 0.833 for Wayback (2083x2500)
+      const imgAspect = imgW / imgH;
       let drawW, drawH, drawX, drawY;
 
-      if (isHighRes) {
-        // Fill canvas width edge-to-edge, centered vertically on the primary development corridor
+      if (isHighRes && location?.id === 'mihan') {
         drawW = width;
-        drawH = width / imgAspect; // ~960px
+        drawH = width / imgAspect;
         drawX = 0;
-        drawY = (height - drawH) * 0.48; // Centered on AIIMS & Tech SEZ
+        drawY = (height - drawH) * 0.48;
       } else {
         drawW = width;
         drawH = height;
@@ -243,7 +307,12 @@ export function ImageComparisonViewer({
     const drawHotspotBoxes = (ctx, drawBox) => {
       if (!showHotspotBoxes || !hotspots || hotspots.length === 0) return;
 
-      const baseBounds = [79.020, 21.030, 79.074, 21.090];
+      const [lat, lng] = location?.coordinates || [21.0542, 79.0518];
+      const padding = 0.024;
+      const baseBounds = (location?.id === 'mihan')
+        ? [79.020, 21.030, 79.074, 21.090]
+        : [lng - padding, lat - padding, lng + padding, lat + padding];
+
       const [west, south, east, north] = baseBounds;
       const { drawX, drawY, drawW, drawH } = drawBox;
 
@@ -256,15 +325,15 @@ export function ImageComparisonViewer({
           h.latitude + 0.005
         ];
 
-        const x1 = drawX + ((h_min_lon - west) / (east - west)) * drawW;
-        const x2 = drawX + ((h_max_lon - west) / (east - west)) * drawW;
-        const y1 = drawY + ((north - h_max_lat) / (north - south)) * drawH;
-        const y2 = drawY + ((north - h_min_lat) / (north - south)) * drawH;
+        const x1 = drawX + ((h_min_lon - west) / (east - west + 1e-7)) * drawW;
+        const x2 = drawX + ((h_max_lon - west) / (east - west + 1e-7)) * drawW;
+        const y1 = drawY + ((north - h_max_lat) / (north - south + 1e-7)) * drawH;
+        const y2 = drawY + ((north - h_min_lat) / (north - south + 1e-7)) * drawH;
 
         const bx = Math.min(x1, x2);
         const by = Math.min(y1, y2);
-        const bw = Math.abs(x2 - x1);
-        const bh = Math.abs(y2 - y1);
+        const bw = Math.max(16, Math.abs(x2 - x1));
+        const bh = Math.max(16, Math.abs(y2 - y1));
 
         ctx.strokeStyle = isSelected ? '#DC2626' : 'rgba(201, 111, 62, 0.9)';
         ctx.lineWidth = isSelected ? 2.5 : 1.5;
@@ -274,186 +343,133 @@ export function ImageComparisonViewer({
 
         // Label pill
         ctx.fillStyle = isSelected ? 'rgba(220, 38, 38, 0.95)' : 'rgba(201, 111, 62, 0.9)';
-        ctx.fillRect(bx, Math.max(0, by - 16), 68, 15);
+        ctx.fillRect(bx, Math.max(0, by - 16), 64, 15);
         ctx.fillStyle = '#FFFFFF';
         ctx.font = 'bold 9px monospace';
         ctx.fillText(h.hotspot_id || 'HOTSPOT', bx + 4, Math.max(11, by - 5));
       });
     };
 
-    // 1. Draw Before Layer
-    if (beforeSrc) {
-      const imgBefore = new Image();
-      imgBefore.crossOrigin = 'anonymous';
-      imgBefore.onload = () => {
-        const drawBox = calculateDrawBox(imgBefore.naturalWidth || imgBefore.width || 2083, imgBefore.naturalHeight || imgBefore.height || 2500);
-        applyTransform(ctxBefore);
-        ctxBefore.drawImage(imgBefore, drawBox.drawX, drawBox.drawY, drawBox.drawW, drawBox.drawH);
-        drawHotspotBoxes(ctxBefore, drawBox);
-        ctxBefore.restore();
-      };
-      imgBefore.onerror = () => {
-        const drawBox = { drawX: 0, drawY: 0, drawW: width, drawH: height };
-        applyTransform(ctxBefore);
-        const seed = location.id.charCodeAt(0) * 19 + location.id.length * 37;
-        drawTerrainTexture(ctxBefore, width, height, seed, false, 0, threshold);
-        drawHotspotBoxes(ctxBefore, drawBox);
-        ctxBefore.restore();
-      };
-      imgBefore.src = beforeSrc;
-    } else {
-      const drawBox = { drawX: 0, drawY: 0, drawW: width, drawH: height };
-      applyTransform(ctxBefore);
-      const seed = location.id.charCodeAt(0) * 19 + location.id.length * 37;
-      drawTerrainTexture(ctxBefore, width, height, seed, false, 0, threshold);
-      drawHotspotBoxes(ctxBefore, drawBox);
-      ctxBefore.restore();
-    }
+    let isSubscribed = true;
 
-    // 2. Draw After/Overlay Layer
-    if (afterSrc) {
-      const imgAfter = new Image();
-      imgAfter.crossOrigin = 'anonymous';
-      imgAfter.onload = () => {
-        const drawBox = calculateDrawBox(imgAfter.naturalWidth || imgAfter.width || 2083, imgAfter.naturalHeight || imgAfter.height || 2500);
+    const loadAndRender = async () => {
+      try {
+        const normBefore = normalizeImageUrl(beforeSrc);
+        const normAfter = normalizeImageUrl(afterSrc);
+
+        const imgB = new Image();
+        const imgA = new Image();
+
+        const [loadedB, loadedA] = await Promise.all([
+          new Promise((resolve) => {
+            if (!normBefore) {
+              resolve(null);
+              return;
+            }
+            imgB.onload = () => resolve(imgB);
+            imgB.onerror = () => resolve(null);
+            imgB.src = normBefore;
+          }),
+          new Promise((resolve) => {
+            if (!normAfter) {
+              resolve(null);
+              return;
+            }
+            imgA.onload = () => resolve(imgA);
+            imgA.onerror = () => resolve(null);
+            imgA.src = normAfter;
+          })
+        ]);
+
+        if (!isSubscribed) return;
+
+        // Render Before Layer
+        applyTransform(ctxBefore);
+        if (loadedB) {
+          const boxB = calculateDrawBox(loadedB.naturalWidth, loadedB.naturalHeight);
+          ctxBefore.drawImage(loadedB, boxB.drawX, boxB.drawY, boxB.drawW, boxB.drawH);
+          drawHotspotBoxes(ctxBefore, boxB);
+        } else {
+          drawTerrainTexture(ctxBefore, width, height, 42, false, 0, threshold);
+        }
+        ctxBefore.restore();
+
+        // Render After Layer
         applyTransform(ctxAfter);
-        ctxAfter.drawImage(imgAfter, drawBox.drawX, drawBox.drawY, drawBox.drawW, drawBox.drawH);
-        drawHotspotBoxes(ctxAfter, drawBox);
+        if (loadedA) {
+          const boxA = calculateDrawBox(loadedA.naturalWidth, loadedA.naturalHeight);
+          ctxAfter.drawImage(loadedA, boxA.drawX, boxA.drawY, boxA.drawW, boxA.drawH);
+          drawHotspotBoxes(ctxAfter, boxA);
+        } else {
+          const overlayMode = viewMode === 'color' ? 1 : viewMode === 'ssim' ? 2 : 0;
+          drawTerrainTexture(ctxAfter, width, height, 42, true, overlayMode, threshold);
+        }
         ctxAfter.restore();
-      };
-      imgAfter.onerror = () => {
-        const drawBox = { drawX: 0, drawY: 0, drawW: width, drawH: height };
-        applyTransform(ctxAfter);
-        const seed = location.id.charCodeAt(0) * 19 + location.id.length * 37;
-        const overlayType = viewMode === 'color' ? 1 : viewMode === 'ssim' ? 2 : 0;
-        drawTerrainTexture(ctxAfter, width, height, seed, true, overlayType, threshold);
-        drawHotspotBoxes(ctxAfter, drawBox);
-        ctxAfter.restore();
-      };
-      imgAfter.src = afterSrc;
-    } else {
-      const drawBox = { drawX: 0, drawY: 0, drawW: width, drawH: height };
-      applyTransform(ctxAfter);
-      const seed = location.id.charCodeAt(0) * 19 + location.id.length * 37;
-      const overlayType = viewMode === 'color' ? 1 : viewMode === 'ssim' ? 2 : 0;
-      drawTerrainTexture(ctxAfter, width, height, seed, true, overlayType, threshold);
-      drawHotspotBoxes(ctxAfter, drawBox);
-      ctxAfter.restore();
-    }
+      } catch (err) {
+        console.warn('Canvas render fallback:', err);
+      }
+    };
+
+    loadAndRender();
+
+    return () => {
+      isSubscribed = false;
+    };
   }, [
     location,
+    isHighRes,
     viewMode,
     threshold,
-    selectedTier,
-    isHighRes,
-    tier06,
-    tier10,
     zoomLevel,
     panOffset,
+    showHotspotBoxes,
     hotspots,
     selectedHotspotId,
-    showHotspotBoxes
+    selectedTier
   ]);
 
-  // Pan & Hover handler
-  const handleMouseMove = useCallback(
-    (e) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const px = Math.floor(e.clientX - rect.left);
-      const py = Math.floor(e.clientY - rect.top);
-
-      if (isPanning && zoomLevel > 1.0) {
-        const dx = e.clientX - panStartRef.current.x;
-        const dy = e.clientY - panStartRef.current.y;
-        const maxPanX = (zoomLevel - 1) * 350;
-        const maxPanY = (zoomLevel - 1) * 450;
-        const newX = Math.max(-maxPanX, Math.min(maxPanX, panStartRef.current.panX + dx));
-        const newY = Math.max(-maxPanY, Math.min(maxPanY, panStartRef.current.panY + dy));
-        setPanOffset({ x: newX, y: newY });
-      }
-
-      // Calculate dynamic geographical coordinates based on pan & zoom
-      const baseLat = location.coordinates ? location.coordinates[0] : 21.05;
-      const baseLon = location.coordinates ? location.coordinates[1] : 79.05;
-      const normX = (px - rect.width / 2 - panOffset.x) / (rect.width * zoomLevel);
-      const normY = (py - rect.height / 2 - panOffset.y) / (rect.height * zoomLevel);
-
-      const lat = (baseLat - normY * 0.04).toFixed(4);
-      const lon = (baseLon + normX * 0.04).toFixed(4);
-      setCursorCoords(`${lat}° N, ${lon}° E`);
-    },
-    [containerRef, location, isPanning, zoomLevel, panOffset]
-  );
-
-  const handleMouseDown = (e) => {
-    // If clicking near center slider handle, let slider handle it
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const sliderX = (sliderPos / 100) * rect.width;
-      if (Math.abs(clickX - sliderX) < 20) {
-        handleSliderPointerDown(e);
-        return;
-      }
-    }
-
-    // Otherwise initiate pan if zoomed
-    if (zoomLevel > 1.0) {
-      setIsPanning(true);
-      panStartRef.current = {
-        x: e.clientX,
-        y: e.clientY,
-        panX: panOffset.x,
-        panY: panOffset.y
-      };
-    }
-  };
-
-  const handleMouseUp = () => {
-    if (isPanning) setIsPanning(false);
-  };
-
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === 'ArrowLeft') {
-        setSliderPos((p) => Math.max(5, p - 3));
-      } else if (e.key === 'ArrowRight') {
-        setSliderPos((p) => Math.min(95, p + 3));
-      }
-    },
-    [setSliderPos]
-  );
-
   return (
-    <section className={styles.viewerSection} aria-label="Satellite Imagery Comparison and Timeline">
-      <div className={styles.headerBar}>
-        <div className={styles.metaGroup}>
-          <span className={styles.locationTitle}>{location.name}</span>
-          {location.isPreview && <span className={styles.previewTag}>PREVIEW ESTIMATE</span>}
-          {location.isLiveAnalyzed && <span className={styles.liveTag}>LIVE SENTINEL-2</span>}
-          {isHighRes && <span className={styles.previewTag} style={{ background: 'var(--accent-primary)' }}>0.6m MAXAR</span>}
-          <span className={styles.coordsPill}>{location.coords}</span>
+    <section className={styles.viewerContainer} aria-label="Satellite Imagery Inspection Workspace">
+      {/* Top Header & Resolution Tier Toggle Bar */}
+      <div className={styles.viewerHeader}>
+        <div className={styles.titleInfo}>
+          <div className={styles.sectorTitleRow}>
+            <h1 className={styles.sectorTitle}>{location?.name}</h1>
+            <span className={styles.sourceTag}>
+              {isHighRes ? '0.6M MAXAR' : location?.isLiveAnalyzed ? 'LIVE SENTINEL-2' : 'SENTINEL-2 L2A'}
+            </span>
+            {hasHighResTier && (
+              <span className={styles.submeterBadge} title="Calibrated sub-meter historical Wayback imagery available">
+                0.6m Wayback
+              </span>
+            )}
+          </div>
+          <span className={styles.sectorMeta}>
+            {location?.coords} • AOI Bounds {isHighRes ? '0.6m High-Res' : '10m Multi-Spectral'}
+          </span>
         </div>
 
         <div className={styles.controlsRow}>
           <ResolutionTierToggle
             selectedTier={selectedTier}
             onTierChange={onTierChange}
+            hasHighRes={hasHighResTier}
             hasHighResTier={hasHighResTier}
           />
+
           <ViewModeToggle
+            viewMode={viewMode}
             currentMode={viewMode}
             onModeChange={setViewMode}
             selectedTier={selectedTier}
-            tierNote={tier06?.note}
+            isHighRes={isHighRes}
           />
         </div>
       </div>
 
-      {/* Sub-meter Sector Focus Toolbar (Only on 0.6m tier) */}
+      {/* Focus & Verify Candidate Hotspots Toolbar */}
       {isHighRes && (
-        <div className={styles.submeterToolbar}>
+        <div className={styles.focusBar} role="toolbar" aria-label="AI Hotspot Zoom and Verify Bar">
           <div className={styles.focusPillsGroup}>
             <span className={styles.focusLabel}>🎯 Focus & Verify:</span>
             <button
@@ -463,34 +479,31 @@ export function ImageComparisonViewer({
             >
               1.0x Full Sector
             </button>
-            <button
-              type="button"
-              className={`${styles.focusPill} ${activeFocusKey === 'aiims' ? styles.activeFocus : ''}`}
-              onClick={() => handleSetFocusPreset('aiims', 2.2, -30, 20, 'MIHAN-042')}
-            >
-              2.2x #NGP-042 (AIIMS)
-            </button>
-            <button
-              type="button"
-              className={`${styles.focusPill} ${activeFocusKey === 'sez' ? styles.activeFocus : ''}`}
-              onClick={() => handleSetFocusPreset('sez', 2.2, 50, -20, 'MIHAN-043')}
-            >
-              2.2x #NGP-043 (Logistics)
-            </button>
-            <button
-              type="button"
-              className={`${styles.focusPill} ${activeFocusKey === 'tech' ? styles.activeFocus : ''}`}
-              onClick={() => handleSetFocusPreset('tech', 2.0, 20, -50, 'MIHAN-044')}
-            >
-              2.0x #NGP-044 (Tech SEZ)
-            </button>
-            <button
-              type="button"
-              className={`${styles.focusPill} ${activeFocusKey === 'hwy' ? styles.activeFocus : ''}`}
-              onClick={() => handleSetFocusPreset('hwy', 2.0, -50, -40, 'MIHAN-045')}
-            >
-              2.0x #NGP-045 (Interchange)
-            </button>
+            {hotspots.slice(0, 4).map((h, idx) => {
+              const hLon = h.longitude;
+              const hLat = h.latitude;
+              const [lat, lng] = location?.coordinates || [21.0542, 79.0518];
+              const padding = 0.024;
+              const [west, south, east, north] = (location?.id === 'mihan')
+                ? [79.020, 21.030, 79.074, 21.090]
+                : [lng - padding, lat - padding, lng + padding, lat + padding];
+
+              const normX = ((hLon - west) / (east - west + 1e-7)) - 0.5;
+              const normY = ((north - hLat) / (north - south + 1e-7)) - 0.5;
+              const panX = -normX * 320;
+              const panY = -normY * 260;
+
+              return (
+                <button
+                  key={h.hotspot_id || idx}
+                  type="button"
+                  className={`${styles.focusPill} ${activeFocusKey === h.hotspot_id ? styles.activeFocus : ''}`}
+                  onClick={() => handleSetFocusPreset(h.hotspot_id, 2.2, panX, panY, h.hotspot_id)}
+                >
+                  2.2x #{h.hotspot_id} ({h.name.replace(/Hotspot #\d+ \(/i, '').replace(/\)/g, '').slice(0, 14)})
+                </button>
+              );
+            })}
           </div>
 
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
@@ -511,7 +524,7 @@ export function ImageComparisonViewer({
         </div>
       )}
 
-      {location.isPreview && (
+      {location?.isPreview && (
         <div className={styles.previewNoticeBar}>
           <span className={styles.previewIcon}>ⓘ</span>
           <span>
@@ -588,7 +601,7 @@ export function ImageComparisonViewer({
         <div className={`${styles.cornerBadge} ${styles.left}`}>
           {isHighRes
             ? `2019-01-31 (0.6m Baseline @ ${zoomLevel.toFixed(1)}x)`
-            : location.beforeDate
+            : location?.beforeDate
             ? `Baseline (${location.beforeDate})`
             : `Jan 2022 (10m @ ${zoomLevel.toFixed(1)}x)`}
         </div>
@@ -596,9 +609,9 @@ export function ImageComparisonViewer({
           {isHighRes
             ? viewMode === 'raw'
               ? `2025-01-30 (0.6m Current @ ${zoomLevel.toFixed(1)}x)`
-              : `0.6m Calibrated Color-Diff (6.15% @ ${zoomLevel.toFixed(1)}x)`
+              : `0.6m Calibrated Color-Diff (${(tier06?.colorDiffPct || location?.colorDiff || 6.15).toFixed(2)}% @ ${zoomLevel.toFixed(1)}x)`
             : viewMode === 'raw'
-            ? location.afterDate
+            ? location?.afterDate
               ? `Current (${location.afterDate})`
               : `Jan 2025 (10m Current @ ${zoomLevel.toFixed(1)}x)`
             : viewMode === 'color'
@@ -614,8 +627,8 @@ export function ImageComparisonViewer({
           location={location}
           onAnalyzeDates={onAnalyzeDates}
           isAnalyzing={isAnalyzing}
-          currentBeforeDate={location.beforeDate}
-          currentAfterDate={location.afterDate}
+          currentBeforeDate={location?.beforeDate}
+          currentAfterDate={location?.afterDate}
           onResetDates={onResetDates}
         />
       )}

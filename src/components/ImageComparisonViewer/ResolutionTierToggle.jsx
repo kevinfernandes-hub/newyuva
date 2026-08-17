@@ -1,13 +1,15 @@
 import React from 'react';
 import styles from './ImageComparisonViewer.module.css';
 
-export function ResolutionTierToggle({ selectedTier, onTierChange, hasHighResTier }) {
+export function ResolutionTierToggle({ selectedTier = '10m', onTierChange, hasHighRes, hasHighResTier }) {
+  const isHighResAvailable = Boolean(hasHighRes ?? hasHighResTier ?? true);
+
   return (
     <div className={styles.tierSegmentedControl} role="group" aria-label="Resolution Tier Toggle">
       <button
         type="button"
         className={`${styles.tierSegmentBtn} ${selectedTier === '10m' ? styles.tierActive : ''}`}
-        onClick={() => onTierChange('10m')}
+        onClick={() => onTierChange && onTierChange('10m')}
         title="10m spatial resolution from Copernicus Sentinel-2 (Multispectral L2A)"
       >
         <span className={styles.tierBadge}>10m</span>
@@ -17,19 +19,14 @@ export function ResolutionTierToggle({ selectedTier, onTierChange, hasHighResTie
       <button
         type="button"
         className={`${styles.tierSegmentBtn} ${selectedTier === '0.6m' ? styles.tierActive : ''} ${
-          !hasHighResTier ? styles.tierDisabled : ''
+          !isHighResAvailable ? styles.tierDisabled : ''
         }`}
-        onClick={() => hasHighResTier && onTierChange('0.6m')}
-        disabled={!hasHighResTier}
-        title={
-          hasHighResTier
-            ? '0.6m sub-meter optical resolution from Esri Wayback Archive (Maxar Imagery)'
-            : 'High-resolution pass not yet processed for this location'
-        }
+        onClick={() => onTierChange && onTierChange('0.6m')}
+        title="0.6m sub-meter optical resolution from Esri Wayback Archive (Maxar Imagery)"
       >
-        <span className={`${styles.tierBadge} ${hasHighResTier ? styles.badgeHighRes : ''}`}>0.6m</span>
+        <span className={`${styles.tierBadge} ${isHighResAvailable ? styles.badgeHighRes : ''}`}>0.6m</span>
         <span>Wayback (Maxar)</span>
-        {!hasHighResTier && <span className={styles.lockIcon}>🔒</span>}
+        {!isHighResAvailable && <span className={styles.lockIcon}>🔒</span>}
       </button>
     </div>
   );

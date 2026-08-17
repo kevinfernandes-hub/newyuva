@@ -1,24 +1,29 @@
 import os
-from typing import Optional, List, Dict, Any
+from pathlib import Path
+from typing import Dict, Any, Optional, List
 from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from .config import STATIC_DIR
-from .geocoding import geocode_location
-from .pipeline import run_analysis_pipeline, get_available_scene_dates, build_bbox_from_point
 from .locations_data import PRESET_LOCATIONS
+from .geocoding import geocode_location
+from .pipeline import (
+    run_analysis_pipeline,
+    get_available_scene_dates,
+    build_bbox_from_point
+)
 from .hotspots import get_hotspots_for_location
 from .vision_inspector import execute_zoom_and_verify_agent
+from .wayback_live import check_wayback_availability
 
 app = FastAPI(
-    title="Nagpur EarthWatch API",
-    description="Municipal Earth Observation & AI Zoom-and-Verify Urban Change Intelligence API",
-    version="2.0.0"
+    title="Nagpur EarthWatch — Urban Change Intelligence API",
+    description="Dual-tier satellite change detection pipeline combining 10m Copernicus Sentinel-2 multispectral granules, 0.6m Esri Wayback historical mosaics, and AI Zoom-and-Verify Agent.",
+    version="2.0.0",
 )
 
-# Enable CORS for local Vite development & staging
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,36 +32,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files for served result imagery
+# Mount static files directory for serving satellite imagery & overlays
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-# In-memory inspection cache for fast subsequent retrieval
+# In-memory inspection cache
 INSPECTION_CACHE: Dict[str, Dict[str, Any]] = {}
 
 
 class AnalyzeRequest(BaseModel):
-    location_name: Optional[str] = Field(None, description="Location name or landmark to analyze")
-    lat: Optional[float] = Field(None, description="Latitude")
-    lng: Optional[float] = Field(None, description="Longitude")
-    before_date: Optional[str] = Field(None, description="Explicit baseline scene date (YYYY-MM-DD)")
-    after_date: Optional[str] = Field(None, description="Explicit comparison scene date (YYYY-MM-DD)")
+    location_name: Optional[str] = Field(None, description="Location name or landmark in Nagpur (e.g. Civil Lines, Sadar, Hingna, MIHAN, Sitabuldi)")
+    lat: Optional[float] = Field(None, description="Latitude coordinate")
+    lng: Optional[float] = Field(None, description="Longitude coordinate")
+    before_date: Optional[str] = Field(None, description="Baseline date YYYY-MM-DD")
+    after_date: Optional[str] = Field(None, description="Current date YYYY-MM-DD")
 
 
 class InspectHotspotRequest(BaseModel):
-    hotspot_id: str = Field(..., description="Hotspot identifier (e.g. MIHAN-042)")
-    location_id: Optional[str] = Field("mihan", description="Location ID")
-    bbox: Optional[List[float]] = Field(None, description="[west, south, east, north] bounding box")
-    before_date: Optional[str] = Field(None, description="Baseline date (e.g. 2019-01-31)")
-    after_date: Optional[str] = Field(None, description="Comparison date (e.g. 2025-01-30)")
+    hotspot_id: str = Field(..., description="Hotspot identifier e.g. MIHAN-042 or CIVILLINES-001")
+    location_id: str = Field("mihan", description="Location identifier")
 
 
 class InspectAllRequest(BaseModel):
-    location_id: str = Field("mihan", description="Location ID to inspect all candidate hotspots for")
+    location_id: str = Field("mihan", description="Location identifier")
 
 
 @app.get("/api/health")
-async def health_check():
-    return {"status": "healthy", "service": "nagpur-earthwatch-backend", "version": "2.0.0"}
+async def health():
+    return {"status": "ok", "service": "Nagpur EarthWatch Universal Intelligence API"}
 
 
 @app.get("/api/locations")
@@ -79,7 +81,6 @@ async def get_available_dates(
     """
     if lat is None or lng is None:
         if not location_name:
-            # Default to Nagpur center
             lat, lng, display_name = 21.1458, 79.0882, "Nagpur Central"
         else:
             lat, lng, display_name = await geocode_location(location_name)
@@ -97,12 +98,27 @@ async def get_available_dates(
     }
 
 
+@app.get("/api/wayback-availability")
+async def get_wayback_status(
+    lat: float = Query(21.1458, description="Latitude"),
+    lng: float = Query(79.0882, description="Longitude"),
+    padding: float = Query(0.024, description="Bounding box half-span in degrees")
+):
+    """
+    Checks Wayback historical availability for any location or coordinates in Nagpur.
+    """
+    bbox = [lng - padding, lat - padding, lng + padding, lat + padding]
+    return check_wayback_availability(bbox)
+
+
 @app.post("/api/analyze")
 async def analyze_location(req: AnalyzeRequest, request: Request):
     """
-    Geocodes location -> Checks CDSE Sentinel-2 Catalog (<15% cloud cover) OR uses explicit date pair ->
-    Fetches before/after 10m L2A imagery -> Runs optical color diff + SSIM ->
-    Generates overlay PNGs and returns metrics.
+    Universal Location Analysis Endpoint:
+    1. Geocodes location with Nominatim
+    2. Runs Sentinel-2 10m L2A optical difference + SSIM structural divergence matrix
+    3. Checks and stitches high-resolution Esri Wayback ~0.6m historical imagery
+    4. Extracts candidate spatial change hotspots and returns dual-tier results
     """
     if not req.location_name and (req.lat is None or req.lng is None):
         raise HTTPException(
@@ -117,7 +133,6 @@ async def analyze_location(req: AnalyzeRequest, request: Request):
         lat, lng = req.lat, req.lng
         display_name = f"Custom AOI ({lat:.4f}° N, {lng:.4f}° E)"
 
-    # Base URL for static assets
     base_url = str(request.base_url).rstrip("/")
 
     # 2. Run analysis pipeline
@@ -168,9 +183,9 @@ async def inspect_hotspot(req: InspectHotspotRequest, request: Request):
     """
     Executes the AI Zoom-and-Verify Agent on a specific candidate hotspot:
     1. Retrieves candidate hotspot bounding box
-    2. Generates geographically aligned 0.6m Wayback crops (Level 1, 2, 3)
+    2. Generates geographically aligned 0.6m Wayback crops (Level 1 to Level 4)
     3. Runs AI Vision inspection and change categorization
-    4. Fuses 4-tier confidence scores
+    4. Fuses multi-tier EarthWatch Composite Confidence scores
     5. Formulates the complete Government Inspection Case
     """
     cache_key = f"{req.location_id.lower()}_{req.hotspot_id.upper()}"
@@ -205,7 +220,9 @@ async def inspect_all_hotspots(req: InspectAllRequest, request: Request):
     cases = []
 
     for h in hotspots:
-        hid = h["hotspot_id"]
+        hid = h.get("hotspot_id", "")
+        if not hid:
+            continue
         try:
             case_file = execute_zoom_and_verify_agent(
                 hotspot_id=hid,

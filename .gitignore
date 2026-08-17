@@ -22,6 +22,8 @@ backend/static/results/*
 !backend/static/results/.gitkeep
 public/results/*
 !public/results/.gitkeep
+backend/static/hotspot_crops/live-*
+public/hotspot_crops/live-*
 
 # OS / IDE artifacts
 .DS_Store

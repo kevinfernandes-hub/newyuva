@@ -43,6 +43,7 @@ export const initialLocations = [
         beforeImage: '/wayback_mihan_same_season_20190131_before.png',
         afterImage: '/wayback_mihan_same_season_20250130_after.png',
         colorDiffOverlay: '/wayback_mihan_sameszn_calibrated_color_overlay.png',
+        colorOverlay: '/wayback_mihan_sameszn_calibrated_color_overlay.png',
         colorDiffPct: 6.15,
         detailCrop: '/wayback_mihan_sameszn_detail_crop.png',
         note: 'SSIM not used at this tier — decorrelates under sub-meter texture noise; radiometric differencing with scale-matched morphological filtering (7x7 kernel, ~4.2m) is the validated operator at this resolution.'
@@ -84,7 +85,15 @@ export const initialLocations = [
         ssimPct: 6.65,
         ssimScore: 0.7412
       },
-      '0.6m': null
+      '0.6m': {
+        source: 'Esri Wayback (Maxar)',
+        beforeImage: '/wayback_sadar_2019_before.png',
+        afterImage: '/wayback_sadar_2025_after.png',
+        colorDiffOverlay: '/wayback_sadar_color_overlay.png',
+        colorOverlay: '/wayback_sadar_color_overlay.png',
+        colorDiffPct: 1.09,
+        note: 'High-density commercial core — minor spectral modifications verified via 0.6m Maxar imagery.'
+      }
     },
     localImages: {
       before: '/sadar_before.png',
@@ -123,7 +132,15 @@ export const initialLocations = [
         ssimPct: 18.34,
         ssimScore: 0.5890
       },
-      '0.6m': null
+      '0.6m': {
+        source: 'Esri Wayback (Maxar)',
+        beforeImage: '/wayback_hingna_2019_before.png',
+        afterImage: '/wayback_hingna_2025_after.png',
+        colorDiffOverlay: '/wayback_hingna_color_overlay.png',
+        colorOverlay: '/wayback_hingna_color_overlay.png',
+        colorDiffPct: 14.15,
+        note: 'Industrial zone structural footprint expansion and factory platform grading verified.'
+      }
     },
     localImages: {
       before: '/hingna_before_fixed.png',
@@ -161,7 +178,15 @@ export const initialLocations = [
         ssimPct: 23.30,
         ssimScore: 0.6375
       },
-      '0.6m': null
+      '0.6m': {
+        source: 'Esri Wayback (Maxar)',
+        beforeImage: '/wayback_civil_lines_2019_before.png',
+        afterImage: '/wayback_civil_lines_2025_after.png',
+        colorDiffOverlay: '/wayback_civil_lines_color_overlay.png',
+        colorOverlay: '/wayback_civil_lines_color_overlay.png',
+        colorDiffPct: 2.12,
+        note: 'Administrative sector — institutional wing extensions confirmed against baseline.'
+      }
     },
     localImages: {
       before: '/civil_lines_before.png',
@@ -174,3 +199,4 @@ export const initialLocations = [
 ];
 
 export const locations = initialLocations;
+export default initialLocations;

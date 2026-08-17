@@ -109,7 +109,7 @@ export function AIInspectionModal({
                     className={`${styles.zoomTab} ${activeZoomKey === k ? styles.activeTab : ''}`}
                     onClick={() => setActiveZoomKey(k)}
                   >
-                    {zoomLevels[k].name}
+                    {zoomLevels[k].name || k.toUpperCase()}
                   </button>
                 ))}
               </div>
@@ -167,9 +167,9 @@ export function AIInspectionModal({
                 <span className={styles.confVal}>{caseData.vision_confidence}%</span>
               </div>
               <div className={`${styles.confCard} ${styles.finalCard}`}>
-                <span className={styles.confLabel}>Final Fused Confidence</span>
+                <span className={styles.confLabel}>EarthWatch Composite Confidence</span>
                 <div className={styles.confValRow}>
-                  <span className={styles.confVal}>{caseData.final_confidence}%</span>
+                  <span className={styles.confVal}>{caseData.composite_confidence || caseData.final_confidence}%</span>
                   <span className={styles.confStatusPill}>{caseData.status}</span>
                 </div>
               </div>
@@ -197,9 +197,11 @@ export function AIInspectionModal({
                 <span className={styles.permitIcon}>{isPermitMatched ? '✓' : '⚠'}</span>
                 <div className={styles.permitDetails}>
                   <span className={styles.permitTitle}>
-                    {caseData.permit_status} (Demonstration Dataset)
+                    {caseData.permit_status}
                   </span>
-                  <span className={styles.permitSub}>{caseData.permit_details}</span>
+                  <span className={styles.permitSub}>
+                    Development Record Cross-Reference — Demonstration Dataset: {caseData.permit_details}
+                  </span>
                 </div>
               </div>
             </div>

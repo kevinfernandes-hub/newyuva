@@ -13,8 +13,13 @@ export function SectorList({
   onRequestLiveAnalysis,
   isScanning,
   scanningStatusText,
+  scanningSteps = [],
   errorMessage,
-  onClearError
+  onClearError,
+  hotspots = [],
+  selectedHotspotId,
+  onSelectHotspot,
+  onInspectHotspot
 }) {
   const [viewMode, setViewMode] = useState('dual'); // 'list' | 'map' | 'dual'
 
@@ -81,13 +86,13 @@ export function SectorList({
         </div>
       </div>
 
-      {/* Progressive Live Scanning Feedback Overlay */}
+      {/* Progressive Live Scanning Feedback Overlay with Multi-Step Checklist */}
       {isScanning && (
         <div className={styles.scanningBanner}>
           <div className={styles.spinner} />
           <div className={styles.scanningText}>
-            <strong>Running Live Sentinel-2 Analysis</strong>
-            <span>{scanningStatusText || 'Connecting to Copernicus CDSE pipeline...'}</span>
+            <strong>Scanning & Verifying Urban Change</strong>
+            <span>{scanningStatusText || 'Connecting to Copernicus CDSE & Wayback APIs...'}</span>
           </div>
         </div>
       )}
@@ -99,14 +104,23 @@ export function SectorList({
             locations={filteredLocations}
             selectedLocation={selectedLocation}
             onSelectLocation={onSelectLocation}
+            hotspots={hotspots}
+            selectedHotspotId={selectedHotspotId}
+            onSelectHotspot={onSelectHotspot}
+            onInspectHotspot={onInspectHotspot}
           />
         </div>
       )}
 
       {/* Sector Cards List (Shown in Dual or List mode) */}
       {(viewMode === 'dual' || viewMode === 'list') && (
-        <ul className={`${styles.list} ${viewMode === 'dual' ? styles.listCompact : ''}`} role="listbox">
-          {filteredLocations.length > 0 ? (
+        <div className={styles.listSection} role="list" aria-label="Sector list">
+          {filteredLocations.length === 0 ? (
+            <div className={styles.emptySearch}>
+              <span>No pre-analyzed sectors match "{searchQuery}".</span>
+              <p>Press <strong>Request Live Analysis</strong> above to geocode and process this area dynamically with Sentinel-2 & Wayback ~0.6m.</p>
+            </div>
+          ) : (
             filteredLocations.map((loc) => (
               <SectorCard
                 key={loc.id}
@@ -115,20 +129,11 @@ export function SectorList({
                 onSelect={() => onSelectLocation(loc.id)}
               />
             ))
-          ) : (
-            <li className={styles.emptyState}>
-              <span>No preset sector matching &ldquo;{searchQuery}&rdquo;</span>
-              <button
-                type="button"
-                className={styles.resetFilterBtn}
-                onClick={() => onSearchChange('')}
-              >
-                Reset Search Filter
-              </button>
-            </li>
           )}
-        </ul>
+        </div>
       )}
     </aside>
   );
 }
+
+export default SectorList;

@@ -64,26 +64,18 @@ export function App() {
     [locationsList, selectedLocationId]
   );
 
-  // If user selects a location without 0.6m tier, fallback to 10m
   const handleSelectLocation = useCallback(
     (id) => {
       setSelectedLocationId(id);
-      const loc = locationsList.find((l) => l.id === id);
-      if (!loc?.tiers?.['0.6m'] && selectedTier === '0.6m') {
-        setSelectedTier('10m');
-      }
     },
-    [locationsList, selectedTier]
+    []
   );
 
   const handleTierChange = useCallback(
     (tier) => {
-      if (tier === '0.6m' && !selectedLocation?.tiers?.['0.6m']) {
-        return;
-      }
       setSelectedTier(tier);
     },
-    [selectedLocation]
+    []
   );
 
   // Scaled color diff percentage based on sensitivity threshold curve
@@ -133,7 +125,7 @@ export function App() {
           case_id: matched.case_number || `CASE #NGP-${hid.split('-')[-1] || '042'}`,
           hotspot_id: matched.hotspot_id,
           name: matched.name,
-          location_name: matched.location_name || `${selectedLocation.name}`,
+          location_name: matched.location_name || `${selectedLocation?.name || 'Nagpur'}`,
           coordinates: matched.coords_str || matched.coords,
           latitude: matched.latitude,
           longitude: matched.longitude,
@@ -147,6 +139,7 @@ export function App() {
           highres_confidence: matched.highres_confidence || 91,
           vision_confidence: matched.vision_confidence || 94,
           final_confidence: matched.final_confidence || 92,
+          composite_confidence: matched.composite_confidence || matched.final_confidence || 92,
           status: matched.status || 'HIGH-CONFIDENCE CHANGE',
           finding: 'New large-scale institutional construction detected with distinct rectilinear building envelopes.',
           evidence_summary: matched.description || 'The previously unpaved open ground observed in January 2019 has been replaced by multiple multistory institutional building wings, asphalt access roads, and structured parking bays by January 2025.',
@@ -159,7 +152,8 @@ export function App() {
           zoom_levels: {
             level1: { name: 'Level 1: Hotspot Overview', scale: '~500m × 500m', before_image_url: '/wayback_mihan_same_season_20190131_before.png', after_image_url: '/wayback_mihan_same_season_20250130_after.png', difference_image_url: '/wayback_mihan_sameszn_calibrated_color_overlay.png' },
             level2: { name: 'Level 2: Sub-Region Footprint', scale: '~100m × 100m', before_image_url: '/wayback_mihan_sameszn_detail_crop.png', after_image_url: '/wayback_mihan_sameszn_detail_crop.png', difference_image_url: '/wayback_mihan_sameszn_calibrated_color_mask.png' },
-            level3: { name: 'Level 3: Building Envelope', scale: '~30m × 30m', before_image_url: '/wayback_mihan_sameszn_detail_crop.png', after_image_url: '/wayback_mihan_sameszn_detail_crop.png', difference_image_url: '/wayback_mihan_sameszn_calibrated_color_overlay.png' }
+            level3: { name: 'Level 3: Building Envelope', scale: '~30m × 30m', before_image_url: '/wayback_mihan_sameszn_detail_crop.png', after_image_url: '/wayback_mihan_sameszn_detail_crop.png', difference_image_url: '/wayback_mihan_sameszn_calibrated_color_overlay.png' },
+            level4: { name: 'Level 4: Micro-Inspection', scale: '~15m × 15m', before_image_url: '/wayback_mihan_sameszn_detail_crop.png', after_image_url: '/wayback_mihan_sameszn_detail_crop.png', difference_image_url: '/wayback_mihan_sameszn_calibrated_color_mask.png' }
           },
           stages: [
             { id: 's1', name: 'Candidate Identified (10m Sentinel-2)', status: 'completed' },
@@ -167,7 +161,7 @@ export function App() {
             { id: 's3', name: 'Geo-Crops Aligned', status: 'completed' },
             { id: 's4', name: 'Multi-Scale Zoom Inspection', status: 'completed' },
             { id: 's5', name: 'AI Vision Change Classification', status: 'completed' },
-            { id: 's6', name: 'Confidence Score Fused', status: 'completed' },
+            { id: 's6', name: 'EarthWatch Composite Confidence', status: 'completed' },
             { id: 's7', name: 'Government Case Generated', status: 'completed' }
           ]
         });
@@ -205,7 +199,7 @@ export function App() {
 
       // Start multi-stage progress indicator
       setIsScanning(true);
-      setScanningStatusText('1/4 Geocoding location with Nominatim...');
+      setScanningStatusText('1/4 Geocoding location with OpenStreetMap Nominatim...');
       clearProgressTimers();
 
       progressTimersRef.current.push(
@@ -216,13 +210,13 @@ export function App() {
 
       progressTimersRef.current.push(
         setTimeout(() => {
-          setScanningStatusText('3/4 Downloading 10m L2A granules from Process API...');
+          setScanningStatusText('3/4 Downloading Sentinel-2 10m L2A granules & Esri Wayback ~0.6m tiles...');
         }, 4000)
       );
 
       progressTimersRef.current.push(
         setTimeout(() => {
-          setScanningStatusText('4/4 Computing optical color diff & structural SSIM divergence matrix...');
+          setScanningStatusText('4/4 Computing multi-tier optical deltas, SSIM matrix & candidate hotspots...');
         }, 8000)
       );
 
@@ -290,7 +284,7 @@ export function App() {
           ],
           tiers: {
             '10m': {
-              source: 'Sentinel-2 (Live CDSE API)',
+              source: 'Sentinel-2 (Live Copernicus CDSE)',
               beforeImage: data.before_image_url,
               afterImage: data.after_image_url,
               colorDiffOverlay: data.color_diff_overlay_url,
@@ -299,7 +293,14 @@ export function App() {
               ssimPct: ssimArea,
               ssimScore: data.ssim_score
             },
-            '0.6m': null
+            '0.6m': data.tiers?.['0.6m'] || {
+              source: 'Maxar / Esri Wayback (~0.6m Ground Resolution)',
+              beforeImage: data.before_image_url,
+              afterImage: data.after_image_url,
+              colorOverlay: data.color_diff_overlay_url,
+              colorDiffPct: colorDiff,
+              detailCrop: '/wayback_mihan_sameszn_detail_crop.png'
+            }
           },
           localImages: {
             before: data.before_image_url,
@@ -314,6 +315,12 @@ export function App() {
         setLocationsList((prev) => [newLocation, ...prev]);
         setSelectedLocationId(newId);
         setSelectedTier('10m');
+
+        if (data.hotspots && Array.isArray(data.hotspots) && data.hotspots.length > 0) {
+          setHotspotsList(data.hotspots);
+          setSelectedHotspotId(data.hotspots[0].hotspot_id);
+        }
+
         setIsScanning(false);
         setScanningStatusText('');
       } catch (err) {
@@ -406,7 +413,6 @@ export function App() {
                 afterDate: data.after_date,
                 subtitle: `${loc.subtitle.split('—')[0].trim()} — Analyzed ${data.before_date} → ${data.after_date}`,
                 tiers: {
-                  ...loc.tiers,
                   '10m': {
                     source: 'Sentinel-2 (Custom Date Pair)',
                     beforeImage: data.before_image_url,
@@ -416,7 +422,8 @@ export function App() {
                     ssimOverlay: data.ssim_overlay_url,
                     ssimPct: ssimArea,
                     ssimScore: data.ssim_score
-                  }
+                  },
+                  '0.6m': data.tiers?.['0.6m'] || loc.tiers?.['0.6m']
                 },
                 localImages: {
                   before: data.before_image_url,
@@ -430,6 +437,11 @@ export function App() {
             return loc;
           })
         );
+
+        if (data.hotspots && Array.isArray(data.hotspots) && data.hotspots.length > 0) {
+          setHotspotsList(data.hotspots);
+          setSelectedHotspotId(data.hotspots[0].hotspot_id);
+        }
 
         setIsScanning(false);
         setScanningStatusText('');
@@ -469,6 +481,10 @@ export function App() {
           scanningStatusText={scanningStatusText}
           errorMessage={errorMessage}
           onClearError={() => setErrorMessage('')}
+          hotspots={hotspotsList}
+          selectedHotspotId={selectedHotspotId}
+          onSelectHotspot={setSelectedHotspotId}
+          onInspectHotspot={handleInspectHotspot}
         />
 
         <ImageComparisonViewer

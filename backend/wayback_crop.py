@@ -1,10 +1,13 @@
 """
 Wayback Multi-Scale High-Resolution Crop Engine
-Nagpur EarthWatch — AI Zoom-and-Verify Agent
+Nagpur EarthWatch — Universal Location-Agnostic AI Zoom Inspector
 
 Extracts geographically aligned before/after/difference crops at deterministic
-multi-scale zoom levels (Level 1: ~500m, Level 2: ~100m, Level 3: ~30m) from
-0.6m Wayback historical satellite mosaics.
+multi-scale zoom levels for ANY location across Nagpur:
+- Level 1: ~500m × 500m (Hotspot Overview)
+- Level 2: ~100m × 100m (Sub-Region Footprint)
+- Level 3: ~30m × 30m   (Building Envelope)
+- Level 4: ~15m × 15m   (Sub-meter Micro-Inspection)
 """
 
 import os
@@ -14,10 +17,8 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from .config import STATIC_DIR
-
-# Base MIHAN geographic bounds used for the Wayback 0.6m mosaic
-MIHAN_BBOX_WGS84 = [79.020, 21.030, 79.074, 21.090]  # [west, south, east, north]
+from .config import STATIC_DIR, RESULTS_DIR
+from .wayback_live import get_wayback_imagery
 
 # Output directory for hotspot crops
 CROPS_STATIC_DIR = STATIC_DIR / "hotspot_crops"
@@ -33,80 +34,99 @@ def wgs84_to_mosaic_pixel(
     lat: float,
     mosaic_w: int,
     mosaic_h: int,
-    bbox: List[float] = MIHAN_BBOX_WGS84
+    bbox: List[float]
 ) -> Tuple[int, int]:
     """
-    Converts WGS84 (lon, lat) to pixel coordinates in the Wayback stitched mosaic.
+    Converts WGS84 (lon, lat) to pixel coordinates in a stitched mosaic.
     bbox: [west, south, east, north]
     """
     west, south, east, north = bbox
-    # lon maps [west -> east] to [0 -> mosaic_w]
-    norm_x = (lon - west) / (east - west)
-    # lat maps [north -> south] to [0 -> mosaic_h]
-    norm_y = (north - lat) / (north - south)
+    norm_x = (lon - west) / (east - west + 1e-7)
+    norm_y = (north - lat) / (north - south + 1e-7)
 
     px = int(np.clip(round(norm_x * mosaic_w), 0, mosaic_w - 1))
     py = int(np.clip(round(norm_y * mosaic_h), 0, mosaic_h - 1))
     return px, py
 
 
-def get_wayback_base_images(location_id: str = "mihan") -> Optional[Tuple[np.ndarray, np.ndarray]]:
+def get_wayback_base_images(
+    location_id: str = "mihan",
+    bbox: Optional[List[float]] = None
+) -> Optional[Tuple[np.ndarray, np.ndarray, List[float]]]:
     """
-    Loads Before (2019-01-31) and After (2025-01-30) Wayback images from static assets.
+    Loads Before and After Wayback images from static/results or fetches on demand.
+    Returns (img_before, img_after, bbox_wgs84).
     """
+    # 1. Check if location has static files
+    if location_id.lower() == "mihan":
+        before_path = STATIC_DIR / "wayback_mihan_same_season_20190131_before.png"
+        after_path = STATIC_DIR / "wayback_mihan_same_season_20250130_after.png"
+        if before_path.exists() and after_path.exists():
+            return cv2.imread(str(before_path)), cv2.imread(str(after_path)), [79.020, 21.030, 79.074, 21.090]
+
+    # 2. Check dynamic results directories
+    for p in RESULTS_DIR.glob(f"*{location_id.lower()}*"):
+        b_f = p / "wayback_before.png"
+        a_f = p / "wayback_after.png"
+        if b_f.exists() and a_f.exists():
+            b_box = bbox or [79.020, 21.030, 79.074, 21.090]
+            return cv2.imread(str(b_f)), cv2.imread(str(a_f)), b_box
+
+    # 3. If bbox provided, fetch live
+    if bbox:
+        wayback_res = get_wayback_imagery(bbox=bbox, zoom=17)
+        if wayback_res and "before_bgr" in wayback_res and "after_bgr" in wayback_res:
+            return wayback_res["before_bgr"], wayback_res["after_bgr"], bbox
+
+    # Fallback to MIHAN static assets
     before_path = STATIC_DIR / "wayback_mihan_same_season_20190131_before.png"
     after_path = STATIC_DIR / "wayback_mihan_same_season_20250130_after.png"
+    if before_path.exists() and after_path.exists():
+        return cv2.imread(str(before_path)), cv2.imread(str(after_path)), [79.020, 21.030, 79.074, 21.090]
 
-    if not before_path.exists() or not after_path.exists():
-        # Fallback to public folder
-        before_path = PUBLIC_DIR / "wayback_mihan_same_season_20190131_before.png"
-        after_path = PUBLIC_DIR / "wayback_mihan_same_season_20250130_after.png"
-
-    if not before_path.exists() or not after_path.exists():
-        return None
-
-    img_before = cv2.imread(str(before_path))
-    img_after = cv2.imread(str(after_path))
-    return img_before, img_after
+    return None
 
 
 def generate_aligned_hotspot_crops(
     hotspot: Dict[str, Any],
-    base_url: str = "http://localhost:8000"
+    base_url: str = "http://localhost:8000",
+    parent_bbox: Optional[List[float]] = None,
+    mosaic_pair: Optional[Tuple[np.ndarray, np.ndarray, List[float]]] = None
 ) -> Dict[str, Any]:
     """
-    Generates aligned multi-scale crops (Level 1, Level 2, Level 3) for a given hotspot.
+    Generates aligned multi-scale crops (Level 1 to Level 4) for ANY hotspot in Nagpur.
     """
-    hotspot_id = hotspot.get("hotspot_id", "MIHAN-042").upper()
-    lat = hotspot.get("latitude", 21.0568)
-    lon = hotspot.get("longitude", 79.0435)
-    bbox_wgs84 = hotspot.get("bbox_wgs84", [79.038, 21.051, 79.049, 21.062])
+    hotspot_id = hotspot.get("hotspot_id", "HOTSPOT-001").upper()
+    lat = float(hotspot.get("latitude", 21.0568))
+    lon = float(hotspot.get("longitude", 79.0435))
+    location_id = hotspot.get("location_id", "mihan").lower()
+    bbox_wgs84 = hotspot.get("bbox_wgs84", [lon - 0.005, lat - 0.005, lon + 0.005, lat + 0.005])
 
-    # Try loading full 0.6m mosaics
-    mosaic_pair = get_wayback_base_images("mihan")
-
-    hotspot_static_dir = CROPS_STATIC_DIR / hotspot_id.lower()
-    hotspot_public_dir = CROPS_PUBLIC_DIR / hotspot_id.lower()
+    # Output subdirectories
+    clean_id = hotspot_id.lower().replace("#", "").replace(" ", "_")
+    hotspot_static_dir = CROPS_STATIC_DIR / clean_id
+    hotspot_public_dir = CROPS_PUBLIC_DIR / clean_id
     hotspot_static_dir.mkdir(parents=True, exist_ok=True)
     hotspot_public_dir.mkdir(parents=True, exist_ok=True)
 
-    levels_output = {}
+    # Load or fetch base high-res mosaic
+    if mosaic_pair is None:
+        mosaic_pair = get_wayback_base_images(location_id=location_id, bbox=parent_bbox or bbox_wgs84)
 
-    # Define deterministic zoom radii in pixels (or degrees)
-    # Level 1: ~500m (radius ~250px)
-    # Level 2: ~100m (radius ~100px)
-    # Level 3: ~30m (radius ~40px)
     zoom_stages = [
         {"id": "level1", "name": "Level 1: Hotspot Overview", "scale": "~500m × 500m", "radius_px": 280},
         {"id": "level2", "name": "Level 2: Sub-Region Footprint", "scale": "~100m × 100m", "radius_px": 140},
         {"id": "level3", "name": "Level 3: Building Envelope", "scale": "~30m × 30m", "radius_px": 70},
+        {"id": "level4", "name": "Level 4: Micro-Structure Inspection", "scale": "~15m × 15m", "radius_px": 35},
     ]
 
+    levels_output = {}
+
     if mosaic_pair is not None:
-        img_b, img_a = mosaic_pair
+        img_b, img_a, active_bbox = mosaic_pair
         mh, mw = img_a.shape[:2]
 
-        cx, cy = wgs84_to_mosaic_pixel(lon, lat, mw, mh, MIHAN_BBOX_WGS84)
+        cx, cy = wgs84_to_mosaic_pixel(lon, lat, mw, mh, active_bbox)
 
         for stage in zoom_stages:
             lid = stage["id"]
@@ -123,6 +143,10 @@ def generate_aligned_hotspot_crops(
             if crop_before.size == 0 or crop_after.size == 0:
                 continue
 
+            # Ensure same dimensions
+            if crop_before.shape != crop_after.shape:
+                crop_before = cv2.resize(crop_before, (crop_after.shape[1], crop_after.shape[0]))
+
             # Radiometric linear normalization
             crop_before_norm = cv2.normalize(crop_before, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
             crop_after_norm = cv2.normalize(crop_after, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
@@ -130,20 +154,20 @@ def generate_aligned_hotspot_crops(
             # High-res morphological differencing
             diff_abs = cv2.absdiff(crop_before_norm, crop_after_norm)
             diff_gray = cv2.cvtColor(diff_abs, cv2.COLOR_BGR2GRAY)
-            _, diff_mask = cv2.threshold(diff_gray, 50, 255, cv2.THRESH_BINARY)
-            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
+            _, diff_mask = cv2.threshold(diff_gray, 48, 255, cv2.THRESH_BINARY)
+            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
             diff_mask = cv2.morphologyEx(diff_mask, cv2.MORPH_OPEN, kernel)
 
-            # Overlay
+            # Terracotta overlay [30, 111, 201] in BGR
             overlay = crop_after.copy()
-            overlay[diff_mask == 255] = [30, 111, 201]  # Terracotta / orange-red in BGR
+            overlay[diff_mask == 255] = [30, 111, 201]
             blended = cv2.addWeighted(crop_after, 0.68, overlay, 0.32, 0)
 
-            # Save PNGs
-            b_filename = f"{hotspot_id.lower()}_{lid}_before.png"
-            a_filename = f"{hotspot_id.lower()}_{lid}_after.png"
-            d_filename = f"{hotspot_id.lower()}_{lid}_diff.png"
-            o_filename = f"{hotspot_id.lower()}_{lid}_overlay.png"
+            # Save aligned crops
+            b_filename = f"{clean_id}_{lid}_before.png"
+            a_filename = f"{clean_id}_{lid}_after.png"
+            d_filename = f"{clean_id}_{lid}_diff.png"
+            o_filename = f"{clean_id}_{lid}_overlay.png"
 
             for folder in [hotspot_static_dir, hotspot_public_dir]:
                 cv2.imwrite(str(folder / b_filename), crop_before)
@@ -151,7 +175,7 @@ def generate_aligned_hotspot_crops(
                 cv2.imwrite(str(folder / d_filename), diff_mask)
                 cv2.imwrite(str(folder / o_filename), blended)
 
-            rel_path = f"/static/hotspot_crops/{hotspot_id.lower()}"
+            rel_path = f"/static/hotspot_crops/{clean_id}"
             levels_output[lid] = {
                 "name": stage["name"],
                 "scale": stage["scale"],
@@ -163,7 +187,7 @@ def generate_aligned_hotspot_crops(
             }
 
     else:
-        # Fallback to existing detail crop references
+        # Static asset fallback
         for stage in zoom_stages:
             lid = stage["id"]
             levels_output[lid] = {

@@ -1,28 +1,33 @@
 import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Rectangle, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import styles from './LocationMap.module.css';
 
 /**
- * Controller to smoothly center map when selected location changes
+ * Controller to smoothly center map when selected location or hotspot changes
  */
-function MapCenterController({ selectedLocation }) {
+function MapCenterController({ selectedLocation, selectedHotspot }) {
   const map = useMap();
 
   useEffect(() => {
-    if (selectedLocation?.coordinates) {
+    if (selectedHotspot?.latitude && selectedHotspot?.longitude) {
+      map.setView([selectedHotspot.latitude, selectedHotspot.longitude], Math.max(map.getZoom(), 14), {
+        animate: true,
+        duration: 0.6
+      });
+    } else if (selectedLocation?.coordinates) {
       map.setView(selectedLocation.coordinates, Math.max(map.getZoom(), 12), {
         animate: true,
         duration: 0.8
       });
     }
-  }, [selectedLocation, map]);
+  }, [selectedLocation, selectedHotspot, map]);
 
   return null;
 }
 
 /**
- * Generates custom minimalist SVG pin icon based on status
+ * Generates custom minimalist SVG pin icon for sector locations
  */
 function createCustomPin(status, isSelected, isPreview) {
   let fillColor = '#C96F3E'; // flagged / default
@@ -62,10 +67,75 @@ function createCustomPin(status, isSelected, isPreview) {
   });
 }
 
-export function LocationMap({ locations, selectedLocation, onSelectLocation }) {
-  // Center of Nagpur
+/**
+ * Generates priority badge pin icon for candidate hotspots
+ */
+function createHotspotPin(priority, isSelected, label) {
+  let bgColor = '#EA580C'; // HIGH
+  if (priority === 'CRITICAL') bgColor = '#DC2626';
+  if (priority === 'MEDIUM') bgColor = '#D97706';
+  if (priority === 'LOW') bgColor = '#16A34A';
+
+  const pulse = isSelected
+    ? `<div style="position: absolute; top: -3px; left: -3px; width: 28px; height: 28px; border-radius: 50%; border: 2px solid ${bgColor}; animation: pinPulse 1.5s infinite ease-out;"></div>`
+    : '';
+
+  const html = `
+    <div style="position: relative; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;">
+      ${pulse}
+      <div style="
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: ${bgColor};
+        border: 2px solid #FFFFFF;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #FFFFFF;
+        font-weight: bold;
+        font-size: 8px;
+        font-family: monospace;
+        cursor: pointer;
+        transform: ${isSelected ? 'scale(1.25)' : 'scale(1)'};
+      ">🎯</div>
+    </div>
+  `;
+
+  return L.divIcon({
+    html,
+    className: 'hotspot-map-pin',
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+    popupAnchor: [0, -12]
+  });
+}
+
+export function LocationMap({
+  locations,
+  selectedLocation,
+  onSelectLocation,
+  hotspots = [],
+  selectedHotspotId,
+  onSelectHotspot,
+  onInspectHotspot
+}) {
   const defaultCenter = [21.1458, 79.0882];
-  const defaultZoom = 11;
+  const defaultZoom = 12;
+
+  const selectedHotspot = hotspots.find((h) => h.hotspot_id === selectedHotspotId);
+
+  // Compute AOI boundary rectangle if available
+  let aoiBounds = null;
+  if (selectedLocation?.coordinates) {
+    const [lat, lng] = selectedLocation.coordinates;
+    const padding = 0.024;
+    aoiBounds = [
+      [lat - padding, lng - padding],
+      [lat + padding, lng + padding]
+    ];
+  }
 
   return (
     <div className={styles.mapWrapper} aria-label="Nagpur Sector Geospatial Map">
@@ -77,15 +147,32 @@ export function LocationMap({ locations, selectedLocation, onSelectLocation }) {
         zoomControl={true}
         attributionControl={false}
       >
-        {/* CartoDB Positron Muted Neutral Map Tiles */}
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           subdomains="abcd"
           maxZoom={19}
         />
 
-        <MapCenterController selectedLocation={selectedLocation} />
+        <MapCenterController
+          selectedLocation={selectedLocation}
+          selectedHotspot={selectedHotspot}
+        />
 
+        {/* AOI Analysis Boundary Rectangle */}
+        {aoiBounds && (
+          <Rectangle
+            bounds={aoiBounds}
+            pathOptions={{
+              color: 'var(--accent-primary, #C96F3E)',
+              weight: 1.5,
+              dashArray: '4, 4',
+              fillColor: 'var(--accent-primary, #C96F3E)',
+              fillOpacity: 0.04
+            }}
+          />
+        )}
+
+        {/* Sector Locations Markers */}
         {locations.map((loc) => {
           if (!loc.coordinates) return null;
           const isSelected = loc.id === selectedLocation?.id;
@@ -100,24 +187,67 @@ export function LocationMap({ locations, selectedLocation, onSelectLocation }) {
                 click: () => onSelectLocation(loc.id)
               }}
             >
-              <Popup className={styles.mapPopup}>
+              <Popup className={styles.popupCustom}>
                 <div className={styles.popupContent}>
-                  <div className={styles.popupHeader}>
-                    <strong>{loc.name}</strong>
-                    {loc.isPreview && <span className={styles.previewTag}>Preview</span>}
-                  </div>
-                  <span className={styles.popupSub}>{loc.subtitle}</span>
+                  <strong>{loc.name}</strong>
+                  <span>{loc.coords}</span>
                   <div className={styles.popupStats}>
-                    <span>Color Diff: <strong>{loc.colorDiff.toFixed(2)}%</strong></span>
-                    <span>SSIM Area: <strong>{loc.ssimArea.toFixed(2)}%</strong></span>
+                    <span>Δ {loc.colorDiff?.toFixed(2)}%</span>
+                    <span>SSIM {(loc.ssimArea || 9.2).toFixed(1)}%</span>
                   </div>
-                  <button
-                    type="button"
-                    className={styles.popupSelectBtn}
-                    onClick={() => onSelectLocation(loc.id)}
-                  >
-                    Select Sector
-                  </button>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
+
+        {/* Candidate Hotspot Markers */}
+        {hotspots.map((h) => {
+          if (!h.latitude || !h.longitude) return null;
+          const isSelected = h.hotspot_id === selectedHotspotId;
+          const icon = createHotspotPin(h.priority, isSelected, h.hotspot_id);
+
+          return (
+            <Marker
+              key={h.hotspot_id}
+              position={[h.latitude, h.longitude]}
+              icon={icon}
+              eventHandlers={{
+                click: () => {
+                  if (onSelectHotspot) onSelectHotspot(h.hotspot_id);
+                }
+              }}
+            >
+              <Popup className={styles.popupCustom}>
+                <div className={styles.popupContent}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontWeight: 'bold', color: 'var(--accent-primary)' }}>{h.hotspot_id}</span>
+                    <span style={{ fontSize: '9px', fontWeight: 'bold', background: h.priority === 'CRITICAL' ? '#FEE2E2' : '#FFEDD5', color: h.priority === 'CRITICAL' ? '#DC2626' : '#EA580C', padding: '1px 5px', borderRadius: '3px' }}>
+                      {h.priority}
+                    </span>
+                  </div>
+                  <strong>{h.name}</strong>
+                  <span>Area: {h.area_formatted || `${h.area_m2} m²`}</span>
+                  <span>Confidence: {h.final_confidence || h.initial_confidence || 82}%</span>
+                  {onInspectHotspot && (
+                    <button
+                      type="button"
+                      style={{
+                        marginTop: '6px',
+                        background: 'var(--accent-primary, #C96F3E)',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '4px 8px',
+                        fontSize: '10px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => onInspectHotspot(h.hotspot_id)}
+                    >
+                      🔍 Inspect with AI
+                    </button>
+                  )}
                 </div>
               </Popup>
             </Marker>
@@ -125,17 +255,23 @@ export function LocationMap({ locations, selectedLocation, onSelectLocation }) {
         })}
       </MapContainer>
 
+      {/* Map Legend Bar */}
       <div className={styles.mapLegend}>
-        <div className={styles.legendItem}>
-          <span className={`${styles.legendDot} ${styles.stable}`} /> Stable
-        </div>
-        <div className={styles.legendItem}>
-          <span className={`${styles.legendDot} ${styles.elevated}`} /> Elevated
-        </div>
-        <div className={styles.legendItem}>
-          <span className={`${styles.legendDot} ${styles.flagged}`} /> Flagged
-        </div>
+        <span className={styles.legendItem}>
+          <span className={`${styles.legendDot} ${styles.stableDot}`} /> Stable
+        </span>
+        <span className={styles.legendItem}>
+          <span className={`${styles.legendDot} ${styles.elevatedDot}`} /> Elevated
+        </span>
+        <span className={styles.legendItem}>
+          <span className={`${styles.legendDot} ${styles.flaggedDot}`} /> Flagged
+        </span>
+        <span className={styles.legendItem} style={{ color: '#DC2626' }}>
+          🎯 Hotspot
+        </span>
       </div>
     </div>
   );
 }
+
+export default LocationMap;
