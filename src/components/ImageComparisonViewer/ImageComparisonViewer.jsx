@@ -222,13 +222,19 @@ export function ImageComparisonViewer({
     const ctxAfter = canvasAfter.getContext('2d');
     if (!ctxBefore || !ctxAfter) return;
 
+    const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1;
     const width = containerRef.current ? containerRef.current.clientWidth : 800;
     const height = containerRef.current ? containerRef.current.clientHeight : 540;
 
-    canvasBefore.width = width;
-    canvasBefore.height = height;
-    canvasAfter.width = width;
-    canvasAfter.height = height;
+    canvasBefore.width = width * dpr;
+    canvasBefore.height = height * dpr;
+    canvasBefore.style.width = `${width}px`;
+    canvasBefore.style.height = `${height}px`;
+
+    canvasAfter.width = width * dpr;
+    canvasAfter.height = height * dpr;
+    canvasAfter.style.width = `${width}px`;
+    canvasAfter.style.height = `${height}px`;
 
     let beforeSrc, afterSrc;
 
@@ -273,14 +279,20 @@ export function ImageComparisonViewer({
       }
     }
 
-    // Reset background
+    // Reset background & configure high-definition rendering
     ctxBefore.fillStyle = '#0E1110';
-    ctxBefore.fillRect(0, 0, width, height);
+    ctxBefore.fillRect(0, 0, width * dpr, height * dpr);
+    ctxBefore.imageSmoothingEnabled = true;
+    ctxBefore.imageSmoothingQuality = 'high';
+
     ctxAfter.fillStyle = '#0E1110';
-    ctxAfter.fillRect(0, 0, width, height);
+    ctxAfter.fillRect(0, 0, width * dpr, height * dpr);
+    ctxAfter.imageSmoothingEnabled = true;
+    ctxAfter.imageSmoothingQuality = 'high';
 
     const applyTransform = (ctx) => {
       ctx.save();
+      ctx.scale(dpr, dpr);
       ctx.translate(width / 2 + panOffset.x, height / 2 + panOffset.y);
       ctx.scale(zoomLevel, zoomLevel);
       ctx.translate(-width / 2, -height / 2);

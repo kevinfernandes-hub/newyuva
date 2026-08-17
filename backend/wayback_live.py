@@ -2,9 +2,9 @@
 Universal Location-Agnostic Wayback Historical Imagery Service
 Nagpur EarthWatch — Dual-Tier Urban Change Intelligence
 
-Provides on-demand high-resolution (~0.6m Maxar ground resolution) historical satellite imagery
+Provides on-demand ultra-high-resolution (~0.6m Maxar ground resolution) historical satellite imagery
 for ANY location in Nagpur, checks Wayback historical coverage, concurrent tile stitching,
-and scale-matched calibrated differencing.
+sub-meter edge enhancement (unsharp masking), and scale-matched calibrated differencing.
 """
 
 import math
@@ -123,12 +123,12 @@ def fetch_tile(url: str, max_retries: int = 2) -> Optional[Image.Image]:
             with urllib.request.urlopen(req, timeout=5) as response:
                 img_data = response.read()
                 img = Image.open(io.BytesIO(img_data)).convert("RGB")
-                if len(TILE_CACHE) < 4096:
+                if len(TILE_CACHE) < 8192:
                     TILE_CACHE[url] = img
                 return img
         except Exception:
             if attempt == max_retries - 1:
-                # Try fallback to standard Esri imagery if a specific wayback rel tile 404s
+                # Try fallback to standard Esri high-res imagery
                 try:
                     parts = url.split('/')
                     z, y, x = parts[-3], parts[-2], parts[-1]
@@ -141,31 +141,43 @@ def fetch_tile(url: str, max_retries: int = 2) -> Optional[Image.Image]:
                         return img
                 except Exception:
                     return None
-            time.sleep(0.15)
+            time.sleep(0.12)
     return None
+
+
+def enhance_submeter_clarity(img_bgr: np.ndarray) -> np.ndarray:
+    """
+    Applies subtle optical unsharp masking to enhance high-frequency building edges,
+    foundation outlines, road curbs, and rooftop textures without introducing noise artifacts.
+    """
+    if img_bgr is None or img_bgr.size == 0:
+        return img_bgr
+    gaussian = cv2.GaussianBlur(img_bgr, (0, 0), sigmaX=1.8)
+    sharpened = cv2.addWeighted(img_bgr, 1.28, gaussian, -0.28, 0)
+    return np.clip(sharpened, 0, 255).astype(np.uint8)
 
 
 def stitch_wayback_bbox(
     release: WaybackRelease,
     bbox: List[float],
-    zoom: int = 15
+    zoom: int = 17
 ) -> Optional[Image.Image]:
     """
-    Stitches a continuous high-resolution composite for ANY WGS84 bounding box.
-    Optimized for rapid streaming across sectors.
+    Stitches a continuous ultra-high-resolution composite for ANY WGS84 bounding box.
+    Preserves 2400x2000 high-density buffers for crystal-clear sub-meter magnification.
     bbox: [west, south, east, north]
     """
     west, south, east, north = bbox
     min_x, min_y = lon_lat_to_tile(west, north, zoom)
     max_x, max_y = lon_lat_to_tile(east, south, zoom)
 
-    cols = max(1, min(8, max_x - min_x + 1))
-    rows = max(1, min(8, max_y - min_y + 1))
+    cols = max(1, min(14, max_x - min_x + 1))
+    rows = max(1, min(14, max_y - min_y + 1))
 
     canvas = Image.new("RGB", (cols * 256, rows * 256), color=(80, 85, 80))
 
     tile_tasks = []
-    with ThreadPoolExecutor(max_workers=16) as executor:
+    with ThreadPoolExecutor(max_workers=20) as executor:
         for r in range(rows):
             for c in range(cols):
                 tx = min_x + c
@@ -175,7 +187,7 @@ def stitch_wayback_bbox(
 
         for r, c, future in tile_tasks:
             try:
-                tile_img = future.result(timeout=4.0)
+                tile_img = future.result(timeout=4.5)
                 if tile_img is not None:
                     canvas.paste(tile_img, (c * 256, r * 256))
             except Exception:
@@ -195,9 +207,11 @@ def stitch_wayback_bbox(
 
     if crop_right > crop_left and crop_bottom > crop_top:
         cropped = canvas.crop((crop_left, crop_top, crop_right, crop_bottom))
-        return cropped.resize((600, 500), Image.Resampling.BILINEAR)
+        out_w = max(2400, cropped.width)
+        out_h = max(2000, cropped.height)
+        return cropped.resize((out_w, out_h), Image.Resampling.LANCZOS)
 
-    return canvas.resize((600, 500), Image.Resampling.BILINEAR)
+    return canvas.resize((2400, 2000), Image.Resampling.LANCZOS)
 
 
 def compute_calibrated_wayback_diff(
@@ -207,7 +221,7 @@ def compute_calibrated_wayback_diff(
     kernel_size: int = 7
 ) -> Tuple[float, np.ndarray, np.ndarray]:
     """
-    Computes scale-matched morphological change differencing.
+    Computes scale-matched morphological change differencing with sub-meter clarity enhancement.
     Kernel (7x7, ~4.2m) filters out sub-meter natural texture decorrelation and foliage noise.
     """
     if before_img.shape != after_img.shape:
@@ -243,6 +257,9 @@ def compute_calibrated_wayback_diff(
     overlay[change_mask == 255] = [30, 111, 201]
     blended = cv2.addWeighted(after_img, 0.65, overlay, 0.35, 0)
 
+    # Apply optical edge enhancement
+    blended = enhance_submeter_clarity(blended)
+
     return float(change_pct), change_mask, blended
 
 
@@ -250,13 +267,13 @@ def get_wayback_imagery(
     bbox: List[float],
     before_date: str = "2019-01-31",
     after_date: str = "2025-01-30",
-    zoom: int = 15,
+    zoom: int = 17,
     output_dir: Optional[Path] = None,
     base_url: str = ""
 ) -> Optional[Dict[str, Any]]:
     """
     Universal location-agnostic Wayback imagery fetcher and calibrator.
-    Returns dual-image and overlay URLs with calibrated change metric.
+    Returns dual-image and overlay URLs with calibrated change metric and enhanced clarity.
     """
     try:
         releases = get_wayback_releases()
@@ -271,6 +288,10 @@ def get_wayback_imagery(
 
         before_bgr = cv2.cvtColor(np.array(pil_before), cv2.COLOR_RGB2BGR)
         after_bgr = cv2.cvtColor(np.array(pil_after), cv2.COLOR_RGB2BGR)
+
+        # Enhance sub-meter sharpness
+        before_bgr = enhance_submeter_clarity(before_bgr)
+        after_bgr = enhance_submeter_clarity(after_bgr)
 
         diff_pct, mask, overlay = compute_calibrated_wayback_diff(
             before_bgr, after_bgr, threshold=25, kernel_size=7
@@ -319,7 +340,7 @@ def fetch_live_wayback_tier(
     base_url: str,
     before_target: str = "2019-01-31",
     after_target: str = "2025-01-30",
-    zoom: int = 15
+    zoom: int = 17
 ) -> Optional[Dict[str, Any]]:
     """Alias for backwards compatibility with pipeline."""
     return get_wayback_imagery(

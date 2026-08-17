@@ -40,7 +40,7 @@ export function AIInspectionModal({
 
   const beforeSrc = activeZoom.before_image_url || '/wayback_mihan_same_season_20190131_before.png';
   const afterSrc = activeZoom.after_image_url || '/wayback_mihan_same_season_20250130_after.png';
-  const diffSrc = activeZoom.difference_image_url || activeZoom.overlay_image_url || '/wayback_mihan_sameszn_calibrated_color_overlay.png';
+  const diffSrc = activeZoom.overlay_image_url || activeZoom.difference_image_url || '/wayback_mihan_sameszn_calibrated_color_overlay.png';
 
   const priorityClass =
     caseData.priority === 'CRITICAL'

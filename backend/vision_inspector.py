@@ -268,30 +268,36 @@ def evaluate_vision_inspection(
 def execute_zoom_and_verify_agent(
     hotspot_id: str,
     location_id: str = "mihan",
+    hotspot_data: Optional[Dict[str, Any]] = None,
     base_url: str = "http://localhost:8000"
 ) -> Dict[str, Any]:
     """
     Main Orchestrator for the AI Zoom-and-Verify Agent.
-    1. Retrieves candidate hotspot metadata
+    1. Retrieves candidate hotspot metadata (from cache or request payload)
     2. Invokes multi-scale Wayback high-resolution crop engine (0.6m)
-    3. Runs AI Vision inspection & typology classification (New Construction, Vegetation Loss, Road Development, etc.)
+    3. Runs AI Vision inspection & typology classification
     4. Fuses multi-tier confidence scores into EarthWatch Composite Confidence
     5. Formulates the complete Government Case File
     """
     hotspots = get_hotspots_for_location(location_id)
     matched = next((h for h in hotspots if h.get("hotspot_id", "").upper() == hotspot_id.upper()), None)
 
-    if not matched:
-        clean_name = location_id.replace("live-", "").split("--")[0].split("-")[0].title()
+    if not matched and hotspot_data:
+        matched = hotspot_data
+    elif not matched:
+        clean_name = location_id.replace("live-", "").split("--")[0].split("-")[0].replace("_", " ").title()
+        lat = 21.0568 if "jam" in location_id.lower() or "ward" in location_id.lower() else 21.1458
+        lon = 79.0435 if "jam" in location_id.lower() or "ward" in location_id.lower() else 79.0882
         matched = {
             "hotspot_id": hotspot_id.upper(),
             "name": f"Candidate Hotspot {hotspot_id.upper()}",
             "location_id": location_id,
             "location_name": f"{clean_name}, Nagpur",
-            "latitude": 21.1458,
-            "longitude": 79.0882,
-            "area_m2": 4800.0,
-            "area_formatted": "4,800 m²",
+            "latitude": lat,
+            "longitude": lon,
+            "bbox_wgs84": [lon - 0.015, lat - 0.015, lon + 0.015, lat + 0.015],
+            "area_m2": 6800.0,
+            "area_formatted": "6,800 m²",
             "initial_confidence": 78,
             "priority": "HIGH",
             "priority_score": 82

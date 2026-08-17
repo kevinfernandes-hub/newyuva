@@ -50,6 +50,7 @@ class AnalyzeRequest(BaseModel):
 class InspectHotspotRequest(BaseModel):
     hotspot_id: str = Field(..., description="Hotspot identifier e.g. MIHAN-042 or CIVILLINES-001")
     location_id: str = Field("mihan", description="Location identifier")
+    hotspot_data: Optional[Dict[str, Any]] = Field(None, description="Complete candidate hotspot metadata")
 
 
 class InspectAllRequest(BaseModel):
@@ -195,6 +196,7 @@ async def inspect_hotspot(req: InspectHotspotRequest, request: Request):
         case_file = execute_zoom_and_verify_agent(
             hotspot_id=req.hotspot_id,
             location_id=req.location_id,
+            hotspot_data=req.hotspot_data,
             base_url=base_url
         )
         INSPECTION_CACHE[cache_key] = case_file

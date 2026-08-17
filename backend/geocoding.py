@@ -8,6 +8,9 @@ GEOCODE_CACHE = {
     "sadar": (21.1580, 79.0850, "Sadar, Nagpur, Maharashtra"),
     "hingna": (21.0700, 78.9950, "Hingna MIDC, Nagpur, Maharashtra"),
     "civil lines": (21.1550, 79.0700, "Civil Lines, Nagpur, Maharashtra"),
+    "jamtha": (21.0150, 79.0300, "Jamtha / VCA Stadium, Nagpur, Maharashtra"),
+    "vnit": (21.1260, 79.0500, "VNIT Campus, Ambazari Road, Nagpur"),
+    "manish nagar": (21.0935, 79.0684, "Manish Nagar, Nagpur, Maharashtra"),
     "gittikhadan": (21.1750, 79.0350, "Gittikhadan, Nagpur, Maharashtra"),
     "wardha road": (21.0850, 79.0620, "Wardha Road, Nagpur, Maharashtra"),
     "dharampeth": (21.1440, 79.0620, "Dharampeth, Nagpur, Maharashtra"),
@@ -17,6 +20,9 @@ GEOCODE_CACHE = {
     "it park": (21.1240, 79.0510, "IT Park / Gayatri Nagar, Nagpur"),
     "nandanvan": (21.1340, 79.1250, "Nandanvan, Nagpur, Maharashtra"),
     "koradi": (21.2480, 79.0980, "Koradi Thermal Precinct, Nagpur"),
+    "butibori": (20.9300, 78.9800, "Butibori Industrial Area, Nagpur"),
+    "besa": (21.0850, 79.0900, "Besa / Pipla, Nagpur, Maharashtra"),
+    "khamla": (21.1150, 79.0600, "Khamla, Nagpur, Maharashtra"),
 }
 
 _last_request_time = 0.0

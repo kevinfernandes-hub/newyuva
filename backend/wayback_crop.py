@@ -18,7 +18,7 @@ import numpy as np
 from PIL import Image
 
 from .config import STATIC_DIR, RESULTS_DIR
-from .wayback_live import get_wayback_imagery
+from .wayback_live import get_wayback_imagery, enhance_submeter_clarity
 
 # Output directory for hotspot crops
 CROPS_STATIC_DIR = STATIC_DIR / "hotspot_crops"
@@ -54,17 +54,27 @@ def get_wayback_base_images(
     bbox: Optional[List[float]] = None
 ) -> Optional[Tuple[np.ndarray, np.ndarray, List[float]]]:
     """
-    Loads Before and After Wayback images from static/results or fetches on demand.
+    Loads Before and After Wayback images from static/results or fetches live for the exact coordinates.
     Returns (img_before, img_after, bbox_wgs84).
     """
-    # 1. Check if location has static files
-    if location_id.lower() == "mihan":
+    # 1. Check if location has preset MIHAN static files
+    if location_id.lower() == "mihan" and (bbox is None or abs(bbox[0] - 79.020) < 0.01):
         before_path = STATIC_DIR / "wayback_mihan_same_season_20190131_before.png"
         after_path = STATIC_DIR / "wayback_mihan_same_season_20250130_after.png"
         if before_path.exists() and after_path.exists():
             return cv2.imread(str(before_path)), cv2.imread(str(after_path)), [79.020, 21.030, 79.074, 21.090]
 
-    # 2. Check dynamic results directories
+    # 2. Check preset static files in public
+    preset_keys = ["sadar", "hingna", "civil_lines"]
+    for pk in preset_keys:
+        if pk in location_id.lower():
+            b_p = PUBLIC_DIR / f"wayback_{pk}_2019_before.png"
+            a_p = PUBLIC_DIR / f"wayback_{pk}_2025_after.png"
+            if b_p.exists() and a_p.exists():
+                b_box = bbox or [79.055, 21.135, 79.090, 21.170]
+                return cv2.imread(str(b_p)), cv2.imread(str(a_p)), b_box
+
+    # 3. Check dynamic results directories for this location
     for p in RESULTS_DIR.glob(f"*{location_id.lower()}*"):
         b_f = p / "wayback_before.png"
         a_f = p / "wayback_after.png"
@@ -72,13 +82,13 @@ def get_wayback_base_images(
             b_box = bbox or [79.020, 21.030, 79.074, 21.090]
             return cv2.imread(str(b_f)), cv2.imread(str(a_f)), b_box
 
-    # 3. If bbox provided, fetch live
+    # 4. If bbox provided or lat/lng, fetch live high-resolution imagery for THIS exact location
     if bbox:
-        wayback_res = get_wayback_imagery(bbox=bbox, zoom=17)
+        wayback_res = get_wayback_imagery(bbox=bbox, zoom=16)
         if wayback_res and "before_bgr" in wayback_res and "after_bgr" in wayback_res:
             return wayback_res["before_bgr"], wayback_res["after_bgr"], bbox
 
-    # Fallback to MIHAN static assets
+    # 5. Default fallback to MIHAN only if no other imagery exists
     before_path = STATIC_DIR / "wayback_mihan_same_season_20190131_before.png"
     after_path = STATIC_DIR / "wayback_mihan_same_season_20250130_after.png"
     if before_path.exists() and after_path.exists():
@@ -100,7 +110,7 @@ def generate_aligned_hotspot_crops(
     lat = float(hotspot.get("latitude", 21.0568))
     lon = float(hotspot.get("longitude", 79.0435))
     location_id = hotspot.get("location_id", "mihan").lower()
-    bbox_wgs84 = hotspot.get("bbox_wgs84", [lon - 0.005, lat - 0.005, lon + 0.005, lat + 0.005])
+    bbox_wgs84 = hotspot.get("bbox_wgs84", [lon - 0.015, lat - 0.015, lon + 0.015, lat + 0.015])
 
     # Output subdirectories
     clean_id = hotspot_id.lower().replace("#", "").replace(" ", "_")
@@ -111,7 +121,8 @@ def generate_aligned_hotspot_crops(
 
     # Load or fetch base high-res mosaic
     if mosaic_pair is None:
-        mosaic_pair = get_wayback_base_images(location_id=location_id, bbox=parent_bbox or bbox_wgs84)
+        target_bbox = parent_bbox or [lon - 0.02, lat - 0.02, lon + 0.02, lat + 0.02]
+        mosaic_pair = get_wayback_base_images(location_id=location_id, bbox=target_bbox)
 
     zoom_stages = [
         {"id": "level1", "name": "Level 1: Hotspot Overview", "scale": "~500m × 500m", "radius_px": 280},
@@ -147,6 +158,10 @@ def generate_aligned_hotspot_crops(
             if crop_before.shape != crop_after.shape:
                 crop_before = cv2.resize(crop_before, (crop_after.shape[1], crop_after.shape[0]))
 
+            # Enhance optical sub-meter edge definition
+            crop_before = enhance_submeter_clarity(crop_before)
+            crop_after = enhance_submeter_clarity(crop_after)
+
             # Radiometric linear normalization
             crop_before_norm = cv2.normalize(crop_before, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
             crop_after_norm = cv2.normalize(crop_after, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
@@ -162,6 +177,7 @@ def generate_aligned_hotspot_crops(
             overlay = crop_after.copy()
             overlay[diff_mask == 255] = [30, 111, 201]
             blended = cv2.addWeighted(crop_after, 0.68, overlay, 0.32, 0)
+            blended = enhance_submeter_clarity(blended)
 
             # Save aligned crops
             b_filename = f"{clean_id}_{lid}_before.png"
@@ -183,21 +199,6 @@ def generate_aligned_hotspot_crops(
                 "after_image_url": f"{base_url}{rel_path}/{a_filename}",
                 "difference_image_url": f"{base_url}{rel_path}/{d_filename}",
                 "overlay_image_url": f"{base_url}{rel_path}/{o_filename}",
-                "change_density_pct": round(float(np.sum(diff_mask == 255)) / float(diff_mask.size) * 100.0, 2)
-            }
-
-    else:
-        # Static asset fallback
-        for stage in zoom_stages:
-            lid = stage["id"]
-            levels_output[lid] = {
-                "name": stage["name"],
-                "scale": stage["scale"],
-                "before_image_url": f"{base_url}/static/wayback_mihan_same_season_20190131_before.png",
-                "after_image_url": f"{base_url}/static/wayback_mihan_same_season_20250130_after.png",
-                "difference_image_url": f"{base_url}/static/wayback_mihan_sameszn_calibrated_color_mask.png",
-                "overlay_image_url": f"{base_url}/static/wayback_mihan_sameszn_calibrated_color_overlay.png",
-                "change_density_pct": 8.42
             }
 
     return levels_output

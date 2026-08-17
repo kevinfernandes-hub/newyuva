@@ -96,13 +96,16 @@ export function App() {
       const hid = hotspotId || selectedHotspotId || 'MIHAN-042';
       setSelectedHotspotId(hid);
 
+      const matchedHotspot = hotspotsList.find((h) => h.hotspot_id === hid) || hotspotsList[0];
+
       try {
         const response = await fetch('/api/inspect-hotspot', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             hotspot_id: hid,
-            location_id: selectedLocationId
+            location_id: selectedLocation?.id || selectedLocationId,
+            hotspot_data: matchedHotspot || null
           })
         });
 
