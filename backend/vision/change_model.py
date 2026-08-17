@@ -102,11 +102,20 @@ class HeuristicMultimodalVisionModel(ChangeVisionModel):
 
         # 1. High-Resolution Structural Similarity (SSIM) Analysis
         try:
-            ssim_val, ssim_full_map = ssim(before_gray, after_gray, full=True)
-            ssim_score = float(ssim_val)
-            ssim_dissimilarity = (1.0 - ssim_full_map)
-            ssim_divergent_pixels = np.sum(ssim_dissimilarity > 0.40)
-            highres_ssim_pct = float(ssim_divergent_pixels) / float(ssim_full_map.size) * 100.0
+            h, w = before_gray.shape[:2]
+            min_dim = min(h, w)
+            if min_dim < 3:
+                ssim_score = 0.85
+                highres_ssim_pct = 12.0
+            else:
+                win_size = min(7, min_dim)
+                if win_size % 2 == 0:
+                    win_size -= 1
+                ssim_val, ssim_full_map = ssim(before_gray, after_gray, win_size=max(3, win_size), full=True)
+                ssim_score = float(ssim_val)
+                ssim_dissimilarity = (1.0 - ssim_full_map)
+                ssim_divergent_pixels = np.sum(ssim_dissimilarity > 0.40)
+                highres_ssim_pct = float(ssim_divergent_pixels) / float(ssim_full_map.size) * 100.0
         except Exception:
             ssim_score = 0.85
             highres_ssim_pct = 12.0

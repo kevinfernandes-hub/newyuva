@@ -19,7 +19,8 @@ export function SectorList({
   hotspots = [],
   selectedHotspotId,
   onSelectHotspot,
-  onInspectHotspot
+  onInspectHotspot,
+  userViewMode = 'officer'
 }) {
   const [viewMode, setViewMode] = useState('dual'); // 'list' | 'map' | 'dual'
 
@@ -114,6 +115,7 @@ export function SectorList({
                   location={loc}
                   isSelected={isSelected}
                   onClick={() => onSelectLocation(loc.id)}
+                  viewMode={userViewMode}
                 />
               );
             })

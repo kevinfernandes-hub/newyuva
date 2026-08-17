@@ -298,9 +298,18 @@ def evaluate_candidate_patch_evidence(
 
     # 1. SSIM Divergence
     try:
-        val, _ = ssim(b_gray, a_gray, full=True)
-        ssim_val = float(val)
-        ssim_div = round(max(0.0, 1.0 - ssim_val), 4)
+        h, w = b_gray.shape[:2]
+        min_dim = min(h, w)
+        if min_dim < 3:
+            ssim_val = 0.70
+            ssim_div = 0.30
+        else:
+            win_size = min(7, min_dim)
+            if win_size % 2 == 0:
+                win_size -= 1
+            val, _ = ssim(b_gray, a_gray, win_size=max(3, win_size), full=True)
+            ssim_val = float(val)
+            ssim_div = round(max(0.0, 1.0 - ssim_val), 4)
     except Exception:
         ssim_val = 0.70
         ssim_div = 0.30

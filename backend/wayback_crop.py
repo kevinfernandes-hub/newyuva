@@ -181,7 +181,13 @@ def generate_aligned_hotspot_crops(
                 from skimage.metrics import structural_similarity as ssim_fn
                 b_gray = cv2.cvtColor(crop_before, cv2.COLOR_BGR2GRAY)
                 a_gray = cv2.cvtColor(crop_after, cv2.COLOR_BGR2GRAY)
-                ssim_score_val, ssim_crop_map = ssim_fn(b_gray, a_gray, full=True)
+                h, w = b_gray.shape[:2]
+                min_dim = min(h, w)
+                win_size = min(7, min_dim)
+                if win_size % 2 == 0:
+                    win_size -= 1
+                win_size = max(3, win_size)
+                ssim_score_val, ssim_crop_map = ssim_fn(b_gray, a_gray, win_size=win_size, full=True)
                 ssim_mask = ((1.0 - ssim_crop_map) * 255).astype(np.uint8)
                 _, ssim_bin_mask = cv2.threshold(ssim_mask, 110, 255, cv2.THRESH_BINARY)
                 ssim_bin_mask = cv2.morphologyEx(ssim_bin_mask, cv2.MORPH_OPEN, kernel)

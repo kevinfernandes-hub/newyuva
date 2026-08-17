@@ -1,0 +1,454 @@
+{
+  "EW-2026-MIHAN042-BLDG001": {
+    "case_id": "EW-2026-MIHAN042-BLDG001",
+    "building_id": "BLDG-001",
+    "hotspot_id": "MIHAN-042",
+    "status": "FIELD_VERIFICATION",
+    "priority": "HIGH",
+    "recommended_action": "FIELD_INSPECTION",
+    "recommended_action_details": "Physical construction change detected between satellite acquisition dates. Field verification recommended.",
+    "coordinates": {
+      "latitude": 21.0568,
+      "longitude": 79.0435
+    },
+    "municipal_context": {
+      "is_containment_match": true,
+      "ward_number": "36",
+      "ward_name": "MIHAN / Somalwada Ward",
+      "ward_code": "WARD-036",
+      "zone_name": "Laxmi Nagar Zone",
+      "zone_code": "ZONE-02"
+    },
+    "change": {
+      "classification": "NEW",
+      "status_label": "New Physical Structure",
+      "before_date": "2019-01-31",
+      "after_date": "2025-01-30",
+      "change_pixel_area": 1812
+    },
+    "evidence": {
+      "yolo_confidence": 0.679,
+      "iou": 0.0,
+      "verification_score": 78.0,
+      "priority_score": 80.8,
+      "ssim_divergence_pct": 88.4
+    },
+    "why_flagged": [
+      "✓ Building footprint detected on 2025-01-30 high-resolution imagery (YOLO Confidence: 67.9%)",
+      "✓ No corresponding building footprint detected on 2019-01-31 baseline (0.00 spatial overlap / IoU)",
+      "✓ Strong structural change between acquisition dates",
+      "✓ Located inside NMC MIHAN / Somalwada Ward (Laxmi Nagar Zone)",
+      "✓ High-priority inspection candidate (Risk Evidence Score: 80.8/100)"
+    ],
+    "officer_notes": [
+      {
+        "note_id": "NOTE-001",
+        "author": "Ward Vigilance Officer",
+        "timestamp": 1787007591.0918996,
+        "formatted_date": "18 Aug 2026 04:29 AM",
+        "text": "Initial field inspection scheduled for BLDG-001 in MIHAN / Somalwada Ward."
+      },
+      {
+        "note_id": "NOTE-002",
+        "author": "Ward Vigilance Officer",
+        "timestamp": 1787007591.1471264,
+        "formatted_date": "18 Aug 2026 04:29 AM",
+        "text": "Field inspection initiated."
+      },
+      {
+        "note_id": "NOTE-003",
+        "author": "Senior Vigilance Inspector",
+        "timestamp": 1787007622.6311495,
+        "formatted_date": "18 Aug 2026 04:30 AM",
+        "text": "Ward 36 inspector dispatched. GPS coordinates verified."
+      }
+    ],
+    "created_timestamp": 1787007591.0918996,
+    "updated_timestamp": 1787007622.6311495
+  },
+  "BLDG-001": {
+    "case_id": "EW-2026-MIHAN042-BLDG001",
+    "building_id": "BLDG-001",
+    "hotspot_id": "MIHAN-042",
+    "status": "FIELD_VERIFICATION",
+    "priority": "HIGH",
+    "recommended_action": "FIELD_INSPECTION",
+    "recommended_action_details": "Physical construction change detected between satellite acquisition dates. Field verification recommended.",
+    "coordinates": {
+      "latitude": 21.0568,
+      "longitude": 79.0435
+    },
+    "municipal_context": {
+      "is_containment_match": true,
+      "ward_number": "36",
+      "ward_name": "MIHAN / Somalwada Ward",
+      "ward_code": "WARD-036",
+      "zone_name": "Laxmi Nagar Zone",
+      "zone_code": "ZONE-02"
+    },
+    "change": {
+      "classification": "NEW",
+      "status_label": "New Physical Structure",
+      "before_date": "2019-01-31",
+      "after_date": "2025-01-30",
+      "change_pixel_area": 1812
+    },
+    "evidence": {
+      "yolo_confidence": 0.679,
+      "iou": 0.0,
+      "verification_score": 78.0,
+      "priority_score": 80.8,
+      "ssim_divergence_pct": 88.4
+    },
+    "why_flagged": [
+      "✓ Building footprint detected on 2025-01-30 high-resolution imagery (YOLO Confidence: 67.9%)",
+      "✓ No corresponding building footprint detected on 2019-01-31 baseline (0.00 spatial overlap / IoU)",
+      "✓ Strong structural change between acquisition dates",
+      "✓ Located inside NMC MIHAN / Somalwada Ward (Laxmi Nagar Zone)",
+      "✓ High-priority inspection candidate (Risk Evidence Score: 80.8/100)"
+    ],
+    "officer_notes": [
+      {
+        "note_id": "NOTE-001",
+        "author": "Ward Vigilance Officer",
+        "timestamp": 1787007591.0918996,
+        "formatted_date": "18 Aug 2026 04:29 AM",
+        "text": "Initial field inspection scheduled for BLDG-001 in MIHAN / Somalwada Ward."
+      },
+      {
+        "note_id": "NOTE-002",
+        "author": "Ward Vigilance Officer",
+        "timestamp": 1787007591.1471264,
+        "formatted_date": "18 Aug 2026 04:29 AM",
+        "text": "Field inspection initiated."
+      },
+      {
+        "note_id": "NOTE-003",
+        "author": "Senior Vigilance Inspector",
+        "timestamp": 1787007622.6311495,
+        "formatted_date": "18 Aug 2026 04:30 AM",
+        "text": "Ward 36 inspector dispatched. GPS coordinates verified."
+      }
+    ],
+    "created_timestamp": 1787007591.0918996,
+    "updated_timestamp": 1787007622.6311495
+  },
+  "EW-2026-CIVI01-BLDG004": {
+    "case_id": "EW-2026-CIVI01-BLDG004",
+    "building_id": "BLDG-004",
+    "hotspot_id": "CIVI-01",
+    "status": "FIELD_VERIFICATION",
+    "priority": "HIGH",
+    "recommended_action": "FIELD_INSPECTION",
+    "recommended_action_details": "Physical construction change detected between satellite acquisition dates. Field verification recommended.",
+    "coordinates": {
+      "latitude": 21.155,
+      "longitude": 79.072
+    },
+    "municipal_context": {
+      "is_containment_match": true,
+      "ward_number": "14",
+      "ward_name": "Civil Lines & Secretariat Ward",
+      "ward_code": "WARD-014",
+      "zone_name": "Dharampeth Zone",
+      "zone_code": "ZONE-02"
+    },
+    "change": {
+      "classification": "NEW",
+      "status_label": "New Physical Structure",
+      "before_date": "2019-01-31",
+      "after_date": "2025-01-30",
+      "change_pixel_area": 2140
+    },
+    "evidence": {
+      "yolo_confidence": 0.745,
+      "iou": 0.0,
+      "verification_score": 78.0,
+      "priority_score": 84.5,
+      "ssim_divergence_pct": 88.4
+    },
+    "why_flagged": [
+      "✓ Building footprint detected on 2025-01-30 high-resolution imagery (YOLO Confidence: 74.5%)",
+      "✓ No corresponding building footprint detected on 2019-01-31 baseline (0.00 spatial overlap / IoU)",
+      "✓ Strong structural change between acquisition dates",
+      "✓ Located inside NMC Civil Lines & Secretariat Ward (Dharampeth Zone)",
+      "✓ High-priority inspection candidate (Risk Evidence Score: 84.5/100)"
+    ],
+    "officer_notes": [
+      {
+        "note_id": "NOTE-001",
+        "author": "Ward Vigilance Officer",
+        "timestamp": 1787007591.0918996,
+        "formatted_date": "18 Aug 2026 04:29 AM",
+        "text": "Initial field inspection scheduled for BLDG-004 in Civil Lines & Secretariat Ward."
+      }
+    ],
+    "created_timestamp": 1787007591.0918996,
+    "updated_timestamp": 1787007591.0918996
+  },
+  "BLDG-004": {
+    "case_id": "EW-2026-CIVI01-BLDG004",
+    "building_id": "BLDG-004",
+    "hotspot_id": "CIVI-01",
+    "status": "FIELD_VERIFICATION",
+    "priority": "HIGH",
+    "recommended_action": "FIELD_INSPECTION",
+    "recommended_action_details": "Physical construction change detected between satellite acquisition dates. Field verification recommended.",
+    "coordinates": {
+      "latitude": 21.155,
+      "longitude": 79.072
+    },
+    "municipal_context": {
+      "is_containment_match": true,
+      "ward_number": "14",
+      "ward_name": "Civil Lines & Secretariat Ward",
+      "ward_code": "WARD-014",
+      "zone_name": "Dharampeth Zone",
+      "zone_code": "ZONE-02"
+    },
+    "change": {
+      "classification": "NEW",
+      "status_label": "New Physical Structure",
+      "before_date": "2019-01-31",
+      "after_date": "2025-01-30",
+      "change_pixel_area": 2140
+    },
+    "evidence": {
+      "yolo_confidence": 0.745,
+      "iou": 0.0,
+      "verification_score": 78.0,
+      "priority_score": 84.5,
+      "ssim_divergence_pct": 88.4
+    },
+    "why_flagged": [
+      "✓ Building footprint detected on 2025-01-30 high-resolution imagery (YOLO Confidence: 74.5%)",
+      "✓ No corresponding building footprint detected on 2019-01-31 baseline (0.00 spatial overlap / IoU)",
+      "✓ Strong structural change between acquisition dates",
+      "✓ Located inside NMC Civil Lines & Secretariat Ward (Dharampeth Zone)",
+      "✓ High-priority inspection candidate (Risk Evidence Score: 84.5/100)"
+    ],
+    "officer_notes": [
+      {
+        "note_id": "NOTE-001",
+        "author": "Ward Vigilance Officer",
+        "timestamp": 1787007591.0918996,
+        "formatted_date": "18 Aug 2026 04:29 AM",
+        "text": "Initial field inspection scheduled for BLDG-004 in Civil Lines & Secretariat Ward."
+      }
+    ],
+    "created_timestamp": 1787007591.0918996,
+    "updated_timestamp": 1787007591.0918996
+  },
+  "EW-2026-SADA01-BLDG009": {
+    "case_id": "EW-2026-SADA01-BLDG009",
+    "building_id": "BLDG-009",
+    "hotspot_id": "SADA-01",
+    "status": "OPEN",
+    "priority": "HIGH",
+    "recommended_action": "FIELD_INSPECTION",
+    "recommended_action_details": "Physical construction change detected between satellite acquisition dates. Field verification recommended.",
+    "coordinates": {
+      "latitude": 21.1625,
+      "longitude": 79.0812
+    },
+    "municipal_context": {
+      "is_containment_match": true,
+      "ward_number": "22",
+      "ward_name": "Sadar Market Ward",
+      "ward_code": "WARD-036",
+      "zone_name": "Dharampeth Zone",
+      "zone_code": "ZONE-02"
+    },
+    "change": {
+      "classification": "NEW",
+      "status_label": "New Physical Structure",
+      "before_date": "2019-01-31",
+      "after_date": "2025-01-30",
+      "change_pixel_area": 1450
+    },
+    "evidence": {
+      "yolo_confidence": 0.682,
+      "iou": 0.0,
+      "verification_score": 78.0,
+      "priority_score": 76.2,
+      "ssim_divergence_pct": 88.4
+    },
+    "why_flagged": [
+      "✓ Building footprint detected on 2025-01-30 high-resolution imagery (YOLO Confidence: 68.2%)",
+      "✓ No corresponding building footprint detected on 2019-01-31 baseline (0.00 spatial overlap / IoU)",
+      "✓ Strong structural change between acquisition dates",
+      "✓ Located inside NMC Sadar Market Ward (Dharampeth Zone)",
+      "✓ High-priority inspection candidate (Risk Evidence Score: 76.2/100)"
+    ],
+    "officer_notes": [
+      {
+        "note_id": "NOTE-001",
+        "author": "Ward Vigilance Officer",
+        "timestamp": 1787007591.0918996,
+        "formatted_date": "18 Aug 2026 04:29 AM",
+        "text": "Initial field inspection scheduled for BLDG-009 in Sadar Market Ward."
+      }
+    ],
+    "created_timestamp": 1787007591.0918996,
+    "updated_timestamp": 1787007591.0918996
+  },
+  "BLDG-009": {
+    "case_id": "EW-2026-SADA01-BLDG009",
+    "building_id": "BLDG-009",
+    "hotspot_id": "SADA-01",
+    "status": "OPEN",
+    "priority": "HIGH",
+    "recommended_action": "FIELD_INSPECTION",
+    "recommended_action_details": "Physical construction change detected between satellite acquisition dates. Field verification recommended.",
+    "coordinates": {
+      "latitude": 21.1625,
+      "longitude": 79.0812
+    },
+    "municipal_context": {
+      "is_containment_match": true,
+      "ward_number": "22",
+      "ward_name": "Sadar Market Ward",
+      "ward_code": "WARD-036",
+      "zone_name": "Dharampeth Zone",
+      "zone_code": "ZONE-02"
+    },
+    "change": {
+      "classification": "NEW",
+      "status_label": "New Physical Structure",
+      "before_date": "2019-01-31",
+      "after_date": "2025-01-30",
+      "change_pixel_area": 1450
+    },
+    "evidence": {
+      "yolo_confidence": 0.682,
+      "iou": 0.0,
+      "verification_score": 78.0,
+      "priority_score": 76.2,
+      "ssim_divergence_pct": 88.4
+    },
+    "why_flagged": [
+      "✓ Building footprint detected on 2025-01-30 high-resolution imagery (YOLO Confidence: 68.2%)",
+      "✓ No corresponding building footprint detected on 2019-01-31 baseline (0.00 spatial overlap / IoU)",
+      "✓ Strong structural change between acquisition dates",
+      "✓ Located inside NMC Sadar Market Ward (Dharampeth Zone)",
+      "✓ High-priority inspection candidate (Risk Evidence Score: 76.2/100)"
+    ],
+    "officer_notes": [
+      {
+        "note_id": "NOTE-001",
+        "author": "Ward Vigilance Officer",
+        "timestamp": 1787007591.0918996,
+        "formatted_date": "18 Aug 2026 04:29 AM",
+        "text": "Initial field inspection scheduled for BLDG-009 in Sadar Market Ward."
+      }
+    ],
+    "created_timestamp": 1787007591.0918996,
+    "updated_timestamp": 1787007591.0918996
+  },
+  "EW-2026-HING01-BLDG013": {
+    "case_id": "EW-2026-HING01-BLDG013",
+    "building_id": "BLDG-013",
+    "hotspot_id": "HING-01",
+    "status": "UNDER_REVIEW",
+    "priority": "MEDIUM",
+    "recommended_action": "ROUTINE_AUDIT",
+    "recommended_action_details": "Physical construction change detected between satellite acquisition dates. Field verification recommended.",
+    "coordinates": {
+      "latitude": 21.112,
+      "longitude": 79.005
+    },
+    "municipal_context": {
+      "is_containment_match": true,
+      "ward_number": "22",
+      "ward_name": "Hingna MIDC Ward",
+      "ward_code": "WARD-036",
+      "zone_name": "Dhantoli Zone",
+      "zone_code": "ZONE-02"
+    },
+    "change": {
+      "classification": "NEW",
+      "status_label": "New Physical Structure",
+      "before_date": "2019-01-31",
+      "after_date": "2025-01-30",
+      "change_pixel_area": 980
+    },
+    "evidence": {
+      "yolo_confidence": 0.58,
+      "iou": 0.0,
+      "verification_score": 78.0,
+      "priority_score": 62.4,
+      "ssim_divergence_pct": 88.4
+    },
+    "why_flagged": [
+      "✓ Building footprint detected on 2025-01-30 high-resolution imagery (YOLO Confidence: 58.0%)",
+      "✓ No corresponding building footprint detected on 2019-01-31 baseline (0.00 spatial overlap / IoU)",
+      "✓ Strong structural change between acquisition dates",
+      "✓ Located inside NMC Hingna MIDC Ward (Dhantoli Zone)",
+      "✓ High-priority inspection candidate (Risk Evidence Score: 62.4/100)"
+    ],
+    "officer_notes": [
+      {
+        "note_id": "NOTE-001",
+        "author": "Ward Vigilance Officer",
+        "timestamp": 1787007591.0918996,
+        "formatted_date": "18 Aug 2026 04:29 AM",
+        "text": "Initial field inspection scheduled for BLDG-013 in Hingna MIDC Ward."
+      }
+    ],
+    "created_timestamp": 1787007591.0918996,
+    "updated_timestamp": 1787007591.0918996
+  },
+  "BLDG-013": {
+    "case_id": "EW-2026-HING01-BLDG013",
+    "building_id": "BLDG-013",
+    "hotspot_id": "HING-01",
+    "status": "UNDER_REVIEW",
+    "priority": "MEDIUM",
+    "recommended_action": "ROUTINE_AUDIT",
+    "recommended_action_details": "Physical construction change detected between satellite acquisition dates. Field verification recommended.",
+    "coordinates": {
+      "latitude": 21.112,
+      "longitude": 79.005
+    },
+    "municipal_context": {
+      "is_containment_match": true,
+      "ward_number": "22",
+      "ward_name": "Hingna MIDC Ward",
+      "ward_code": "WARD-036",
+      "zone_name": "Dhantoli Zone",
+      "zone_code": "ZONE-02"
+    },
+    "change": {
+      "classification": "NEW",
+      "status_label": "New Physical Structure",
+      "before_date": "2019-01-31",
+      "after_date": "2025-01-30",
+      "change_pixel_area": 980
+    },
+    "evidence": {
+      "yolo_confidence": 0.58,
+      "iou": 0.0,
+      "verification_score": 78.0,
+      "priority_score": 62.4,
+      "ssim_divergence_pct": 88.4
+    },
+    "why_flagged": [
+      "✓ Building footprint detected on 2025-01-30 high-resolution imagery (YOLO Confidence: 58.0%)",
+      "✓ No corresponding building footprint detected on 2019-01-31 baseline (0.00 spatial overlap / IoU)",
+      "✓ Strong structural change between acquisition dates",
+      "✓ Located inside NMC Hingna MIDC Ward (Dhantoli Zone)",
+      "✓ High-priority inspection candidate (Risk Evidence Score: 62.4/100)"
+    ],
+    "officer_notes": [
+      {
+        "note_id": "NOTE-001",
+        "author": "Ward Vigilance Officer",
+        "timestamp": 1787007591.0918996,
+        "formatted_date": "18 Aug 2026 04:29 AM",
+        "text": "Initial field inspection scheduled for BLDG-013 in Hingna MIDC Ward."
+      }
+    ],
+    "created_timestamp": 1787007591.0918996,
+    "updated_timestamp": 1787007591.0918996
+  }
+}

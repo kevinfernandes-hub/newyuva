@@ -322,7 +322,13 @@ def compute_calibrated_wayback_diff(
         from skimage.metrics import structural_similarity as ssim_fn
         b_gray = cv2.cvtColor(before_bgr, cv2.COLOR_BGR2GRAY)
         a_gray = cv2.cvtColor(after_bgr, cv2.COLOR_BGR2GRAY)
-        ssim_score, ssim_map = ssim_fn(b_gray, a_gray, full=True)
+        h, w = b_gray.shape[:2]
+        min_dim = min(h, w)
+        win_size = min(7, min_dim)
+        if win_size % 2 == 0:
+            win_size -= 1
+        win_size = max(3, win_size)
+        ssim_score, ssim_map = ssim_fn(b_gray, a_gray, win_size=win_size, full=True)
         ssim_div_mask = (ssim_map < 0.55).astype(np.uint8) * 255
         ssim_div_mask = cv2.morphologyEx(ssim_div_mask, cv2.MORPH_OPEN, kernel)
         ssim_pct = float(np.sum(ssim_div_mask == 255)) / float(total_px) * 100.0

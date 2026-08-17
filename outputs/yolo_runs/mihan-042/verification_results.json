@@ -1,0 +1,87 @@
+{
+  "status": "SUCCESS",
+  "scope": "Multi-Scale Construction Verification (Stage 2C)",
+  "evaluation_target": "MIHAN-042",
+  "total_candidates_evaluated": 2,
+  "summary_counts": {
+    "CONFIRMED_NEW": 0,
+    "UNCERTAIN": 2,
+    "NOT_CONFIRMED": 0
+  },
+  "score_interpretation": {
+    "80_100": "CONFIRMED_NEW",
+    "50_79": "UNCERTAIN",
+    "0_49": "NOT_CONFIRMED"
+  },
+  "candidates": [
+    {
+      "candidate_id": "BLDG-001",
+      "status": "UNCERTAIN",
+      "evidence_score": 71.0,
+      "after_yolo_confidence": 0.679,
+      "available_zoom_levels": [
+        "Level 1 (Hotspot Overview)"
+      ],
+      "image_change_score": 78.8,
+      "before_structure_score": 100.0,
+      "after_structure_score": 100.0,
+      "ssim_divergence_pct": 90.6,
+      "mean_pixel_diff": 87.58,
+      "texture_emergence_pct": 17.5,
+      "bbox_xyxy": [
+        343.56,
+        408.94,
+        387.74,
+        462.92
+      ],
+      "centroid": [
+        365.0,
+        435.61
+      ],
+      "pixel_area": 1812,
+      "reason": "Moderate YOLO confidence (0.68) and significant pixel shift (SSIM divergence 90.6%), but falls below the conservative confirmation threshold (80.0). Recommended for targeted field verification.",
+      "saved_artifacts": {
+        "level1": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\mihan-042\\BLDG-001\\level1_before_after.jpg",
+        "level2": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\mihan-042\\BLDG-001\\level2_before_after.jpg",
+        "level3": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\mihan-042\\BLDG-001\\level3_before_after.jpg",
+        "level4": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\mihan-042\\BLDG-001\\level4_before_after.jpg",
+        "evidence_dossier": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\mihan-042\\BLDG-001\\evidence.jpg"
+      }
+    },
+    {
+      "candidate_id": "BLDG-004",
+      "status": "UNCERTAIN",
+      "evidence_score": 57.9,
+      "after_yolo_confidence": 0.4534,
+      "available_zoom_levels": [
+        "Level 1 (Hotspot Overview)"
+      ],
+      "image_change_score": 70.5,
+      "before_structure_score": 100.0,
+      "after_structure_score": 100.0,
+      "ssim_divergence_pct": 81.1,
+      "mean_pixel_diff": 74.03,
+      "texture_emergence_pct": 0.0,
+      "bbox_xyxy": [
+        533.91,
+        531.78,
+        559.72,
+        559.72
+      ],
+      "centroid": [
+        549.2,
+        547.35
+      ],
+      "pixel_area": 547,
+      "reason": "Moderate YOLO confidence (0.45) and significant pixel shift (SSIM divergence 81.1%), but falls below the conservative confirmation threshold (80.0). Recommended for targeted field verification.",
+      "saved_artifacts": {
+        "level1": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\mihan-042\\BLDG-004\\level1_before_after.jpg",
+        "level2": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\mihan-042\\BLDG-004\\level2_before_after.jpg",
+        "level3": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\mihan-042\\BLDG-004\\level3_before_after.jpg",
+        "level4": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\mihan-042\\BLDG-004\\level4_before_after.jpg",
+        "evidence_dossier": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\mihan-042\\BLDG-004\\evidence.jpg"
+      }
+    }
+  ],
+  "summary_image": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\mihan-042\\verification_summary.jpg"
+}

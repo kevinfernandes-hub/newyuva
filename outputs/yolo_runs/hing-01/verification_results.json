@@ -1,0 +1,87 @@
+{
+  "status": "SUCCESS",
+  "scope": "Multi-Scale Construction Verification (Stage 2C)",
+  "evaluation_target": "MIHAN-042",
+  "total_candidates_evaluated": 2,
+  "summary_counts": {
+    "CONFIRMED_NEW": 0,
+    "UNCERTAIN": 1,
+    "NOT_CONFIRMED": 1
+  },
+  "score_interpretation": {
+    "80_100": "CONFIRMED_NEW",
+    "50_79": "UNCERTAIN",
+    "0_49": "NOT_CONFIRMED"
+  },
+  "candidates": [
+    {
+      "candidate_id": "BLDG-002",
+      "status": "UNCERTAIN",
+      "evidence_score": 67.5,
+      "after_yolo_confidence": 0.3788,
+      "available_zoom_levels": [
+        "Level 1 (Hotspot Overview)"
+      ],
+      "image_change_score": 81.9,
+      "before_structure_score": 100.0,
+      "after_structure_score": 100.0,
+      "ssim_divergence_pct": 88.7,
+      "mean_pixel_diff": 48.13,
+      "texture_emergence_pct": 67.4,
+      "bbox_xyxy": [
+        383.9,
+        76.47,
+        406.45,
+        89.87
+      ],
+      "centroid": [
+        394.81,
+        82.95
+      ],
+      "pixel_area": 286,
+      "reason": "Moderate YOLO confidence (0.38) and significant pixel shift (SSIM divergence 88.7%), but falls below the conservative confirmation threshold (80.0). Recommended for targeted field verification.",
+      "saved_artifacts": {
+        "level1": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\hing-01\\BLDG-002\\level1_before_after.jpg",
+        "level2": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\hing-01\\BLDG-002\\level2_before_after.jpg",
+        "level3": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\hing-01\\BLDG-002\\level3_before_after.jpg",
+        "level4": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\hing-01\\BLDG-002\\level4_before_after.jpg",
+        "evidence_dossier": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\hing-01\\BLDG-002\\evidence.jpg"
+      }
+    },
+    {
+      "candidate_id": "BLDG-003",
+      "status": "NOT_CONFIRMED",
+      "evidence_score": 41.7,
+      "after_yolo_confidence": 0.3621,
+      "available_zoom_levels": [
+        "Level 1 (Hotspot Overview)"
+      ],
+      "image_change_score": 45.4,
+      "before_structure_score": 100.0,
+      "after_structure_score": 100.0,
+      "ssim_divergence_pct": 56.4,
+      "mean_pixel_diff": 19.75,
+      "texture_emergence_pct": 36.8,
+      "bbox_xyxy": [
+        97.17,
+        86.3,
+        125.13,
+        123.29
+      ],
+      "centroid": [
+        109.24,
+        104.18
+      ],
+      "pixel_area": 808,
+      "reason": "Insufficient evidentiary support (Score: 41.7). Change metrics or detection confidence do not substantiate a confirmed structural footprint addition.",
+      "saved_artifacts": {
+        "level1": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\hing-01\\BLDG-003\\level1_before_after.jpg",
+        "level2": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\hing-01\\BLDG-003\\level2_before_after.jpg",
+        "level3": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\hing-01\\BLDG-003\\level3_before_after.jpg",
+        "level4": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\hing-01\\BLDG-003\\level4_before_after.jpg",
+        "evidence_dossier": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\hing-01\\BLDG-003\\evidence.jpg"
+      }
+    }
+  ],
+  "summary_image": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\hing-01\\verification_summary.jpg"
+}
