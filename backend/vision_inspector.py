@@ -25,6 +25,7 @@ from .vision.alignment import verify_and_align_geographic_footprints
 from .vision.segmentation import segment_change_polygons
 from .vision.change_model import get_default_vision_model
 from .vision.evidence import fuse_multi_source_evidence
+from .vision.yolo_pipeline import analyze_bitemporal_yolo_buildings, load_yolo_building_model
 
 
 def fuse_confidence_scores(
@@ -279,6 +280,26 @@ def execute_zoom_and_verify_agent(
 
     clean_loc_name = matched.get("location_name") or f"{location_id.replace('live-', '').split('--')[0].title()}, Nagpur"
 
+    # 4.5 Execute Real YOLO Building Intelligence on 0.6m Wayback crops
+    yolo_analysis = None
+    level_keys = list(zoom_levels.keys())
+    if level_keys:
+        active_key = "level3" if "level3" in zoom_levels else ("level2" if "level2" in zoom_levels else level_keys[0])
+        active_crop = zoom_levels.get(active_key, {})
+        b_path = active_crop.get("before_path")
+        a_path = active_crop.get("after_path")
+        if b_path and a_path and os.path.exists(b_path) and os.path.exists(a_path):
+            b_bgr = cv2.imread(b_path)
+            a_bgr = cv2.imread(a_path)
+            if b_bgr is not None and a_bgr is not None:
+                yolo_analysis = analyze_bitemporal_yolo_buildings(
+                    before_bgr=b_bgr,
+                    after_bgr=a_bgr,
+                    conf_threshold=0.35,
+                    iou_threshold=0.35,
+                    bbox_wgs84=bbox_geo
+                )
+
     # 5. Formulate Government Case
     case_number = matched.get("case_number", f"CASE #NGP-{hotspot_id.split('-')[-1]}")
     case_file = {
@@ -294,6 +315,7 @@ def execute_zoom_and_verify_agent(
         "change_type": vision_res["change_type"],
         "change_type_label": vision_res["change_type_label"],
         "change_types": vision_res["change_types"],
+        "yolo_analysis": yolo_analysis,
         "infra_score": vision_res.get("infra_score", 0),
         "infra_status": vision_res.get("infra_status", "Stable"),
         "veg_loss_score": vision_res.get("veg_loss_score", 0),

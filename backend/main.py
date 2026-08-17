@@ -21,6 +21,7 @@ from .hotspots import get_hotspots_for_location
 from .vision_inspector import execute_zoom_and_verify_agent
 from .wayback_live import check_wayback_availability
 from .agent.orchestrator import EarthWatchOrchestrator, run_earthwatch_agent
+from .vision.yolo_pipeline import load_yolo_building_model, analyze_bitemporal_yolo_buildings
 
 
 class AgentRunRequest(BaseModel):
@@ -252,6 +253,101 @@ async def inspect_all_hotspots(req: InspectAllRequest, request: Request):
         "location_id": req.location_id,
         "cases": cases,
         "count": len(cases)
+    }
+
+
+# ==========================================
+# YOLO BUILDING INSTANCE SEGMENTATION API
+# ==========================================
+
+class YoloAnalyzeRequest(BaseModel):
+    location_id: Optional[str] = Field("mihan", description="Location identifier e.g. mihan or sadar")
+    hotspot_id: Optional[str] = Field(None, description="Hotspot identifier e.g. MIHAN-042")
+    before_image_path: Optional[str] = Field(None, description="Absolute or relative path to before image")
+    after_image_path: Optional[str] = Field(None, description="Absolute or relative path to after image")
+    conf_threshold: Optional[float] = Field(0.35, description="YOLO building confidence threshold")
+    iou_threshold: Optional[float] = Field(0.35, description="Bi-temporal building IoU threshold")
+    bbox_wgs84: Optional[List[float]] = Field(None, description="Bounding box [west, south, east, north]")
+
+
+@app.get("/api/yolo/status")
+async def get_yolo_status():
+    """
+    Returns YOLO Building Instance Segmentation model transparency info,
+    CUDA hardware device details, task, class names, and default thresholds.
+    """
+    import cv2
+    _, model_info = load_yolo_building_model()
+    return model_info
+
+
+@app.get("/api/yolo/results/{hotspot_id}")
+async def get_yolo_results(
+    hotspot_id: str,
+    location_id: str = Query("mihan", description="Location identifier")
+):
+    """
+    Returns YOLO building intelligence analysis for a candidate hotspot.
+    """
+    cache_key = f"{location_id.lower()}_{hotspot_id.upper()}"
+    if cache_key in INSPECTION_CACHE and "yolo_analysis" in INSPECTION_CACHE[cache_key]:
+        return {
+            "status": "success",
+            "hotspot_id": hotspot_id,
+            "yolo_analysis": INSPECTION_CACHE[cache_key]["yolo_analysis"]
+        }
+
+    case_file = execute_zoom_and_verify_agent(
+        hotspot_id=hotspot_id,
+        location_id=location_id
+    )
+    INSPECTION_CACHE[cache_key] = case_file
+    return {
+        "status": "success",
+        "hotspot_id": hotspot_id,
+        "yolo_analysis": case_file.get("yolo_analysis")
+    }
+
+
+@app.post("/api/yolo/analyze")
+async def analyze_yolo_buildings(req: YoloAnalyzeRequest, request: Request):
+    """
+    Executes live YOLO Building Instance Segmentation & Bi-Temporal Intelligence Pipeline:
+    1. Loads keremberke/yolov8s-building-segmentation model on CUDA/CPU.
+    2. Runs building segmentation on Before and After 0.6m orthophotos.
+    3. Performs spatial IoU matching and classifies EXISTING vs NEW buildings.
+    4. Computes multi-factor evidence verification and priority score.
+    5. Returns building polygons, confidence, IoU, and generated static artifacts.
+    """
+    import cv2
+    base_url = str(request.base_url).rstrip("/")
+    target_hid = req.hotspot_id or "MIHAN-042"
+    target_loc = req.location_id or "mihan"
+
+    # If raw image paths provided
+    if req.before_image_path and req.after_image_path and os.path.exists(req.before_image_path) and os.path.exists(req.after_image_path):
+        b_bgr = cv2.imread(req.before_image_path)
+        a_bgr = cv2.imread(req.after_image_path)
+        if b_bgr is not None and a_bgr is not None:
+            res = analyze_bitemporal_yolo_buildings(
+                before_bgr=b_bgr,
+                after_bgr=a_bgr,
+                conf_threshold=req.conf_threshold or 0.35,
+                iou_threshold=req.iou_threshold or 0.35,
+                bbox_wgs84=req.bbox_wgs84
+            )
+            return res
+
+    case_file = execute_zoom_and_verify_agent(
+        hotspot_id=target_hid,
+        location_id=target_loc,
+        base_url=base_url
+    )
+    return {
+        "status": "success",
+        "hotspot_id": target_hid,
+        "location_id": target_loc,
+        "yolo_analysis": case_file.get("yolo_analysis")
     }
 
 

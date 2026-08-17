@@ -9,8 +9,9 @@ export function AIInspectionModal({
   onExportDispatch
 }) {
   const [activeZoomKey, setActiveZoomKey] = useState('level1');
-  const [overlayMode, setOverlayMode] = useState('diff'); // 'diff' | 'ssim' | 'veg'
+  const [overlayMode, setOverlayMode] = useState('diff'); // 'diff' | 'ssim' | 'veg' | 'yolo' | 'yolo_mask'
   const [completedStagesCount, setCompletedStagesCount] = useState(7);
+  const [selectedBldg, setSelectedBldg] = useState(null);
 
   // Close on Escape key
   useEffect(() => {
@@ -43,8 +44,15 @@ export function AIInspectionModal({
   const beforeSrc = activeZoom.before_image_url || '/wayback_mihan_same_season_20190131_before.png';
   const afterSrc = activeZoom.after_image_url || '/wayback_mihan_same_season_20250130_after.png';
   
+  const yoloRes = caseData.yolo_analysis || null;
+  const yoloArtifacts = yoloRes?.artifacts || null;
+
   let diffSrc = activeZoom.overlay_image_url || activeZoom.difference_image_url || '/wayback_mihan_sameszn_calibrated_color_overlay.png';
-  if (overlayMode === 'ssim' && activeZoom.ssim_image_url) {
+  if (overlayMode === 'yolo' && yoloArtifacts?.change_overlay) {
+    diffSrc = yoloArtifacts.change_overlay;
+  } else if (overlayMode === 'yolo_mask' && yoloArtifacts?.change_mask) {
+    diffSrc = yoloArtifacts.change_mask;
+  } else if (overlayMode === 'ssim' && activeZoom.ssim_image_url) {
     diffSrc = activeZoom.ssim_image_url;
   } else if (overlayMode === 'veg' && activeZoom.veg_overlay_image_url) {
     diffSrc = activeZoom.veg_overlay_image_url;
@@ -161,6 +169,20 @@ export function AIInspectionModal({
                 </button>
                 <button
                   type="button"
+                  className={`${styles.overlayBtn} ${overlayMode === 'yolo' ? styles.overlayBtnActive : ''}`}
+                  onClick={() => setOverlayMode('yolo')}
+                >
+                  🏢 YOLO Buildings
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.overlayBtn} ${overlayMode === 'yolo_mask' ? styles.overlayBtnActive : ''}`}
+                  onClick={() => setOverlayMode('yolo_mask')}
+                >
+                  🟥 YOLO Change Mask
+                </button>
+                <button
+                  type="button"
                   className={`${styles.overlayBtn} ${overlayMode === 'ssim' ? styles.overlayBtnActive : ''}`}
                   onClick={() => setOverlayMode('ssim')}
                 >
@@ -171,7 +193,7 @@ export function AIInspectionModal({
                   className={`${styles.overlayBtn} ${overlayMode === 'veg' ? styles.overlayBtnActive : ''}`}
                   onClick={() => setOverlayMode('veg')}
                 >
-                  🌿 Vegetation Dynamics (Loss/Gain)
+                  🌿 Vegetation Dynamics
                 </button>
               </div>
             </div>
@@ -302,6 +324,120 @@ export function AIInspectionModal({
                 </div>
               </div>
             </div>
+
+            {/* 1.5 YOLO Building Instance Segmentation Section */}
+            {yoloRes && (
+              <div className={styles.domainScoreSection} style={{ borderLeft: '4px solid #3B82F6', background: 'rgba(15, 23, 42, 0.95)' }}>
+                <div className={styles.domainScoreHeader}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className={styles.domainSectionTitle}>🏢 YOLO Building Instance Intelligence</span>
+                    <span style={{ fontSize: '11px', background: '#1E3A8A', color: '#60A5FA', padding: '2px 8px', borderRadius: '4px', fontFamily: 'monospace' }}>
+                      {yoloRes.model_transparency?.device?.toUpperCase() || 'CUDA:0'}
+                    </span>
+                  </div>
+                  <span className={styles.domainSubtitle}>
+                    Model: {yoloRes.model_transparency?.model_name || 'yolov8s-building-segmentation'} • Conf Thresh: 0.35
+                  </span>
+                </div>
+
+                {/* Counter Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px', margin: '12px 0' }}>
+                  <div style={{ background: '#1E293B', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '11px', color: '#94A3B8' }}>Before</div>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#F8FAFC' }}>{yoloRes.summary?.buildings_before ?? 0}</div>
+                  </div>
+                  <div style={{ background: '#1E293B', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '11px', color: '#94A3B8' }}>After</div>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#F8FAFC' }}>{yoloRes.summary?.buildings_after ?? 0}</div>
+                  </div>
+                  <div style={{ background: '#1E293B', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '11px', color: '#94A3B8' }}>Existing</div>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#22C55E' }}>{yoloRes.summary?.existing_buildings ?? 0}</div>
+                  </div>
+                  <div style={{ background: '#1E293B', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '11px', color: '#94A3B8' }}>New</div>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#EF4444' }}>{yoloRes.summary?.new_buildings ?? 0}</div>
+                  </div>
+                  <div style={{ background: '#1E293B', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '11px', color: '#94A3B8' }}>Peak Evidence</div>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#3B82F6' }}>{yoloRes.summary?.peak_evidence_score ?? 0}%</div>
+                  </div>
+                </div>
+
+                {/* Building Candidates list */}
+                {yoloRes.buildings && yoloRes.buildings.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: '600', color: '#CBD5E1', marginBottom: '6px' }}>
+                      Detected Building Footprints (Click for Details):
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {yoloRes.buildings.map((bldg) => (
+                        <button
+                          key={bldg.building_id}
+                          type="button"
+                          onClick={() => setSelectedBldg(bldg)}
+                          style={{
+                            background: bldg.category === 'NEW' ? '#450A0A' : bldg.category === 'EXPANDED' ? '#451A03' : '#064E3B',
+                            border: `1px solid ${bldg.category === 'NEW' ? '#EF4444' : bldg.category === 'EXPANDED' ? '#F97316' : '#10B981'}`,
+                            color: '#F8FAFC',
+                            borderRadius: '4px',
+                            padding: '4px 8px',
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <strong>{bldg.building_id}</strong>
+                          <span style={{ fontSize: '10px', opacity: 0.8 }}>({bldg.category})</span>
+                          <span style={{ background: 'rgba(255,255,255,0.15)', padding: '1px 4px', borderRadius: '2px' }}>{bldg.yolo_confidence}%</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Interactive Selected Building Detail Card */}
+            {selectedBldg && (
+              <div style={{ background: '#0F172A', border: '1px solid #3B82F6', borderRadius: '8px', padding: '12px', margin: '12px 0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontWeight: 'bold', color: '#60A5FA', fontSize: '14px' }}>{selectedBldg.building_id}</span>
+                    <span style={{
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      background: selectedBldg.category === 'NEW' ? '#EF4444' : '#10B981',
+                      color: '#FFF'
+                    }}>
+                      {selectedBldg.category}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBldg(null)}
+                    style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: '14px' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '11px', color: '#CBD5E1' }}>
+                  <div><strong>YOLO Confidence:</strong> {selectedBldg.yolo_confidence}%</div>
+                  <div><strong>Temporal IoU:</strong> {selectedBldg.temporal_iou}</div>
+                  <div><strong>Pixel Area:</strong> {selectedBldg.pixel_area} px</div>
+                  <div><strong>Footprint Area:</strong> {selectedBldg.area_formatted}</div>
+                  <div><strong>SSIM Divergence:</strong> {((selectedBldg.evidence?.ssim_divergence ?? 0) * 100).toFixed(1)}%</div>
+                  <div><strong>Evidence Score:</strong> {selectedBldg.evidence?.evidence_score ?? 0} / 100</div>
+                  <div><strong>Verification Status:</strong> {selectedBldg.evidence?.verification_status}</div>
+                  <div><strong>Centroid:</strong> {selectedBldg.centroid ? `${selectedBldg.centroid[0].toFixed(4)}°, ${selectedBldg.centroid[1].toFixed(4)}°` : 'N/A'}</div>
+                </div>
+              </div>
+            )}
 
             {/* 2. Multi-Sensor Evidence Confidence Matrix */}
             <div className={styles.confidenceGrid}>

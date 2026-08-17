@@ -207,7 +207,7 @@ Town Planning Directorate, Nagpur Municipal Corporation
               className={styles.primaryActionBtn}
               onClick={() => onInspectHotspot && onInspectHotspot(activeHotspot?.hotspot_id || 'MIHAN-043')}
             >
-              <span>🔍 Open AI Multi-Level Zoom Inspection</span>
+              <span>🏢 Run AI Building Analysis & Zoom Inspection</span>
               <span>→</span>
             </button>
 
