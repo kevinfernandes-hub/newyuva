@@ -84,7 +84,7 @@ def get_wayback_base_images(
 
     # 4. If bbox provided or lat/lng, fetch live high-resolution imagery for THIS exact location
     if bbox:
-        wayback_res = get_wayback_imagery(bbox=bbox, zoom=16)
+        wayback_res = get_wayback_imagery(bbox=bbox, zoom=17)
         if wayback_res and "before_bgr" in wayback_res and "after_bgr" in wayback_res:
             return wayback_res["before_bgr"], wayback_res["after_bgr"], bbox
 

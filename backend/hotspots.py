@@ -13,6 +13,8 @@ from typing import Dict, List, Any, Optional, Tuple
 import cv2
 import numpy as np
 
+from .geocoding import GEOCODE_CACHE
+
 # In-memory storage for dynamically extracted hotspots by location ID
 DYNAMIC_HOTSPOTS_CACHE: Dict[str, List[Dict[str, Any]]] = {}
 
@@ -392,17 +394,23 @@ def get_hotspots_for_location(location_id: str) -> List[Dict[str, Any]]:
 
     # 3. Generate structured candidate hotspots for this location
     clean_code = re.sub(r"[^a-zA-Z]", "", clean_short)[:4].upper() or "NGP"
+    lat, lon, disp = 21.1458, 79.0882, f"{clean_short.title()}, Nagpur"
+    for k, (glat, glon, gdisp) in GEOCODE_CACHE.items():
+        if k in clean_short.lower() or clean_short.lower() in k:
+            lat, lon, disp = glat, glon, gdisp
+            break
+
     return [
         {
             "hotspot_id": f"{clean_code}-01",
             "case_number": f"CASE #NGP-{clean_code}-01",
             "name": f"Hotspot #01 ({clean_short.title()})",
             "location_id": loc_key,
-            "location_name": f"{clean_short.title()}, Nagpur",
-            "latitude": 21.1458,
-            "longitude": 79.0882,
-            "coords_str": "21.1458° N, 79.0882° E",
-            "bbox_wgs84": [79.0800, 21.1400, 79.0960, 21.1520],
+            "location_name": disp,
+            "latitude": lat,
+            "longitude": lon,
+            "coords_str": f"{lat:.4f}° N, {lon:.4f}° E",
+            "bbox_wgs84": [lon - 0.008, lat - 0.008, lon + 0.008, lat + 0.008],
             "area_m2": 6800.0,
             "area_formatted": "6,800 m²",
             "change_percent": 54.2,

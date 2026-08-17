@@ -65,10 +65,10 @@ export function AIInspectionModal({
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
-            <span className={styles.casePill}>{caseData.case_id}</span>
+            <span className={styles.casePill}>NMC DOSSIER #{caseData.case_id}</span>
             <div className={styles.titleGroup}>
               <h2 className={styles.title}>{caseData.name || caseData.location_name}</h2>
-              <span className={styles.subtitle}>{caseData.coordinates} • {caseData.change_area_formatted}</span>
+              <span className={styles.subtitle}>{caseData.coordinates} • Footprint: {caseData.change_area_formatted}</span>
             </div>
           </div>
 
@@ -76,7 +76,7 @@ export function AIInspectionModal({
             <span className={`${styles.priorityTag} ${priorityClass}`}>
               Priority: {caseData.priority}
             </span>
-            <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close AI inspection case">
+            <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close Case">
               ✕
             </button>
           </div>
@@ -91,7 +91,7 @@ export function AIInspectionModal({
               title={stage.detail}
             >
               <span className={styles.stageCheck}>✓</span>
-              <span>{stage.name.split('(')[0].trim()}</span>
+              <span>{stage.name.replace(/AI /gi, '').split('(')[0].trim()}</span>
             </div>
           ))}
         </div>
@@ -116,7 +116,7 @@ export function AIInspectionModal({
               <span className={styles.scaleBadge}>{activeZoom.scale || '~500m × 500m'}</span>
             </div>
 
-            {/* 3-Panel Synchronized Triptych View */}
+            {/* 3-Panel Synchronized View */}
             <div className={styles.triptychGrid}>
               <div className={styles.panelWrapper}>
                 <div className={styles.panelHeader}>
@@ -124,7 +124,7 @@ export function AIInspectionModal({
                   <span>0.6m Baseline</span>
                 </div>
                 <div className={styles.panelImageContainer}>
-                  <img src={beforeSrc} alt="Historical Wayback 0.6m Baseline" className={styles.panelImage} />
+                  <img src={beforeSrc} alt="Historical Baseline" className={styles.panelImage} />
                 </div>
               </div>
 
@@ -134,17 +134,17 @@ export function AIInspectionModal({
                   <span>0.6m Current</span>
                 </div>
                 <div className={styles.panelImageContainer}>
-                  <img src={afterSrc} alt="Current Wayback 0.6m High-Res" className={styles.panelImage} />
+                  <img src={afterSrc} alt="Current State" className={styles.panelImage} />
                 </div>
               </div>
 
               <div className={styles.panelWrapper}>
                 <div className={styles.panelHeader}>
-                  <span>AI Difference</span>
-                  <span>Calibrated Overlay</span>
+                  <span>Ground Transformation</span>
+                  <span>Calibrated Footprint</span>
                 </div>
                 <div className={styles.panelImageContainer}>
-                  <img src={diffSrc} alt="Morphological Difference Overlay" className={styles.panelImage} />
+                  <img src={diffSrc} alt="Detected Footprint" className={styles.panelImage} />
                 </div>
               </div>
             </div>
@@ -152,22 +152,22 @@ export function AIInspectionModal({
 
           {/* Intelligence & Case Evaluation Column */}
           <div className={styles.intelCol}>
-            {/* 4-Tier Multi-Modal Confidence Matrix */}
+            {/* Multi-Sensor Confidence Grid */}
             <div className={styles.confidenceGrid}>
               <div className={styles.confCard}>
-                <span className={styles.confLabel}>Initial 10m Detection</span>
+                <span className={styles.confLabel}>Sentinel-2 (10m)</span>
                 <span className={styles.confVal}>{caseData.initial_confidence}%</span>
               </div>
               <div className={styles.confCard}>
-                <span className={styles.confLabel}>0.6m Wayback Check</span>
+                <span className={styles.confLabel}>Orthophoto (0.6m)</span>
                 <span className={styles.confVal}>{caseData.highres_confidence}%</span>
               </div>
               <div className={styles.confCard}>
-                <span className={styles.confLabel}>AI Vision Inspection</span>
+                <span className={styles.confLabel}>Spectral Audit</span>
                 <span className={styles.confVal}>{caseData.vision_confidence}%</span>
               </div>
               <div className={`${styles.confCard} ${styles.finalCard}`}>
-                <span className={styles.confLabel}>EarthWatch Composite Confidence</span>
+                <span className={styles.confLabel}>Composite Verification</span>
                 <div className={styles.confValRow}>
                   <span className={styles.confVal}>{caseData.composite_confidence || caseData.final_confidence}%</span>
                   <span className={styles.confStatusPill}>{caseData.status}</span>
@@ -175,17 +175,17 @@ export function AIInspectionModal({
               </div>
             </div>
 
-            {/* AI Findings Card */}
+            {/* Case Findings Card */}
             <div className={styles.findingsCard}>
               <div className={styles.findingsHeader}>
                 <span className={styles.categoryBadge}>
                   {caseData.change_type_label || 'New Construction'}
                 </span>
-                <span className={styles.confLabel}>Growth Risk: {caseData.urban_growth_risk} ({caseData.growth_risk_score}/100)</span>
+                <span className={styles.confLabel}>Ward Risk: {caseData.urban_growth_risk} ({caseData.growth_risk_score}/100)</span>
               </div>
 
               <p className={styles.findingText}>
-                <strong>AI Finding:</strong> {caseData.finding || 'New large-scale institutional construction detected.'}
+                <strong>Municipal Finding:</strong> {caseData.finding || 'New structural foundation and building envelope detected.'}
               </p>
 
               <p className={styles.evidenceText}>
@@ -200,7 +200,7 @@ export function AIInspectionModal({
                     {caseData.permit_status}
                   </span>
                   <span className={styles.permitSub}>
-                    Development Record Cross-Reference — Demonstration Dataset: {caseData.permit_details}
+                    NMC Town Planning Sanction Record: {caseData.permit_details}
                   </span>
                 </div>
               </div>
@@ -217,7 +217,7 @@ export function AIInspectionModal({
 
           <div className={styles.footerButtons}>
             <button type="button" className={styles.dispatchBtn} onClick={handlePrintDispatch}>
-              Export Field Dispatch Case 📄
+              Export Field Notice (PDF) 📄
             </button>
             <button type="button" className={styles.dismissBtn} onClick={onClose}>
               Close Case

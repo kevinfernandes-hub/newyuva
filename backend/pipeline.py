@@ -41,9 +41,9 @@ function evaluatePixel(sample) {
 # In-memory cache for available dates catalog query
 DATES_CACHE: Dict[str, List[Dict[str, Any]]] = {}
 
-def build_bbox_from_point(lat: float, lng: float, padding: float = 0.024) -> BBox:
+def build_bbox_from_point(lat: float, lng: float, padding: float = 0.018) -> BBox:
     """
-    Builds a bounding box around (lat, lng) with ~0.024 deg padding (~2.5km span).
+    Builds a bounding box around (lat, lng) with ~0.018 deg padding (~3.8km span).
     """
     min_lng = lng - padding
     min_lat = lat - padding
@@ -357,8 +357,8 @@ def run_analysis_pipeline(
         output_dir=output_dir,
         base_url=base_url,
         before_target="2019-01-31",
-        after_target="2025-01-30",
-        zoom=15
+        after_target="2024-02-01",
+        zoom=17
     )
 
     if wayback_tier:

@@ -34,13 +34,16 @@ export function useDraggable({
   }, [min, max, orientation, onChange]);
 
   const handlePointerDown = useCallback((e) => {
+    if (e.button !== undefined && e.button !== 0) return; // Only left click
     e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
     setIsDragging(true);
     updateValueFromPointer(e.clientX, e.clientY);
   }, [updateValueFromPointer]);
 
   const handleTouchStart = useCallback((e) => {
     if (!e.touches[0]) return;
+    if (e.stopPropagation) e.stopPropagation();
     setIsDragging(true);
     updateValueFromPointer(e.touches[0].clientX, e.touches[0].clientY);
   }, [updateValueFromPointer]);
@@ -49,6 +52,7 @@ export function useDraggable({
     if (!isDragging) return;
 
     const handlePointerMove = (e) => {
+      e.preventDefault();
       updateValueFromPointer(e.clientX, e.clientY);
     };
 
@@ -62,7 +66,7 @@ export function useDraggable({
       setIsDragging(false);
     };
 
-    window.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('mousemove', handlePointerMove, { passive: false });
     window.addEventListener('mouseup', handlePointerUp);
     window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('touchend', handlePointerUp);

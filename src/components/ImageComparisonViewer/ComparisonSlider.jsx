@@ -2,6 +2,16 @@ import React from 'react';
 import styles from './ImageComparisonViewer.module.css';
 
 export function ComparisonSlider({ positionPct, onKeyDown, onPointerDown, onTouchStart }) {
+  const handleMouseDown = (e) => {
+    e.stopPropagation();
+    if (onPointerDown) onPointerDown(e);
+  };
+
+  const handleTouch = (e) => {
+    e.stopPropagation();
+    if (onTouchStart) onTouchStart(e);
+  };
+
   return (
     <div
       className={styles.sliderDivider}
@@ -13,8 +23,8 @@ export function ComparisonSlider({ positionPct, onKeyDown, onPointerDown, onTouc
       aria-valuenow={Math.round(positionPct)}
       tabIndex={0}
       onKeyDown={onKeyDown}
-      onMouseDown={onPointerDown}
-      onTouchStart={onTouchStart}
+      onMouseDown={handleMouseDown}
+      onTouchStart={handleTouch}
     >
       <div className={styles.sliderHandle} title="Drag to compare before & after">
         <svg viewBox="0 0 24 24">

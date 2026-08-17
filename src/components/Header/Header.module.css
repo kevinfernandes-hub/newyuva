@@ -1,60 +1,104 @@
 .header {
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-hairline);
-  padding: 0 24px;
-  height: var(--header-height);
+  height: 56px;
+  background: #0D131F;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  z-index: 20;
+  padding: 0 24px;
+  position: relative;
+  z-index: 50;
 }
 
 .branding {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 14px;
 }
 
-.title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.015em;
+.emblemBadge {
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-.accentDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--accent-primary);
-  display: inline-block;
+.emblemText {
+  font-size: 11px;
+  font-weight: 800;
+  color: #38BDF8;
+  letter-spacing: 0.05em;
+}
+
+.titleColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #F8FAFC;
+  letter-spacing: -0.01em;
+}
+
+.portalTag {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #38BDF8;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 1px 7px;
+  border-radius: 4px;
 }
 
 .subtitle {
-  font-size: 12px;
-  color: var(--text-muted);
+  font-size: 11.5px;
+  color: #94A3B8;
   font-weight: 400;
 }
 
-.note {
-  font-size: 11px;
-  color: var(--text-muted);
-  max-width: 480px;
-  line-height: 1.4;
-  text-align: right;
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
-.noteHighlight {
-  color: var(--text-secondary);
-  font-weight: 500;
+.wardStatus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  padding: 4px 10px;
+  border-radius: 6px;
 }
 
-@media (max-width: 768px) {
-  .note {
-    display: none;
-  }
+.liveIndicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.statusText {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #34D399;
 }

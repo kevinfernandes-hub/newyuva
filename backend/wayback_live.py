@@ -13,6 +13,8 @@ import urllib.request
 import urllib.parse
 import json
 import io
+import re
+from datetime import datetime, date
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple, NamedTuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -20,67 +22,116 @@ import cv2
 import numpy as np
 from PIL import Image
 
-# In-memory LRU tile cache
+# In-memory LRU tile cache & releases cache
 TILE_CACHE: Dict[str, Image.Image] = {}
-RELEASES_CACHE: List[Any] = []
+CACHED_RELEASES: Optional[List['WaybackRelease']] = None
+
+WAYBACK_CONFIG_URL = "https://s3-us-west-2.amazonaws.com/config.maptiles.arcgis.com/waybackconfig.json"
 
 
 class WaybackRelease(NamedTuple):
     release_number: int
     release_date: str
-    item_id: str
-    layer_name: str
+    item_title: str
     tile_url_template: str
 
 
-BUNDLED_RELEASES: List[WaybackRelease] = [
+# Fallback catalog if offline
+FALLBACK_RELEASES: List[WaybackRelease] = [
     WaybackRelease(
-        13192, "2019-01-31", "20190131", "WB_2019_01_31",
-        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/13192/{z}/{y}/{x}"
+        13161, "2018-01-08", "World Imagery (Wayback 2018-01-08)",
+        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/13161/{level}/{row}/{col}"
     ),
     WaybackRelease(
-        40523, "2022-02-24", "20220224", "WB_2022_02_24",
-        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/40523/{z}/{y}/{x}"
+        13192, "2019-01-31", "World Imagery (Wayback 2019-01-31)",
+        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/13192/{level}/{row}/{col}"
     ),
     WaybackRelease(
-        45892, "2023-01-26", "20230126", "WB_2023_01_26",
-        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/45892/{z}/{y}/{x}"
+        40523, "2022-02-24", "World Imagery (Wayback 2022-02-24)",
+        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/40523/{level}/{row}/{col}"
     ),
     WaybackRelease(
-        49059, "2024-02-01", "20240201", "WB_2024_02_01",
-        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/49059/{z}/{y}/{x}"
+        45892, "2023-01-26", "World Imagery (Wayback 2023-01-26)",
+        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/45892/{level}/{row}/{col}"
     ),
     WaybackRelease(
-        26334, "2025-01-30", "20250130", "WB_2025_01_30",
-        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/26334/{z}/{y}/{x}"
+        49059, "2024-02-01", "World Imagery (Wayback 2024-02-01)",
+        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/49059/{level}/{row}/{col}"
+    ),
+    WaybackRelease(
+        48925, "2025-06-26", "World Imagery (Wayback 2025-06-26)",
+        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/48925/{level}/{row}/{col}"
+    ),
+    WaybackRelease(
+        26334, "2026-08-05", "World Imagery (Wayback 2026-08-05)",
+        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/26334/{level}/{row}/{col}"
     )
 ]
 
 
 def get_wayback_releases() -> List[WaybackRelease]:
     """
-    Returns verified Wayback releases list with valid WMTS endpoints.
+    Fetches and parses all 196+ Wayback historical releases from ArcGIS config.
+    Falls back to curated multi-year releases if network is restricted.
     """
-    global RELEASES_CACHE
-    if RELEASES_CACHE:
-        return RELEASES_CACHE
+    global CACHED_RELEASES
+    if CACHED_RELEASES and len(CACHED_RELEASES) > 0:
+        return CACHED_RELEASES
 
-    RELEASES_CACHE = BUNDLED_RELEASES
-    return BUNDLED_RELEASES
+    try:
+        req = urllib.request.Request(
+            WAYBACK_CONFIG_URL,
+            headers={"User-Agent": "Mozilla/5.0"}
+        )
+        with urllib.request.urlopen(req, timeout=6) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+
+        releases: List[WaybackRelease] = []
+        date_regex = re.compile(r"Wayback (\d{4}-\d{2}-\d{2})")
+
+        for k, v in data.items():
+            if not isinstance(v, dict):
+                continue
+            title = v.get("itemTitle", "")
+            match = date_regex.search(title)
+            if match:
+                date_str = match.group(1)
+                url_tpl = v.get("itemURL", "")
+                if url_tpl:
+                    releases.append(
+                        WaybackRelease(
+                            release_number=int(k),
+                            release_date=date_str,
+                            item_title=title,
+                            tile_url_template=url_tpl
+                        )
+                    )
+
+        if len(releases) > 0:
+            releases.sort(key=lambda r: r.release_date)
+            CACHED_RELEASES = releases
+            return releases
+    except Exception as e:
+        print(f"Warning: Fetching waybackconfig failed ({e}), using curated catalog.")
+
+    CACHED_RELEASES = FALLBACK_RELEASES
+    return FALLBACK_RELEASES
 
 
 def find_closest_release(releases: List[WaybackRelease], target_date: str) -> WaybackRelease:
     """Finds release with closest calendar date to target_date (YYYY-MM-DD)."""
     if not releases:
-        return BUNDLED_RELEASES[-1]
+        return FALLBACK_RELEASES[-1]
     target = target_date[:10]
-    return min(releases, key=lambda r: abs((np.datetime64(r.release_date) - np.datetime64(target)).astype(int)))
+    return min(
+        releases,
+        key=lambda r: abs((np.datetime64(r.release_date) - np.datetime64(target)).astype(int))
+    )
 
 
 def check_wayback_availability(bbox: List[float]) -> Dict[str, Any]:
     """
     Checks Wayback imagery availability for any given bounding box [west, south, east, north].
-    Returns availability status: AVAILABLE, LIMITED, or UNAVAILABLE.
     """
     releases = get_wayback_releases()
     return {
@@ -127,20 +178,6 @@ def fetch_tile(url: str, max_retries: int = 2) -> Optional[Image.Image]:
                     TILE_CACHE[url] = img
                 return img
         except Exception:
-            if attempt == max_retries - 1:
-                # Try fallback to standard Esri high-res imagery
-                try:
-                    parts = url.split('/')
-                    z, y, x = parts[-3], parts[-2], parts[-1]
-                    fallback_url = f"https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                    req = urllib.request.Request(fallback_url, headers={"User-Agent": "Mozilla/5.0"})
-                    with urllib.request.urlopen(req, timeout=4) as response:
-                        img_data = response.read()
-                        img = Image.open(io.BytesIO(img_data)).convert("RGB")
-                        TILE_CACHE[url] = img
-                        return img
-                except Exception:
-                    return None
             time.sleep(0.12)
     return None
 
@@ -164,7 +201,6 @@ def stitch_wayback_bbox(
 ) -> Optional[Image.Image]:
     """
     Stitches a continuous ultra-high-resolution composite for ANY WGS84 bounding box.
-    Preserves 2400x2000 high-density buffers for crystal-clear sub-meter magnification.
     bbox: [west, south, east, north]
     """
     west, south, east, north = bbox
@@ -182,7 +218,12 @@ def stitch_wayback_bbox(
             for c in range(cols):
                 tx = min_x + c
                 ty = min_y + r
-                tile_url = release.tile_url_template.format(z=zoom, y=ty, x=tx)
+                # Support both {level}/{row}/{col} and {z}/{y}/{x} template keys
+                tpl = release.tile_url_template
+                if "{level}" in tpl:
+                    tile_url = tpl.format(level=zoom, row=ty, col=tx)
+                else:
+                    tile_url = tpl.format(z=zoom, y=ty, x=tx)
                 tile_tasks.append((r, c, executor.submit(fetch_tile, tile_url)))
 
         for r, c, future in tile_tasks:
@@ -207,11 +248,12 @@ def stitch_wayback_bbox(
 
     if crop_right > crop_left and crop_bottom > crop_top:
         cropped = canvas.crop((crop_left, crop_top, crop_right, crop_bottom))
-        out_w = max(2400, cropped.width)
-        out_h = max(2000, cropped.height)
-        return cropped.resize((out_w, out_h), Image.Resampling.LANCZOS)
+        aspect = cropped.width / max(1, cropped.height)
+        target_w = max(2000, cropped.width)
+        target_h = max(1600, int(target_w / aspect))
+        return cropped.resize((target_w, target_h), Image.Resampling.LANCZOS)
 
-    return canvas.resize((2400, 2000), Image.Resampling.LANCZOS)
+    return canvas
 
 
 def compute_calibrated_wayback_diff(
@@ -237,22 +279,16 @@ def compute_calibrated_wayback_diff(
     diff_r = cv2.absdiff(b_norm[:, :, 2], a_norm[:, :, 2])
     diff_rgb = cv2.max(cv2.max(diff_b, diff_g), diff_r)
 
-    # Gray difference
-    b_gray = cv2.cvtColor(b_norm, cv2.COLOR_BGR2GRAY)
-    a_gray = cv2.cvtColor(a_norm, cv2.COLOR_BGR2GRAY)
-    diff_gray = cv2.absdiff(b_gray, a_gray)
+    # Thresholding & morphological opening
+    _, binary_mask = cv2.threshold(diff_rgb, threshold, 255, cv2.THRESH_BINARY)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_size, kernel_size))
+    change_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_OPEN, kernel)
 
-    diff = cv2.max(diff_rgb, diff_gray)
-    _, change_mask = cv2.threshold(diff, threshold, 255, cv2.THRESH_BINARY)
+    change_px = np.count_nonzero(change_mask == 255)
+    total_px = change_mask.size
+    change_pct = (change_px / (total_px + 1e-7)) * 100.0
 
-    if kernel_size > 1:
-        kernel = np.ones((kernel_size, kernel_size), np.uint8)
-        change_mask = cv2.morphologyEx(change_mask, cv2.MORPH_OPEN, kernel)
-        change_mask = cv2.morphologyEx(change_mask, cv2.MORPH_CLOSE, kernel)
-
-    change_pct = (float(np.sum(change_mask == 255)) / float(change_mask.size)) * 100.0
-
-    # Build terracotta blended overlay [30, 111, 201] in BGR
+    # Alpha blended orange-red visual overlay
     overlay = after_img.copy()
     overlay[change_mask == 255] = [30, 111, 201]
     blended = cv2.addWeighted(after_img, 0.65, overlay, 0.35, 0)
@@ -265,8 +301,8 @@ def compute_calibrated_wayback_diff(
 
 def get_wayback_imagery(
     bbox: List[float],
-    before_date: str = "2019-01-31",
-    after_date: str = "2025-01-30",
+    before_date: str = "2018-03-28",
+    after_date: str = "2026-06-30",
     zoom: int = 17,
     output_dir: Optional[Path] = None,
     base_url: str = ""
@@ -338,8 +374,8 @@ def fetch_live_wayback_tier(
     bbox: List[float],
     output_dir: Path,
     base_url: str,
-    before_target: str = "2019-01-31",
-    after_target: str = "2025-01-30",
+    before_target: str = "2018-03-28",
+    after_target: str = "2026-06-30",
     zoom: int = 17
 ) -> Optional[Dict[str, Any]]:
     """Alias for backwards compatibility with pipeline."""

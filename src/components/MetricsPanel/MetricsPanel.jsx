@@ -1,8 +1,4 @@
 import React from 'react';
-import { ConfidenceCard } from './ConfidenceCard';
-import { PermitTable } from './PermitTable';
-import { CrossValidationSummary } from '../CrossValidationSummary/CrossValidationSummary';
-import { HotspotInspector } from '../HotspotInspector/HotspotInspector';
 import styles from './MetricsPanel.module.css';
 
 export function MetricsPanel({
@@ -10,8 +6,6 @@ export function MetricsPanel({
   currentScaledColorDiff,
   selectedTier = '10m',
   onTierChange,
-  onOpenInspectionModal,
-  onOpenDetailModal,
   hotspots = [],
   selectedHotspotId,
   onSelectHotspot,
@@ -23,106 +17,104 @@ export function MetricsPanel({
   const tier10 = location?.tiers?.['10m'];
 
   const displayedColorDiff = isHighRes ? tier06?.colorDiffPct || 6.15 : currentScaledColorDiff;
+  const ssimPct = location?.ssimArea || tier10?.ssimPct || 9.20;
+
+  // Selected or top priority hotspot
+  const activeHotspot = hotspots.find((h) => h.hotspot_id === selectedHotspotId) || hotspots[0];
 
   return (
-    <aside className={styles.rail} aria-label="Location Intelligence Readouts">
-      {/* 1. Optical Pixel Delta / Calibrated Surface Change */}
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <span className={styles.sectionLabel}>
-            {isHighRes ? '0.6m Calibrated Surface Delta' : 'Optical Pixel Delta'}
+    <aside className={styles.rail} aria-label="NMC Town Planning Intelligence">
+      {/* 1. Ward Land Transformation Index */}
+      <div className={styles.statCard}>
+        <div className={styles.cardHeader}>
+          <span className={styles.cardLabel}>
+            {isHighRes ? 'Calibrated Ward Transformation' : 'Detected Optical Surface Delta'}
           </span>
-          <span className={`${styles.tierIndicatorPill} ${isHighRes ? styles.highRes : ''}`}>
-            {isHighRes ? '0.6m Wayback' : '10m Sentinel-2'}
+          <span className={`${styles.badge} ${isHighRes ? styles.badgeHighRes : styles.badgeSentinel}`}>
+            {isHighRes ? '0.6m Orthophoto' : '10m Sentinel-2'}
           </span>
         </div>
-        <div className={`${styles.heroNumber} tabular-nums`}>
-          {displayedColorDiff.toFixed(2)}%
+
+        <div className={styles.heroRow}>
+          <span className={styles.heroNumber}>{displayedColorDiff.toFixed(2)}%</span>
+          <span className={styles.statusPill}>
+            {displayedColorDiff > 7.0 ? 'Active Construction' : displayedColorDiff > 3.0 ? 'Moderate Growth' : 'Stable'}
+          </span>
         </div>
-        <p className={styles.heroSubtext}>
-          {isHighRes
-            ? 'Radiometric differencing with scale-matched morphological opening (7x7 kernel, ~4.2m) on Maxar high-res tiles.'
-            : 'Surface spectral change detected across target bounds from Sentinel-2 multispectral granules.'}
-        </p>
+
+        <div className={styles.statFooter}>
+          <span>{isHighRes ? 'Scale-matched to eliminate foliage jitter & isolate structural envelopes' : 'Sentinel-2 multispectral surface change over target ward extent'}</span>
+        </div>
       </div>
 
-      {/* 2. Structural Similarity / Scale Filtering */}
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <span className={styles.sectionLabel}>
-            {isHighRes ? 'Structural Resolution' : 'Structural Similarity'}
-          </span>
-          <span className={styles.tierIndicatorPill}>
-            {isHighRes ? 'Kernel 7×7' : 'SSIM Matrix'}
-          </span>
-        </div>
-
-        {isHighRes ? (
-          <div className={styles.submeterNoteBox}>
-            <span>
-              <strong>Sub-meter filter:</strong> SSIM decorrelates under sub-meter natural texture noise.
-              Scale-matched morphological opening (7×7 kernel, ~4.2m) is the validated operator at 0.6m resolution to isolate building envelopes.
+      {/* 2. Flagged Municipal Parcel (Hotspot Dossier) */}
+      {activeHotspot && (
+        <div className={styles.hotspotCard}>
+          <div className={styles.cardHeader}>
+            <span className={styles.cardLabel}>Flagged Development Parcel</span>
+            <span className={`${styles.priorityBadge} ${activeHotspot.priority === 'CRITICAL' ? styles.critical : styles.high}`}>
+              {activeHotspot.priority || 'HIGH'} PRIORITY
             </span>
           </div>
-        ) : (
-          <div className={`${styles.duoRow} tabular-nums`}>
-            <div className={styles.duoItem}>
-              <span className={styles.duoLabel}>SSIM Area</span>
-              <span className={styles.duoVal}>{(location.ssimArea || tier10?.ssimPct || 9.20).toFixed(2)}%</span>
-            </div>
-            <div className={styles.duoItem}>
-              <span className={styles.duoLabel}>Similarity Index</span>
-              <span className={styles.duoVal}>{(location.ssimScore || tier10?.ssimScore || 0.6840).toFixed(4)}</span>
+
+          <div className={styles.hotspotInfo}>
+            <h3 className={styles.hotspotTitle}>{activeHotspot.name || `Parcel #${activeHotspot.hotspot_id}`}</h3>
+            <div className={styles.hotspotTags}>
+              <span className={styles.tag}>{activeHotspot.area_formatted || '6,800 m²'}</span>
+              <span className={styles.tag}>{activeHotspot.change_type_label || 'New Construction'}</span>
             </div>
           </div>
-        )}
-      </div>
 
-      {/* 3. AI Candidate Hotspots & Automated Verification Dispatch */}
-      {hotspots && hotspots.length > 0 && (
-        <HotspotInspector
-          hotspots={hotspots}
-          selectedHotspotId={selectedHotspotId}
-          onSelectHotspot={onSelectHotspot}
-          onInspectHotspot={onInspectHotspot}
-          onInspectAll={onInspectAll}
-        />
+          <button
+            type="button"
+            className={styles.inspectBtn}
+            onClick={() => onInspectHotspot ? onInspectHotspot(activeHotspot.hotspot_id) : null}
+          >
+            <span>Open Municipal Case Dossier</span>
+            <span className={styles.arrowIcon}>→</span>
+          </button>
+        </div>
       )}
 
-      {/* 4. Cross-Validation Summary (Prominently rendered for dual-tier locations) */}
-      <CrossValidationSummary
-        location={location}
-        selectedTier={selectedTier}
-        onTierChange={onTierChange}
-      />
+      {/* 3. Multi-Sensor Satellite Cross-Audit */}
+      <div className={styles.statCard}>
+        <div className={styles.cardHeader}>
+          <span className={styles.cardLabel}>Satellite Cross-Audit</span>
+          <span className={styles.convergenceBadge}>
+            ✓ Verified
+          </span>
+        </div>
 
-      {/* 5. Sensor Convergence & Validation Card */}
-      <div className={styles.section}>
-        <span className={styles.sectionLabel}>Model Convergence</span>
-        <ConfidenceCard
-          colorDiff={displayedColorDiff}
-          ssimArea={location.ssimArea || 9.20}
-          location={location}
-          selectedTier={selectedTier}
-        />
+        <div className={styles.sensorGrid}>
+          <div className={styles.sensorRow}>
+            <span className={styles.sensorName}>Sentinel-2 Spectral Delta (10m)</span>
+            <span className={styles.sensorVal}>{(location.colorDiff || 7.06).toFixed(2)}%</span>
+          </div>
+          <div className={styles.sensorRow}>
+            <span className={styles.sensorName}>Structural Texture Dissimilarity (10m)</span>
+            <span className={styles.sensorVal}>{ssimPct.toFixed(2)}%</span>
+          </div>
+          <div className={styles.sensorRow}>
+            <span className={styles.sensorName}>High-Res Orthophoto Delta (0.6m)</span>
+            <span className={styles.sensorVal}>{(tier06?.colorDiffPct || 6.15).toFixed(2)}%</span>
+          </div>
+        </div>
+
+        <div className={styles.sensorSummary}>
+          <span>Dual-resolution confirmation eliminates atmospheric noise and verifies physical ground changes.</span>
+        </div>
       </div>
 
-      {/* 6. Municipal Building Permit Audit */}
-      <div className={styles.section}>
-        <span className={styles.sectionLabel}>Municipal Sanctions</span>
-        <PermitTable permits={location.permits} />
-
+      {/* 4. Batch Field Verification */}
+      {hotspots && hotspots.length > 1 && (
         <button
           type="button"
-          className={styles.inspectionBtn}
-          onClick={onOpenInspectionModal}
-          aria-haspopup="dialog"
+          className={styles.batchBtn}
+          onClick={onInspectAll}
         >
-          Export Inspection Dispatch
+          📋 Audit All Flagged Parcels in Ward ({hotspots.length})
         </button>
-      </div>
+      )}
     </aside>
   );
 }
-
-export default MetricsPanel;

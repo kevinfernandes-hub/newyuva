@@ -5,17 +5,25 @@ export function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.branding}>
-        <h1 className={styles.title}>
-          <span className={styles.accentDot} aria-hidden="true" />
-          Nagpur EarthWatch
-        </h1>
-        <span className={styles.subtitle}>
-          Urban Change Intelligence — Sentinel-2 (10m resolution)
-        </span>
+        <div className={styles.emblemBadge}>
+          <span className={styles.emblemText}>NMC</span>
+        </div>
+        <div className={styles.titleColumn}>
+          <div className={styles.titleRow}>
+            <h1 className={styles.title}>Nagpur Municipal Corporation</h1>
+            <span className={styles.portalTag}>TOWN PLANNING & VIGILANCE</span>
+          </div>
+          <span className={styles.subtitle}>
+            Satellite-Based Urban Development & Land-Use Surveillance System
+          </span>
+        </div>
       </div>
 
-      <div className={styles.note}>
-        Detects structural alterations <span className={styles.noteHighlight}>≥10m</span>. Sub-10m features require high-res imagery.
+      <div className={styles.headerRight}>
+        <div className={styles.wardStatus}>
+          <span className={styles.liveIndicator} />
+          <span className={styles.statusText}>PORTAL ACTIVE</span>
+        </div>
       </div>
     </header>
   );

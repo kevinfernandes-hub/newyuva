@@ -111,6 +111,7 @@ export function ImageComparisonViewer({
   const {
     value: sliderPos,
     setValue: setSliderPos,
+    isDragging: isSliderDragging,
     containerRef,
     handlePointerDown: handleSliderPointerDown,
     handleTouchStart: handleSliderTouchStart
@@ -163,6 +164,14 @@ export function ImageComparisonViewer({
   };
 
   const handleMouseDown = (e) => {
+    // If clicking on slider handle/divider or zoom HUD, do not start canvas pan
+    if (
+      e.target.closest(`.${styles.sliderDivider}`) ||
+      e.target.closest(`.${styles.sliderHandle}`) ||
+      e.target.closest(`.${styles.zoomControlGroup}`)
+    ) {
+      return;
+    }
     if (zoomLevel <= 1.0) return;
     setIsPanning(true);
     panStartRef.current = {
@@ -174,6 +183,10 @@ export function ImageComparisonViewer({
   };
 
   const handleMouseMove = (e) => {
+    if (isSliderDragging) {
+      return;
+    }
+
     if (isPanning && zoomLevel > 1.0) {
       const dx = e.clientX - panStartRef.current.x;
       const dy = e.clientY - panStartRef.current.y;
@@ -447,17 +460,12 @@ export function ImageComparisonViewer({
         <div className={styles.titleInfo}>
           <div className={styles.sectorTitleRow}>
             <h1 className={styles.sectorTitle}>{location?.name}</h1>
-            <span className={styles.sourceTag}>
-              {isHighRes ? '0.6M MAXAR' : location?.isLiveAnalyzed ? 'LIVE SENTINEL-2' : 'SENTINEL-2 L2A'}
+            <span className={`${styles.sourceTag} ${isHighRes ? styles.sourceHighRes : ''}`}>
+              {isHighRes ? 'Maxar 0.6m High-Res' : location?.isLiveAnalyzed ? 'Live Sentinel-2 (10m)' : 'Sentinel-2 L2A'}
             </span>
-            {hasHighResTier && (
-              <span className={styles.submeterBadge} title="Calibrated sub-meter historical Wayback imagery available">
-                0.6m Wayback
-              </span>
-            )}
           </div>
           <span className={styles.sectorMeta}>
-            {location?.coords} • AOI Bounds {isHighRes ? '0.6m High-Res' : '10m Multi-Spectral'}
+            {location?.coords || 'Nagpur AOI'} • {isHighRes ? 'Historical Sub-Meter Optical Capture' : 'Multispectral ESA Granule'}
           </span>
         </div>
 
@@ -481,15 +489,15 @@ export function ImageComparisonViewer({
 
       {/* Focus & Verify Candidate Hotspots Toolbar */}
       {isHighRes && (
-        <div className={styles.focusBar} role="toolbar" aria-label="AI Hotspot Zoom and Verify Bar">
+        <div className={styles.focusBar} role="toolbar" aria-label="Development Parcel Focus Bar">
           <div className={styles.focusPillsGroup}>
-            <span className={styles.focusLabel}>🎯 Focus & Verify:</span>
+            <span className={styles.focusLabel}>📍 Focus Area:</span>
             <button
               type="button"
               className={`${styles.focusPill} ${activeFocusKey === 'overview' ? styles.activeFocus : ''}`}
               onClick={() => handleSetFocusPreset('overview', 1.0, 0, 0)}
             >
-              1.0x Full Sector
+              Full Extent (1.0x)
             </button>
             {hotspots.slice(0, 4).map((h, idx) => {
               const hLon = h.longitude;
@@ -512,7 +520,7 @@ export function ImageComparisonViewer({
                   className={`${styles.focusPill} ${activeFocusKey === h.hotspot_id ? styles.activeFocus : ''}`}
                   onClick={() => handleSetFocusPreset(h.hotspot_id, 2.2, panX, panY, h.hotspot_id)}
                 >
-                  2.2x #{h.hotspot_id} ({h.name.replace(/Hotspot #\d+ \(/i, '').replace(/\)/g, '').slice(0, 14)})
+                  Parcel #{idx + 1} (2.2x)
                 </button>
               );
             })}
@@ -525,11 +533,11 @@ export function ImageComparisonViewer({
               onClick={() => setShowHotspotBoxes((s) => !s)}
               title="Toggle bounding box outlines on canvas"
             >
-              {showHotspotBoxes ? 'Hide Hotspots' : 'Show Hotspots'}
+              {showHotspotBoxes ? 'Hide Outlines' : 'Show Outlines'}
             </button>
             {tier06?.detailCrop && (
               <button type="button" className={styles.detailBannerBtn} onClick={onOpenDetailModal}>
-                Building Detail ↗
+                High-Res Crop ↗
               </button>
             )}
           </div>
