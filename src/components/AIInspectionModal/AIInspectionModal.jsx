@@ -46,8 +46,8 @@ export function AIInspectionModal({
     caseData.priority === 'CRITICAL'
       ? styles.critical
       : caseData.priority === 'HIGH'
-      ? styles.high
-      : styles.medium;
+        ? styles.high
+        : styles.medium;
 
   const isPermitMatched = caseData.permit_status === 'MATCH FOUND';
 

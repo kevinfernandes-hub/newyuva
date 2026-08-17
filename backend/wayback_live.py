@@ -171,7 +171,7 @@ def fetch_tile(url: str, max_retries: int = 2) -> Optional[Image.Image]:
                 url,
                 headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
             )
-            with urllib.request.urlopen(req, timeout=5) as response:
+            with urllib.request.urlopen(req, timeout=3) as response:
                 img_data = response.read()
                 img = Image.open(io.BytesIO(img_data)).convert("RGB")
                 if len(TILE_CACHE) < 8192:
@@ -213,7 +213,7 @@ def stitch_wayback_bbox(
     canvas = Image.new("RGB", (cols * 256, rows * 256), color=(80, 85, 80))
 
     tile_tasks = []
-    with ThreadPoolExecutor(max_workers=20) as executor:
+    with ThreadPoolExecutor(max_workers=32) as executor:
         for r in range(rows):
             for c in range(cols):
                 tx = min_x + c
