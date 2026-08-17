@@ -7,6 +7,7 @@ import { SensitivityCalibration } from './components/SensitivityCalibration/Sens
 import { InspectionModal } from './components/InspectionModal/InspectionModal';
 import { BuildingDetailModal } from './components/BuildingDetailModal/BuildingDetailModal';
 import { AIInspectionModal } from './components/AIInspectionModal/AIInspectionModal';
+import { YOLOBuildingIntelligence } from './components/YOLOBuildingIntelligence/YOLOBuildingIntelligence';
 import { initialLocations } from './data/locations';
 import { interpolateSensitivity } from './data/calibration';
 import styles from './App.module.css';
@@ -20,6 +21,7 @@ export function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [isYoloModalOpen, setIsYoloModalOpen] = useState(false);
   const [activeCaseData, setActiveCaseData] = useState(null);
   const [hotspotsList, setHotspotsList] = useState([]);
   const [selectedHotspotId, setSelectedHotspotId] = useState('MIHAN-042');
@@ -67,6 +69,8 @@ export function App() {
   const handleSelectLocation = useCallback(
     (id) => {
       setSelectedLocationId(id);
+      const defaultHid = id === 'mihan' ? 'MIHAN-042' : id === 'sadar' ? 'SADA-01' : id === 'hingna' ? 'HING-01' : id === 'civil-lines' ? 'CIVI-01' : `${id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 4).toUpperCase()}-01`;
+      setSelectedHotspotId(defaultHid);
     },
     []
   );
@@ -470,7 +474,7 @@ export function App() {
 
   return (
     <div className={styles.appContainer}>
-      <Header />
+      <Header onOpenYoloModal={() => setIsYoloModalOpen(true)} />
 
       <main className={styles.workspaceGrid}>
         <SectorList
@@ -503,6 +507,7 @@ export function App() {
           selectedHotspotId={selectedHotspotId}
           onSelectHotspot={setSelectedHotspotId}
           onInspectHotspot={handleInspectHotspot}
+          onOpenYoloModal={() => setIsYoloModalOpen(true)}
         />
 
         <MetricsPanel
@@ -517,6 +522,7 @@ export function App() {
           onSelectHotspot={setSelectedHotspotId}
           onInspectHotspot={handleInspectHotspot}
           onInspectAll={handleInspectAll}
+          onOpenYoloModal={() => setIsYoloModalOpen(true)}
         />
       </main>
 
@@ -524,6 +530,38 @@ export function App() {
         threshold={threshold}
         onThresholdChange={setThreshold}
       />
+
+      {/* Floating Bottom Action Bar to Launch YOLO Intelligence Workbench */}
+      <div
+        className={styles.floatingYoloTrigger}
+        onClick={() => setIsYoloModalOpen(true)}
+        role="button"
+        tabIndex={0}
+        aria-label="Open AI Building Intelligence Workbench"
+      >
+        <div className={styles.triggerLeft}>
+          <span className={styles.pulseDot}>●</span>
+          <span className={styles.sparkleIcon}>✨</span>
+          <span className={styles.triggerTitle}>AI Building Intelligence (YOLOv8)</span>
+          <span className={styles.triggerBadge}>4 New Buildings Detected</span>
+        </div>
+        <div className={styles.triggerRight}>
+          <span className={styles.triggerAction}>Launch Fullscreen Workbench →</span>
+        </div>
+      </div>
+
+      {/* Fullscreen YOLO Building Intelligence Modal */}
+      {isYoloModalOpen && (
+        <YOLOBuildingIntelligence
+          isOpen={isYoloModalOpen}
+          onClose={() => setIsYoloModalOpen(false)}
+          hotspotId={selectedHotspotId || `${selectedLocation?.id || 'mihan'}-01`}
+          locationName={selectedLocation?.name || 'Nagpur Urban Sector'}
+          locationId={selectedLocation?.id || 'mihan'}
+          beforeImageUrl={selectedLocation?.tiers?.['0.6m']?.beforeImage || selectedLocation?.tiers?.['10m']?.beforeImage || ''}
+          afterImageUrl={selectedLocation?.tiers?.['0.6m']?.afterImage || selectedLocation?.tiers?.['10m']?.afterImage || ''}
+        />
+      )}
 
       {isModalOpen && (
         <InspectionModal

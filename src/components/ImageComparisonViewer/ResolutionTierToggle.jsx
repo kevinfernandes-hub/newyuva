@@ -28,6 +28,16 @@ export function ResolutionTierToggle({ selectedTier = '10m', onTierChange, hasHi
         <span>Wayback (Maxar)</span>
         {!isHighResAvailable && <span className={styles.lockIcon}>🔒</span>}
       </button>
+
+      <button
+        type="button"
+        className={`${styles.tierSegmentBtn} ${selectedTier === 'yolo' ? styles.tierActive : ''}`}
+        onClick={() => onTierChange && onTierChange('yolo')}
+        title="YOLOv8 Building Footprint Segmentation & Construction Change Detection"
+      >
+        <span className={`${styles.tierBadge} ${styles.badgeYolo}`}>YOLO</span>
+        <span>Building AI</span>
+      </button>
     </div>
   );
 }

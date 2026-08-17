@@ -108,9 +108,9 @@ def evaluate_vision_inspection(
             "zoom_decision": "STOP_ZOOMING_SUFFICIENT_EVIDENCE",
             "description": "The previously unpaved open ground observed in January 2019 has been replaced by multiple multistory institutional building wings, asphalt access roads, and structured parking bays by January 2025.",
             "finding": "New large-scale institutional construction detected with distinct rectilinear building envelopes.",
-            "permit_status": "NO MATCH FOUND",
-            "permit_details": "No matching municipal sanction in demonstration permit database. Requires field verification.",
-            "recommended_action": "FIELD VERIFICATION REQUIRED",
+            "permit_status": "FIELD VERIFICATION REQUIRED",
+            "permit_details": "No municipal GIS permit registry connected. Physical structure emergence verified via satellite. On-site field inspection recommended.",
+            "recommended_action": "FIELD_INSPECTION",
             "urban_growth_risk": "HIGH",
             "growth_risk_score": 88
         }
@@ -125,9 +125,9 @@ def evaluate_vision_inspection(
             "zoom_decision": "STOP_ZOOMING_SUFFICIENT_EVIDENCE",
             "description": "Conversion of scrubland into concrete warehouse platforms, heavy vehicle loading bays, and arterial logistics road connectivity.",
             "finding": "Industrial logistics warehouse expansion confirmed with high-albedo roof structures.",
-            "permit_status": "MATCH FOUND",
-            "permit_details": "Demonstration record #NMC-MIHAN-2023-8821 matched. Permitted for Logistics & Warehousing Class IV.",
-            "recommended_action": "ROUTINE COMPLIANCE AUDIT",
+            "permit_status": "FIELD VERIFICATION REQUIRED",
+            "permit_details": "Logistics & industrial platform expansion detected. Cross-reference with town planning sanctioned zoning map recommended.",
+            "recommended_action": "FIELD_INSPECTION",
             "urban_growth_risk": "HIGH",
             "growth_risk_score": 79
         }
@@ -142,9 +142,9 @@ def evaluate_vision_inspection(
             "zoom_decision": "STOP_ZOOMING_SUFFICIENT_EVIDENCE",
             "description": "Commercial multi-tier structure foundation and structural steel frame erected over previously undeveloped parcel.",
             "finding": "Active commercial construction site with structural footprint established.",
-            "permit_status": "MATCH FOUND",
-            "permit_details": "Demonstration record #NMC-TECH-2024-4109 matched. Permitted for IT Park SEZ Commercial.",
-            "recommended_action": "ROUTINE COMPLIANCE AUDIT",
+            "permit_status": "FIELD VERIFICATION REQUIRED",
+            "permit_details": "Commercial structural envelope detected. Requires on-site verification against town planning development plan.",
+            "recommended_action": "FIELD_INSPECTION",
             "urban_growth_risk": "MEDIUM",
             "growth_risk_score": 68
         }
@@ -232,18 +232,13 @@ def evaluate_vision_inspection(
         decision_lvl = "Level 4 (~15m Micro-Inspection)"
         zoom_dec = "NEEDS_HUMAN_REVIEW"
 
-    # Demonstration Permit cross-reference simulation
-    matched_permit = (int(area) % 2 == 0)
-    if matched_permit and phys == "YES":
-        permit_status = "MATCH FOUND"
-        permit_details = f"Demonstration sanction record #NMC-DEV-2024-{int(area)%8000+1000} matched in demonstration database."
-        rec_action = "ROUTINE COMPLIANCE AUDIT"
-    elif phys == "YES":
-        permit_status = "NO MATCH FOUND"
-        permit_details = "No matching development record in demonstration database. Potential unauthorized development — field verification required."
-        rec_action = "FIELD VERIFICATION REQUIRED"
+    # Municipal verification status
+    if phys == "YES":
+        permit_status = "FIELD VERIFICATION REQUIRED"
+        permit_details = "Physical ground change confirmed via satellite segmentation. Cross-reference with town planning sanctioned zoning map recommended."
+        rec_action = "FIELD_INSPECTION"
     else:
-        permit_status = "NOT APPLICABLE"
+        permit_status = "STABLE — NO ACTION"
         permit_details = "No physical structural alteration verified."
         rec_action = "MONITORING"
 

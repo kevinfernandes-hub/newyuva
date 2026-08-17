@@ -10,7 +10,8 @@ export function MetricsPanel({
   selectedHotspotId,
   onSelectHotspot,
   onInspectHotspot,
-  onInspectAll
+  onInspectAll,
+  onOpenYoloModal
 }) {
   const isHighRes = selectedTier === '0.6m' && Boolean(location?.tiers?.['0.6m']);
   const tier06 = location?.tiers?.['0.6m'];
@@ -72,6 +73,17 @@ export function MetricsPanel({
           >
             <span>Open Municipal Case Dossier</span>
             <span className={styles.arrowIcon}>→</span>
+          </button>
+
+          <button
+            type="button"
+            className={styles.yoloPanelBtn}
+            onClick={onOpenYoloModal}
+            title="Open YOLOv8 Building Segmentation & Change Detection Workbench"
+          >
+            <span className={styles.sparkle}>✨</span>
+            <span>Launch YOLO Building AI</span>
+            <span className={styles.yoloPill}>0.6m YOLOv8</span>
           </button>
         </div>
       )}

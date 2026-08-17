@@ -12,11 +12,7 @@ export const initialLocations = [
     ssimScore: 0.6840,
     confidence: 'cross_confirmed',
     confidenceLabel: 'Cross-Resolution Confirmed',
-    permits: [
-      { id: 'NMC-SEZ-2023-4109', plot: 'Sector 14 Logistics', status: 'matched', date: '14 Nov 2023' },
-      { id: 'NMC-HWY-2024-1180', plot: 'Ring Road Interchange', status: 'matched', date: '02 Mar 2024' },
-      { id: 'UNSANCTIONED-091', plot: 'Survey No 211/4', status: 'unmatched', date: 'No Record' }
-    ],
+    permits: [],
     tiers: {
       '10m': {
         source: 'Sentinel-2',
@@ -46,7 +42,7 @@ export const initialLocations = [
         colorOverlay: '/wayback_mihan_sameszn_calibrated_color_overlay.png',
         colorDiffPct: 6.15,
         detailCrop: '/wayback_mihan_sameszn_detail_crop.png',
-        note: 'SSIM not used at this tier — decorrelates under sub-meter texture noise; radiometric differencing with scale-matched morphological filtering (7x7 kernel, ~4.2m) is the validated operator at this resolution.'
+        note: 'Radiometric differencing with scale-matched morphological filtering (7x7 kernel, ~4.2m) is the validated operator at this resolution.'
       }
     },
     localImages: {
@@ -70,10 +66,7 @@ export const initialLocations = [
     ssimScore: 0.7412,
     confidence: 'high',
     confidenceLabel: 'High Confidence',
-    permits: [
-      { id: 'NMC-COM-2024-0412', plot: 'Residency Rd Redevelop', status: 'matched', date: '18 Jan 2024' },
-      { id: 'NMC-RES-2023-8991', plot: 'Mount Rd Commercial', status: 'matched', date: '05 Dec 2023' }
-    ],
+    permits: [],
     tiers: {
       '10m': {
         source: 'Sentinel-2',
@@ -116,11 +109,7 @@ export const initialLocations = [
     ssimScore: 0.5890,
     confidence: 'needs_review',
     confidenceLabel: 'Needs Review',
-    permits: [
-      { id: 'MIDC-IND-2023-0198', plot: 'Plot B-14 Factory Shed', status: 'matched', date: '09 Aug 2023' },
-      { id: 'UNSANCTIONED-441', plot: 'Plot D-8 Quarry Grading', status: 'unmatched', date: 'No Record' },
-      { id: 'UNSANCTIONED-442', plot: 'Encroachment Sector 3', status: 'unmatched', date: 'No Record' }
-    ],
+    permits: [],
     tiers: {
       '10m': {
         source: 'Sentinel-2',
@@ -163,10 +152,7 @@ export const initialLocations = [
     ssimScore: 0.6375,
     confidence: 'needs_review',
     confidenceLabel: 'Needs Review',
-    permits: [
-      { id: 'NMC-GOV-2024-0012', plot: 'Judicial Annex Wing', status: 'matched', date: '11 Feb 2024' },
-      { id: 'UNSANCTIONED-078', plot: 'Walkers Corridor Excavation', status: 'unmatched', date: 'No Record' }
-    ],
+    permits: [],
     tiers: {
       '10m': {
         source: 'Sentinel-2',

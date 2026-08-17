@@ -94,7 +94,8 @@ export function ImageComparisonViewer({
   hotspots = [],
   selectedHotspotId,
   onSelectHotspot,
-  onInspectHotspot
+  onInspectHotspot,
+  onOpenYoloModal
 }) {
   const [viewMode, setViewMode] = useState('raw');
   const [cursorCoords, setCursorCoords] = useState('21.0542° N, 79.0518° E');
@@ -119,6 +120,7 @@ export function ImageComparisonViewer({
 
   const hasHighResTier = Boolean(location?.tiers?.['0.6m'] || location?.id === 'mihan');
   const isHighRes = selectedTier === '0.6m';
+  const isYolo = selectedTier === 'yolo';
   const tier06 = location?.tiers?.['0.6m'];
   const tier10 = location?.tiers?.['10m'];
 
@@ -251,7 +253,16 @@ export function ImageComparisonViewer({
 
     let beforeSrc, afterSrc;
 
-    if (isHighRes) {
+    if (isYolo) {
+      beforeSrc = '/static/hotspot_crops/mihan-042/mihan-042_level1_before.png';
+      if (viewMode === 'color') {
+        afterSrc = '/outputs/yolo_change_test/change_mask.png';
+      } else if (viewMode === 'ssim') {
+        afterSrc = '/outputs/yolo_change_test/before_after_comparison.jpg';
+      } else {
+        afterSrc = '/outputs/yolo_change_test/after_annotated.jpg';
+      }
+    } else if (isHighRes) {
       beforeSrc =
         tier06?.beforeImage ||
         tier10?.beforeImage ||

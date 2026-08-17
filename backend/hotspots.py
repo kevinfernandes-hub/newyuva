@@ -205,9 +205,9 @@ def extract_hotspots_from_masks(
         h["location_name"] = f"{clean_name.title()}, Nagpur"
         h["description"] = f"Optical spectral shift and structural alteration detected across {h['area_formatted']} parcel in {clean_name.title()}."
         h["finding"] = "New structural or ground surface modification identified."
-        h["permit_status"] = "MATCH FOUND" if idx % 2 == 0 else "NO MATCH FOUND"
-        h["permit_details"] = "Demonstration dataset record match." if idx % 2 == 0 else "No matching development record in demonstration database. Potential unauthorized development — field verification required."
-        h["recommended_action"] = "ROUTINE COMPLIANCE AUDIT" if idx % 2 == 0 else "FIELD VERIFICATION REQUIRED"
+        h["permit_status"] = "FIELD VERIFICATION REQUIRED"
+        h["permit_details"] = "Physical ground change confirmed via satellite segmentation. Cross-reference with town planning sanctioned zoning map recommended."
+        h["recommended_action"] = "FIELD_INSPECTION"
         h["urban_growth_risk"] = "HIGH" if h["priority"] in ["CRITICAL", "HIGH"] else "MEDIUM"
         h["growth_risk_score"] = min(92, int(h["priority_score"] * 0.95))
         final_hotspots.append(h)
@@ -252,29 +252,29 @@ PRESET_HOTSPOTS: Dict[str, List[Dict[str, Any]]] = {
             "physical_change": "YES",
             "description": "The previously unpaved open ground observed in January 2019 has been replaced by multiple multistory institutional building wings, asphalt access roads, and structured parking bays by January 2025.",
             "finding": "New large-scale institutional construction detected with distinct rectilinear building envelopes.",
-            "permit_status": "NO MATCH FOUND",
-            "permit_details": "No matching municipal sanction in demonstration permit database. Requires field verification.",
+            "permit_status": "FIELD VERIFICATION REQUIRED",
+            "permit_details": "No municipal GIS permit registry connected. Physical structure emergence verified via satellite. On-site field inspection recommended.",
             "urban_growth_risk": "HIGH",
             "growth_risk_score": 88,
-            "recommended_action": "FIELD VERIFICATION REQUIRED",
+            "recommended_action": "FIELD_INSPECTION",
             "source_methods": ["Sentinel-2 Optical (10m)", "SSIM Structural (10m)", "0.6m Wayback Calibrated Differencing"]
         },
         {
             "hotspot_id": "MIHAN-043",
             "case_number": "CASE #NGP-043",
-            "name": "Logistics & Warehousing Hub (SEZ Corridor)",
+            "name": "Industrial Logistics Park (Platform Grading)",
             "location_id": "mihan",
             "location_name": "MIHAN, Nagpur",
-            "latitude": 21.0425,
-            "longitude": 79.0582,
-            "coords_str": "21.0425° N, 79.0582° E",
-            "bbox_wgs84": [79.0520, 21.0360, 79.0640, 21.0480],
-            "area_m2": 12800.0,
-            "area_formatted": "12,800 m²",
-            "change_percent": 74.2,
-            "ssim_percent": 78.5,
-            "color_diff_score": 0.742,
-            "ssim_score": 0.785,
+            "latitude": 21.0485,
+            "longitude": 79.0380,
+            "coords_str": "21.0485° N, 79.0380° E",
+            "bbox_wgs84": [79.0320, 21.0420, 79.0440, 21.0530],
+            "area_m2": 12600.0,
+            "area_formatted": "12,600 m²",
+            "change_percent": 74.5,
+            "ssim_percent": 78.1,
+            "color_diff_score": 0.745,
+            "ssim_score": 0.781,
             "priority": "HIGH",
             "priority_score": 88,
             "initial_confidence": 79,
@@ -289,11 +289,11 @@ PRESET_HOTSPOTS: Dict[str, List[Dict[str, Any]]] = {
             "physical_change": "YES",
             "description": "Scrubland converted to concrete warehouse platforms, heavy vehicle loading bays, and arterial logistics road connectivity.",
             "finding": "Industrial logistics warehouse expansion confirmed with high-albedo roof structures.",
-            "permit_status": "MATCH FOUND",
-            "permit_details": "Demonstration record #NMC-MIHAN-2023-8821 matched. Permitted for Logistics & Warehousing Class IV.",
+            "permit_status": "FIELD VERIFICATION REQUIRED",
+            "permit_details": "Logistics platform expansion detected. Cross-reference with town planning sanctioned zoning map recommended.",
             "urban_growth_risk": "HIGH",
             "growth_risk_score": 79,
-            "recommended_action": "ROUTINE COMPLIANCE AUDIT",
+            "recommended_action": "FIELD_INSPECTION",
             "source_methods": ["Sentinel-2 Optical (10m)", "SSIM Structural (10m)", "0.6m Wayback Calibrated Differencing"]
         },
         {
@@ -326,11 +326,11 @@ PRESET_HOTSPOTS: Dict[str, List[Dict[str, Any]]] = {
             "physical_change": "YES",
             "description": "Multi-tier structural foundation and structural steel frame erected over previously undeveloped parcel.",
             "finding": "Active commercial construction site with structural footprint established.",
-            "permit_status": "MATCH FOUND",
-            "permit_details": "Demonstration record #NMC-TECH-2024-4109 matched. Permitted for IT Park SEZ Commercial.",
+            "permit_status": "FIELD VERIFICATION REQUIRED",
+            "permit_details": "Commercial structural envelope detected. Requires on-site verification against town planning development plan.",
             "urban_growth_risk": "MEDIUM",
             "growth_risk_score": 68,
-            "recommended_action": "ROUTINE COMPLIANCE AUDIT",
+            "recommended_action": "FIELD_INSPECTION",
             "source_methods": ["Sentinel-2 Optical (10m)", "SSIM Structural (10m)", "0.6m Wayback Calibrated Differencing"]
         },
         {
@@ -363,11 +363,11 @@ PRESET_HOTSPOTS: Dict[str, List[Dict[str, Any]]] = {
             "physical_change": "YES",
             "description": "Earth grading, embankment construction, and asphalt paving for cloverleaf highway feeder slip lanes.",
             "finding": "Linear transport corridor expansion and grade separation works.",
-            "permit_status": "MATCH FOUND",
-            "permit_details": "MSRDC State Highway Infrastructure Authorization #MH-ORR-2022-094 matched.",
+            "permit_status": "FIELD VERIFICATION REQUIRED",
+            "permit_details": "Transport corridor modification confirmed. Cross-reference with highway authority plans recommended.",
             "urban_growth_risk": "MEDIUM",
             "growth_risk_score": 62,
-            "recommended_action": "INFRASTRUCTURE MONITORING",
+            "recommended_action": "INFRASTRUCTURE_MONITORING",
             "source_methods": ["Sentinel-2 Optical (10m)", "SSIM Structural (10m)", "0.6m Wayback Calibrated Differencing"]
         }
     ]

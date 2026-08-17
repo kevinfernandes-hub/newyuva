@@ -1,0 +1,121 @@
+{
+  "status": "SUCCESS",
+  "scope": "Multi-Scale Construction Verification (Stage 2C)",
+  "evaluation_target": "MIHAN-042",
+  "total_candidates_evaluated": 3,
+  "summary_counts": {
+    "CONFIRMED_NEW": 0,
+    "UNCERTAIN": 1,
+    "NOT_CONFIRMED": 2
+  },
+  "score_interpretation": {
+    "80_100": "CONFIRMED_NEW",
+    "50_79": "UNCERTAIN",
+    "0_49": "NOT_CONFIRMED"
+  },
+  "candidates": [
+    {
+      "candidate_id": "BLDG-001",
+      "status": "UNCERTAIN",
+      "evidence_score": 52.5,
+      "after_yolo_confidence": 0.5657,
+      "available_zoom_levels": [
+        "Level 1 (Hotspot Overview)"
+      ],
+      "image_change_score": 55.2,
+      "before_structure_score": 100.0,
+      "after_structure_score": 100.0,
+      "ssim_divergence_pct": 72.9,
+      "mean_pixel_diff": 30.0,
+      "texture_emergence_pct": 18.5,
+      "bbox_xyxy": [
+        1096.68,
+        806.44,
+        1156.52,
+        860.1
+      ],
+      "centroid": [
+        1126.21,
+        834.52
+      ],
+      "pixel_area": 2939,
+      "reason": "Moderate YOLO confidence (0.57) and significant pixel shift (SSIM divergence 72.9%), but falls below the conservative confirmation threshold (80.0). Recommended for targeted field verification.",
+      "saved_artifacts": {
+        "level1": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\BLDG-001\\level1_before_after.jpg",
+        "level2": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\BLDG-001\\level2_before_after.jpg",
+        "level3": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\BLDG-001\\level3_before_after.jpg",
+        "level4": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\BLDG-001\\level4_before_after.jpg",
+        "evidence_dossier": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\BLDG-001\\evidence.jpg"
+      }
+    },
+    {
+      "candidate_id": "BLDG-003",
+      "status": "NOT_CONFIRMED",
+      "evidence_score": 47.0,
+      "after_yolo_confidence": 0.4698,
+      "available_zoom_levels": [
+        "Level 1 (Hotspot Overview)"
+      ],
+      "image_change_score": 53.4,
+      "before_structure_score": 100.0,
+      "after_structure_score": 100.0,
+      "ssim_divergence_pct": 78.3,
+      "mean_pixel_diff": 28.4,
+      "texture_emergence_pct": 0.0,
+      "bbox_xyxy": [
+        125.0,
+        613.73,
+        155.57,
+        639.21
+      ],
+      "centroid": [
+        140.51,
+        627.18
+      ],
+      "pixel_area": 670,
+      "reason": "Insufficient evidentiary support (Score: 47.0). Change metrics or detection confidence do not substantiate a confirmed structural footprint addition.",
+      "saved_artifacts": {
+        "level1": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\BLDG-003\\level1_before_after.jpg",
+        "level2": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\BLDG-003\\level2_before_after.jpg",
+        "level3": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\BLDG-003\\level3_before_after.jpg",
+        "level4": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\BLDG-003\\level4_before_after.jpg",
+        "evidence_dossier": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\BLDG-003\\evidence.jpg"
+      }
+    },
+    {
+      "candidate_id": "BLDG-004",
+      "status": "NOT_CONFIRMED",
+      "evidence_score": 36.4,
+      "after_yolo_confidence": 0.355,
+      "available_zoom_levels": [
+        "Level 1 (Hotspot Overview)"
+      ],
+      "image_change_score": 40.5,
+      "before_structure_score": 100.0,
+      "after_structure_score": 100.0,
+      "ssim_divergence_pct": 58.4,
+      "mean_pixel_diff": 18.3,
+      "texture_emergence_pct": 10.6,
+      "bbox_xyxy": [
+        1067.29,
+        42.38,
+        1122.98,
+        81.58
+      ],
+      "centroid": [
+        1095.34,
+        61.72
+      ],
+      "pixel_area": 1870,
+      "reason": "Insufficient evidentiary support (Score: 36.4). Change metrics or detection confidence do not substantiate a confirmed structural footprint addition.",
+      "saved_artifacts": {
+        "level1": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\BLDG-004\\level1_before_after.jpg",
+        "level2": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\BLDG-004\\level2_before_after.jpg",
+        "level3": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\BLDG-004\\level3_before_after.jpg",
+        "level4": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\BLDG-004\\level4_before_after.jpg",
+        "evidence_dossier": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\BLDG-004\\evidence.jpg"
+      }
+    }
+  ],
+  "summary_image": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\sada-01\\verification_summary.jpg"
+}

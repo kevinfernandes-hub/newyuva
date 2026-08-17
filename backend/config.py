@@ -9,6 +9,7 @@ ENV_PATH = ROOT_DIR / ".env"
 load_dotenv(dotenv_path=ENV_PATH)
 
 def get_sh_config() -> SHConfig:
+    load_dotenv(dotenv_path=ENV_PATH, override=True)
     config = SHConfig()
     config.sh_client_id = os.environ.get("SH_CLIENT_ID", "").strip()
     config.sh_client_secret = os.environ.get("SH_CLIENT_SECRET", "").strip()

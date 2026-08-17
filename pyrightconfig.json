@@ -7,20 +7,18 @@
     ".venv",
     ".venv-1"
   ],
-  "venvPath": "/Users/kevinfernandes/Documents/4yuva",
-  "venv": ".venv",
-  "pythonVersion": "3.9",
-  "pythonPlatform": "Darwin",
+  "pythonVersion": "3.13",
+  "pythonPlatform": "Windows",
   "extraPaths": [
-    "/Users/kevinfernandes/Documents/4yuva/.venv/lib/python3.9/site-packages",
-    "./.venv/lib/python3.9/site-packages"
+    "C:/Users/Lenovo/AppData/Local/Programs/Python/Python313/Lib/site-packages",
+    "./.venv/Lib/site-packages"
   ],
   "executionEnvironments": [
     {
       "root": ".",
       "extraPaths": [
-        "/Users/kevinfernandes/Documents/4yuva/.venv/lib/python3.9/site-packages",
-        "./.venv/lib/python3.9/site-packages"
+        "C:/Users/Lenovo/AppData/Local/Programs/Python/Python313/Lib/site-packages",
+        "./.venv/Lib/site-packages"
       ]
     }
   ]

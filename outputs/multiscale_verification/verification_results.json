@@ -1,0 +1,156 @@
+{
+  "status": "SUCCESS",
+  "scope": "Multi-Scale Construction Verification (Stage 2C)",
+  "evaluation_target": "MIHAN-042",
+  "total_candidates_evaluated": 4,
+  "summary_counts": {
+    "CONFIRMED_NEW": 0,
+    "UNCERTAIN": 4,
+    "NOT_CONFIRMED": 0
+  },
+  "score_interpretation": {
+    "80_100": "CONFIRMED_NEW",
+    "50_79": "UNCERTAIN",
+    "0_49": "NOT_CONFIRMED"
+  },
+  "candidates": [
+    {
+      "candidate_id": "BLDG-003",
+      "status": "UNCERTAIN",
+      "evidence_score": 78.9,
+      "after_yolo_confidence": 0.6874,
+      "available_zoom_levels": [
+        "Level 1 (Hotspot Overview)"
+      ],
+      "image_change_score": 86.1,
+      "before_structure_score": 100.0,
+      "after_structure_score": 100.0,
+      "ssim_divergence_pct": 89.1,
+      "mean_pixel_diff": 61.18,
+      "texture_emergence_pct": 57.9,
+      "bbox_xyxy": [
+        350.34,
+        409.16,
+        387.33,
+        435.69
+      ],
+      "centroid": [
+        368.86,
+        422.21
+      ],
+      "pixel_area": 730,
+      "reason": "Moderate YOLO confidence (0.69) and significant pixel shift (SSIM divergence 89.1%), but falls below the conservative confirmation threshold (80.0). Recommended for targeted field verification.",
+      "saved_artifacts": {
+        "level1": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-003\\level1_before_after.jpg",
+        "level2": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-003\\level2_before_after.jpg",
+        "level3": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-003\\level3_before_after.jpg",
+        "level4": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-003\\level4_before_after.jpg",
+        "evidence_dossier": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-003\\evidence.jpg"
+      }
+    },
+    {
+      "candidate_id": "BLDG-004",
+      "status": "UNCERTAIN",
+      "evidence_score": 73.5,
+      "after_yolo_confidence": 0.6266,
+      "available_zoom_levels": [
+        "Level 1 (Hotspot Overview)"
+      ],
+      "image_change_score": 81.6,
+      "before_structure_score": 100.0,
+      "after_structure_score": 100.0,
+      "ssim_divergence_pct": 96.4,
+      "mean_pixel_diff": 46.01,
+      "texture_emergence_pct": 52.3,
+      "bbox_xyxy": [
+        391.48,
+        114.97,
+        427.84,
+        147.13
+      ],
+      "centroid": [
+        408.52,
+        129.66
+      ],
+      "pixel_area": 530,
+      "reason": "Moderate YOLO confidence (0.63) and significant pixel shift (SSIM divergence 96.4%), but falls below the conservative confirmation threshold (80.0). Recommended for targeted field verification.",
+      "saved_artifacts": {
+        "level1": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-004\\level1_before_after.jpg",
+        "level2": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-004\\level2_before_after.jpg",
+        "level3": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-004\\level3_before_after.jpg",
+        "level4": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-004\\level4_before_after.jpg",
+        "evidence_dossier": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-004\\evidence.jpg"
+      }
+    },
+    {
+      "candidate_id": "BLDG-005",
+      "status": "UNCERTAIN",
+      "evidence_score": 71.8,
+      "after_yolo_confidence": 0.6101,
+      "available_zoom_levels": [
+        "Level 1 (Hotspot Overview)",
+        "Level 2 (Sub-Region Footprint)"
+      ],
+      "image_change_score": 78.1,
+      "before_structure_score": 100.0,
+      "after_structure_score": 100.0,
+      "ssim_divergence_pct": 84.5,
+      "mean_pixel_diff": 46.2,
+      "texture_emergence_pct": 63.8,
+      "bbox_xyxy": [
+        356.66,
+        197.34,
+        384.48,
+        225.9
+      ],
+      "centroid": [
+        369.8,
+        211.17
+      ],
+      "pixel_area": 412,
+      "reason": "Moderate YOLO confidence (0.61) and significant pixel shift (SSIM divergence 84.5%), but falls below the conservative confirmation threshold (80.0). Recommended for targeted field verification.",
+      "saved_artifacts": {
+        "level1": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-005\\level1_before_after.jpg",
+        "level2": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-005\\level2_before_after.jpg",
+        "level3": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-005\\level3_before_after.jpg",
+        "level4": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-005\\level4_before_after.jpg",
+        "evidence_dossier": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-005\\evidence.jpg"
+      }
+    },
+    {
+      "candidate_id": "BLDG-006",
+      "status": "UNCERTAIN",
+      "evidence_score": 72.7,
+      "after_yolo_confidence": 0.5696,
+      "available_zoom_levels": [
+        "Level 1 (Hotspot Overview)"
+      ],
+      "image_change_score": 82.9,
+      "before_structure_score": 100.0,
+      "after_structure_score": 100.0,
+      "ssim_divergence_pct": 86.5,
+      "mean_pixel_diff": 64.48,
+      "texture_emergence_pct": 48.4,
+      "bbox_xyxy": [
+        344.46,
+        435.08,
+        381.83,
+        463.45
+      ],
+      "centroid": [
+        362.29,
+        448.07
+      ],
+      "pixel_area": 763,
+      "reason": "Moderate YOLO confidence (0.57) and significant pixel shift (SSIM divergence 86.5%), but falls below the conservative confirmation threshold (80.0). Recommended for targeted field verification.",
+      "saved_artifacts": {
+        "level1": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-006\\level1_before_after.jpg",
+        "level2": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-006\\level2_before_after.jpg",
+        "level3": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-006\\level3_before_after.jpg",
+        "level4": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-006\\level4_before_after.jpg",
+        "evidence_dossier": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\BLDG-006\\evidence.jpg"
+      }
+    }
+  ],
+  "summary_image": "C:\\Work\\Nagpur_X\\outputs\\multiscale_verification\\verification_summary.jpg"
+}

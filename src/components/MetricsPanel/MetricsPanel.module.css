@@ -177,6 +177,43 @@
   transform: translateY(0);
 }
 
+.yoloPanelBtn {
+  background: linear-gradient(135deg, #1E293B, #0F172A);
+  color: #F8FAFC;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.yoloPanelBtn:hover {
+  background: linear-gradient(135deg, #334155, #1E293B);
+  border-color: #38BDF8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(56, 189, 248, 0.25);
+}
+
+.sparkle {
+  font-size: 12px;
+}
+
+.yoloPill {
+  font-size: 9.5px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
 .arrowIcon {
   font-size: 14px;
   font-weight: 800;

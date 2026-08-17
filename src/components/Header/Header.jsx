@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './Header.module.css';
 
-export function Header() {
+export function Header({ onOpenYoloModal }) {
   return (
     <header className={styles.header}>
       <div className={styles.branding}>
@@ -20,6 +20,17 @@ export function Header() {
       </div>
 
       <div className={styles.headerRight}>
+        <button
+          type="button"
+          className={styles.yoloHeaderBtn}
+          onClick={onOpenYoloModal}
+          title="Open YOLOv8 Building Intelligence Workbench"
+        >
+          <span className={styles.sparkle}>✨</span>
+          <span>AI Building Intelligence</span>
+          <span className={styles.yoloChip}>YOLOv8</span>
+        </button>
+
         <div className={styles.wardStatus}>
           <span className={styles.liveIndicator} />
           <span className={styles.statusText}>PORTAL ACTIVE</span>

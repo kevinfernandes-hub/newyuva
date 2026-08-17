@@ -1,0 +1,278 @@
+{
+  "status": "SUCCESS",
+  "scope": "Municipal Evidence Fusion & Inspection Prioritization (Stage 3)",
+  "target_corridor": "AIIMS Hospital Complex (Phase II Expansion)",
+  "hotspot_id": "MIHAN-042",
+  "scoring_model": {
+    "formula": "Risk Score = 0.25*F1(YOLO) + 0.25*F2(MultiScale) + 0.20*F3(SSIM) + 0.15*F4(AreaScale) + 0.15*F5(MacroHotspot)",
+    "priority_scale": {
+      "HIGH": "Score >= 70.0 (High Priority Field Inspection)",
+      "MEDIUM": "50.0 <= Score < 70.0 (Medium Priority Routine Audit)",
+      "LOW": "Score < 50.0 (Low Priority Periodic Monitoring)"
+    }
+  },
+  "summary_counts": {
+    "total_cases": 5,
+    "HIGH_priority": 3,
+    "MEDIUM_priority": 2,
+    "LOW_priority": 0
+  },
+  "cases": [
+    {
+      "case_id": "CASE #NGP-MIHAN-BLDG-003",
+      "candidate_id": "BLDG-003",
+      "location": {
+        "name": "AIIMS Hospital Complex (Phase II Expansion)",
+        "corridor": "MIHAN / Outer Ring Road, South Ward IX",
+        "coordinates": "21.0568\u00b0 N, 79.0435\u00b0 E",
+        "centroid_crop_px": [
+          368.86,
+          422.21
+        ],
+        "bbox_xyxy": [
+          350.34,
+          409.16,
+          387.33,
+          435.69
+        ]
+      },
+      "observed_change": "Physical change detected: 730 px new building footprint observed on 2025-01-30 imagery where unpaved baseline terrain was recorded on 2019-01-31. Bounding box coordinates: [350.34, 409.16, 387.33, 435.69].",
+      "physical_change": true,
+      "risk_score": 78.6,
+      "priority": "HIGH",
+      "priority_label": "High Priority Field Inspection",
+      "building_confidence": 0.6874,
+      "change_area_pixels": 730,
+      "ground_area_m2": null,
+      "verification_status": "UNCERTAIN",
+      "scoring_breakdown": {
+        "f1_yolo_confidence_score": 68.7,
+        "f2_multiscale_evidence_score": 78.9,
+        "f3_ssim_divergence_pct": 89.1,
+        "f4_footprint_scale_factor": 73.0,
+        "f5_macro_hotspot_severity": 86.4,
+        "formula": "0.25*F1 + 0.25*F2 + 0.20*F3 + 0.15*F4 + 0.15*F5"
+      },
+      "evidence_factors": [
+        "Building footprint detected on 2025-01-30 high-resolution imagery (YOLO Confidence: 0.69)",
+        "No corresponding building footprint detected on 2019-01-31 baseline (0.00 spatial overlap / IoU)",
+        "Significant optical divergence across baseline terrain (SSIM Divergence: 89.1%, Mean Pixel Shift: 61.2 px)",
+        "Local texture complexity increased (+57.9%) reflecting distinct structural roofline/edges",
+        "Located within macro satellite change corridor (MIHAN-042 Tier 1 Sentinel-2 change rate: 86.4%)",
+        "Candidate requires ground inspection to verify municipal town planning sanction status"
+      ],
+      "recommended_action": "FIELD_INSPECTION",
+      "recommended_action_details": "Conduct on-ground site verification to cross-reference physical footprint with municipal building sanction records.",
+      "confidence_and_limitations": {
+        "finding": "Suspected unauthorized construction candidate (physical structure emergence confirmed by remote sensing).",
+        "geospatial_calibration": "Uncalibrated PNG crop \u2014 ground area in m\u00b2 is marked null to maintain scientific integrity.",
+        "enforcement_notice": "Satellite remote sensing confirms physical land surface emergence. Legal determination of authorization requires municipal permit matching and on-ground field inspection."
+      }
+    },
+    {
+      "case_id": "CASE #NGP-MIHAN-BLDG-004",
+      "candidate_id": "BLDG-004",
+      "location": {
+        "name": "AIIMS Hospital Complex (Phase II Expansion)",
+        "corridor": "MIHAN / Outer Ring Road, South Ward IX",
+        "coordinates": "21.0568\u00b0 N, 79.0435\u00b0 E",
+        "centroid_crop_px": [
+          408.52,
+          129.66
+        ],
+        "bbox_xyxy": [
+          391.48,
+          114.97,
+          427.84,
+          147.13
+        ]
+      },
+      "observed_change": "Physical change detected: 530 px new building footprint observed on 2025-01-30 imagery where unpaved baseline terrain was recorded on 2019-01-31. Bounding box coordinates: [391.48, 114.97, 427.84, 147.13].",
+      "physical_change": true,
+      "risk_score": 74.2,
+      "priority": "HIGH",
+      "priority_label": "High Priority Field Inspection",
+      "building_confidence": 0.6266,
+      "change_area_pixels": 530,
+      "ground_area_m2": null,
+      "verification_status": "UNCERTAIN",
+      "scoring_breakdown": {
+        "f1_yolo_confidence_score": 62.7,
+        "f2_multiscale_evidence_score": 73.5,
+        "f3_ssim_divergence_pct": 96.4,
+        "f4_footprint_scale_factor": 53.0,
+        "f5_macro_hotspot_severity": 86.4,
+        "formula": "0.25*F1 + 0.25*F2 + 0.20*F3 + 0.15*F4 + 0.15*F5"
+      },
+      "evidence_factors": [
+        "Building footprint detected on 2025-01-30 high-resolution imagery (YOLO Confidence: 0.63)",
+        "No corresponding building footprint detected on 2019-01-31 baseline (0.00 spatial overlap / IoU)",
+        "Significant optical divergence across baseline terrain (SSIM Divergence: 96.4%, Mean Pixel Shift: 46.0 px)",
+        "Local texture complexity increased (+52.3%) reflecting distinct structural roofline/edges",
+        "Located within macro satellite change corridor (MIHAN-042 Tier 1 Sentinel-2 change rate: 86.4%)",
+        "Candidate requires ground inspection to verify municipal town planning sanction status"
+      ],
+      "recommended_action": "FIELD_INSPECTION",
+      "recommended_action_details": "Conduct on-ground site verification to cross-reference physical footprint with municipal building sanction records.",
+      "confidence_and_limitations": {
+        "finding": "Suspected unauthorized construction candidate (physical structure emergence confirmed by remote sensing).",
+        "geospatial_calibration": "Uncalibrated PNG crop \u2014 ground area in m\u00b2 is marked null to maintain scientific integrity.",
+        "enforcement_notice": "Satellite remote sensing confirms physical land surface emergence. Legal determination of authorization requires municipal permit matching and on-ground field inspection."
+      }
+    },
+    {
+      "case_id": "CASE #NGP-MIHAN-BLDG-006",
+      "candidate_id": "BLDG-006",
+      "location": {
+        "name": "AIIMS Hospital Complex (Phase II Expansion)",
+        "corridor": "MIHAN / Outer Ring Road, South Ward IX",
+        "coordinates": "21.0568\u00b0 N, 79.0435\u00b0 E",
+        "centroid_crop_px": [
+          362.29,
+          448.07
+        ],
+        "bbox_xyxy": [
+          344.46,
+          435.08,
+          381.83,
+          463.45
+        ]
+      },
+      "observed_change": "Physical change detected: 763 px new building footprint observed on 2025-01-30 imagery where unpaved baseline terrain was recorded on 2019-01-31. Bounding box coordinates: [344.46, 435.08, 381.83, 463.45].",
+      "physical_change": true,
+      "risk_score": 74.1,
+      "priority": "HIGH",
+      "priority_label": "High Priority Field Inspection",
+      "building_confidence": 0.5696,
+      "change_area_pixels": 763,
+      "ground_area_m2": null,
+      "verification_status": "UNCERTAIN",
+      "scoring_breakdown": {
+        "f1_yolo_confidence_score": 57.0,
+        "f2_multiscale_evidence_score": 72.7,
+        "f3_ssim_divergence_pct": 86.5,
+        "f4_footprint_scale_factor": 76.3,
+        "f5_macro_hotspot_severity": 86.4,
+        "formula": "0.25*F1 + 0.25*F2 + 0.20*F3 + 0.15*F4 + 0.15*F5"
+      },
+      "evidence_factors": [
+        "Building footprint detected on 2025-01-30 high-resolution imagery (YOLO Confidence: 0.57)",
+        "No corresponding building footprint detected on 2019-01-31 baseline (0.00 spatial overlap / IoU)",
+        "Significant optical divergence across baseline terrain (SSIM Divergence: 86.5%, Mean Pixel Shift: 64.5 px)",
+        "Local texture complexity increased (+48.4%) reflecting distinct structural roofline/edges",
+        "Located within macro satellite change corridor (MIHAN-042 Tier 1 Sentinel-2 change rate: 86.4%)",
+        "Candidate requires ground inspection to verify municipal town planning sanction status"
+      ],
+      "recommended_action": "FIELD_INSPECTION",
+      "recommended_action_details": "Conduct on-ground site verification to cross-reference physical footprint with municipal building sanction records.",
+      "confidence_and_limitations": {
+        "finding": "Suspected unauthorized construction candidate (physical structure emergence confirmed by remote sensing).",
+        "geospatial_calibration": "Uncalibrated PNG crop \u2014 ground area in m\u00b2 is marked null to maintain scientific integrity.",
+        "enforcement_notice": "Satellite remote sensing confirms physical land surface emergence. Legal determination of authorization requires municipal permit matching and on-ground field inspection."
+      }
+    },
+    {
+      "case_id": "CASE #NGP-MIHAN-BLDG-005",
+      "candidate_id": "BLDG-005",
+      "location": {
+        "name": "AIIMS Hospital Complex (Phase II Expansion)",
+        "corridor": "MIHAN / Outer Ring Road, South Ward IX",
+        "coordinates": "21.0568\u00b0 N, 79.0435\u00b0 E",
+        "centroid_crop_px": [
+          369.8,
+          211.17
+        ],
+        "bbox_xyxy": [
+          356.66,
+          197.34,
+          384.48,
+          225.9
+        ]
+      },
+      "observed_change": "Physical change detected: 412 px new building footprint observed on 2025-01-30 imagery where unpaved baseline terrain was recorded on 2019-01-31. Bounding box coordinates: [356.66, 197.34, 384.48, 225.9].",
+      "physical_change": true,
+      "risk_score": 69.2,
+      "priority": "MEDIUM",
+      "priority_label": "Medium Priority Routine Audit",
+      "building_confidence": 0.6101,
+      "change_area_pixels": 412,
+      "ground_area_m2": null,
+      "verification_status": "UNCERTAIN",
+      "scoring_breakdown": {
+        "f1_yolo_confidence_score": 61.0,
+        "f2_multiscale_evidence_score": 71.8,
+        "f3_ssim_divergence_pct": 84.5,
+        "f4_footprint_scale_factor": 41.2,
+        "f5_macro_hotspot_severity": 86.4,
+        "formula": "0.25*F1 + 0.25*F2 + 0.20*F3 + 0.15*F4 + 0.15*F5"
+      },
+      "evidence_factors": [
+        "Building footprint detected on 2025-01-30 high-resolution imagery (YOLO Confidence: 0.61)",
+        "No corresponding building footprint detected on 2019-01-31 baseline (0.00 spatial overlap / IoU)",
+        "Significant optical divergence across baseline terrain (SSIM Divergence: 84.5%, Mean Pixel Shift: 46.2 px)",
+        "Local texture complexity increased (+63.8%) reflecting distinct structural roofline/edges",
+        "Located within macro satellite change corridor (MIHAN-042 Tier 1 Sentinel-2 change rate: 86.4%)",
+        "Candidate requires ground inspection to verify municipal town planning sanction status"
+      ],
+      "recommended_action": "FIELD_INSPECTION",
+      "recommended_action_details": "Conduct on-ground site verification to cross-reference physical footprint with municipal building sanction records.",
+      "confidence_and_limitations": {
+        "finding": "Suspected unauthorized construction candidate (physical structure emergence confirmed by remote sensing).",
+        "geospatial_calibration": "Uncalibrated PNG crop \u2014 ground area in m\u00b2 is marked null to maintain scientific integrity.",
+        "enforcement_notice": "Satellite remote sensing confirms physical land surface emergence. Legal determination of authorization requires municipal permit matching and on-ground field inspection."
+      }
+    },
+    {
+      "case_id": "CASE #NGP-MIHAN-BLDG-008",
+      "candidate_id": "BLDG-008",
+      "location": {
+        "name": "AIIMS Hospital Complex (Phase II Expansion)",
+        "corridor": "MIHAN / Outer Ring Road, South Ward IX",
+        "coordinates": "21.0568\u00b0 N, 79.0435\u00b0 E",
+        "centroid_crop_px": [
+          390.51,
+          104.46
+        ],
+        "bbox_xyxy": [
+          372.97,
+          88.16,
+          410.58,
+          121.68
+        ]
+      },
+      "observed_change": "Physical change detected: 575 px new building footprint observed on 2025-01-30 imagery where unpaved baseline terrain was recorded on 2019-01-31. Bounding box coordinates: [372.97, 88.16, 410.58, 121.68].",
+      "physical_change": true,
+      "risk_score": 65.4,
+      "priority": "MEDIUM",
+      "priority_label": "Medium Priority Routine Audit",
+      "building_confidence": 0.362,
+      "change_area_pixels": 575,
+      "ground_area_m2": null,
+      "verification_status": "UNCERTAIN",
+      "scoring_breakdown": {
+        "f1_yolo_confidence_score": 36.2,
+        "f2_multiscale_evidence_score": 65.7,
+        "f3_ssim_divergence_pct": 91.8,
+        "f4_footprint_scale_factor": 57.5,
+        "f5_macro_hotspot_severity": 86.4,
+        "formula": "0.25*F1 + 0.25*F2 + 0.20*F3 + 0.15*F4 + 0.15*F5"
+      },
+      "evidence_factors": [
+        "Building footprint detected on 2025-01-30 high-resolution imagery (YOLO Confidence: 0.36)",
+        "No corresponding building footprint detected on 2019-01-31 baseline (0.00 spatial overlap / IoU)",
+        "Significant optical divergence across baseline terrain (SSIM Divergence: 91.8%, Mean Pixel Shift: 48.5 px)",
+        "Local texture complexity increased (+55.4%) reflecting distinct structural roofline/edges",
+        "Located within macro satellite change corridor (MIHAN-042 Tier 1 Sentinel-2 change rate: 86.4%)",
+        "Candidate requires ground inspection to verify municipal town planning sanction status"
+      ],
+      "recommended_action": "FIELD_INSPECTION",
+      "recommended_action_details": "Conduct on-ground site verification to cross-reference physical footprint with municipal building sanction records.",
+      "confidence_and_limitations": {
+        "finding": "Suspected unauthorized construction candidate (physical structure emergence confirmed by remote sensing).",
+        "geospatial_calibration": "Uncalibrated PNG crop \u2014 ground area in m\u00b2 is marked null to maintain scientific integrity.",
+        "enforcement_notice": "Satellite remote sensing confirms physical land surface emergence. Legal determination of authorization requires municipal permit matching and on-ground field inspection."
+      }
+    }
+  ],
+  "summary_image": "C:\\Work\\Nagpur_X\\outputs\\yolo_runs\\mihan-042\\priority_summary.jpg"
+}
