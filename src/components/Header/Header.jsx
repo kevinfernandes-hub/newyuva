@@ -16,9 +16,10 @@ export function Header({
     { id: 'mihan', label: 'MIHAN / SEZ' },
     { id: 'sadar', label: 'Sadar Ward' },
     { id: 'hingna', label: 'Hingna MIDC' },
-    { id: 'civil_lines', label: 'Civil Lines' },
+    { id: 'civil-lines', label: 'Civil Lines' },
     { id: 'dharampeth', label: 'Dharampeth' },
-    { id: 'sitabuldi', label: 'Sitabuldi' }
+    { id: 'sitabuldi', label: 'Sitabuldi' },
+    { id: 'nandanvan', label: 'Nandanvan' }
   ];
 
   const handleSearchSubmit = (e) => {

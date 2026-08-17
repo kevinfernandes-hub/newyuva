@@ -87,13 +87,18 @@ PRESET_LOCATIONS: List[Dict[str, Any]] = [
                 "ssimScore": 0.7412
             },
             "0.6m": {
-                "source": "Esri Wayback (Maxar)",
+                "source": "Esri Wayback (Maxar ~0.6m)",
                 "beforeImage": "/wayback_sadar_2019_before.png",
                 "afterImage": "/wayback_sadar_2025_after.png",
                 "colorDiffOverlay": "/wayback_sadar_color_overlay.png",
                 "colorOverlay": "/wayback_sadar_color_overlay.png",
                 "colorDiffPct": 1.09,
-                "note": "High-density commercial core — minor spectral modifications verified via 0.6m Maxar imagery."
+                "infraPct": 0.85,
+                "vegLossPct": 0.24,
+                "vegGainPct": 1.15,
+                "ssimScore": 0.8920,
+                "ssimPct": 1.80,
+                "note": "High-density commercial core — 0.6m sub-meter Maxar orthophoto verified with same-season calibration."
             }
         },
         "localImages": {
@@ -134,13 +139,18 @@ PRESET_LOCATIONS: List[Dict[str, Any]] = [
                 "ssimScore": 0.5890
             },
             "0.6m": {
-                "source": "Esri Wayback (Maxar)",
+                "source": "Esri Wayback (Maxar ~0.6m)",
                 "beforeImage": "/wayback_hingna_2019_before.png",
                 "afterImage": "/wayback_hingna_2025_after.png",
                 "colorDiffOverlay": "/wayback_hingna_color_overlay.png",
                 "colorOverlay": "/wayback_hingna_color_overlay.png",
-                "colorDiffPct": 14.15,
-                "note": "Industrial zone structural footprint expansion and factory platform grading verified."
+                "colorDiffPct": 4.85,
+                "infraPct": 4.20,
+                "vegLossPct": 1.15,
+                "vegGainPct": 1.95,
+                "ssimScore": 0.7250,
+                "ssimPct": 8.40,
+                "note": "Industrial zone structural footprint expansion and factory platform grading verified at 0.6m."
             }
         },
         "localImages": {
@@ -152,7 +162,7 @@ PRESET_LOCATIONS: List[Dict[str, Any]] = [
         "isPreview": False
     },
     {
-        "id": "civil_lines",
+        "id": "civil-lines",
         "name": "Civil Lines, Nagpur",
         "subtitle": "Administrative Ward I — High Court / Secretariat Zone",
         "colorDiff": 3.62,
@@ -180,13 +190,18 @@ PRESET_LOCATIONS: List[Dict[str, Any]] = [
                 "ssimScore": 0.6375
             },
             "0.6m": {
-                "source": "Esri Wayback (Maxar)",
+                "source": "Esri Wayback (Maxar ~0.6m)",
                 "beforeImage": "/wayback_civil_lines_2019_before.png",
                 "afterImage": "/wayback_civil_lines_2025_after.png",
                 "colorDiffOverlay": "/wayback_civil_lines_color_overlay.png",
                 "colorOverlay": "/wayback_civil_lines_color_overlay.png",
                 "colorDiffPct": 2.12,
-                "note": "Administrative sector — institutional wing extensions confirmed against baseline."
+                "infraPct": 1.35,
+                "vegLossPct": 0.45,
+                "vegGainPct": 2.10,
+                "ssimScore": 0.8410,
+                "ssimPct": 3.10,
+                "note": "Administrative sector — institutional wing extensions confirmed against baseline at 0.6m."
             }
         },
         "localImages": {
@@ -294,6 +309,57 @@ PRESET_LOCATIONS: List[Dict[str, Any]] = [
             "after": "/sentinel_sitabuldi_after.png",
             "colorOverlay": "/sentinel_sitabuldi_change_overlay.png",
             "ssimOverlay": "/sentinel_sitabuldi_change_overlay.png"
+        },
+        "isPreview": False
+    },
+    {
+        "id": "nandanvan",
+        "name": "Nandanvan, Nagpur",
+        "subtitle": "East Ward VI — Commercial & Educational Growth Corridor",
+        "colorDiff": 4.02,
+        "ssimArea": 5.12,
+        "status": "elevated",
+        "statusLabel": "Active Growth",
+        "coords": "79.110° E, 21.115° N → 79.155° E, 21.155° N",
+        "coordinates": [21.1350, 79.1300],
+        "ssimScore": 0.8250,
+        "confidence": "high",
+        "confidenceLabel": "High Confidence",
+        "permits": [
+            {"id": "NMC-NDV-2024-0814", "plot": "Hasanbagh Commercial Complex", "status": "matched", "date": "28 Jan 2024"},
+            {"id": "NMC-NDV-2023-5510", "plot": "Ring Road Commercial Complex", "status": "matched", "date": "12 Oct 2023"}
+        ],
+        "tiers": {
+            "10m": {
+                "source": "Sentinel-2 (10m Multi-Spectral)",
+                "beforeImage": "/sentinel_nandanvan_before.png",
+                "afterImage": "/sentinel_nandanvan_after.png",
+                "colorDiffOverlay": "/sentinel_nandanvan_change_overlay.png",
+                "colorDiffPct": 4.02,
+                "ssimOverlay": "/sentinel_nandanvan_ssim_overlay.png",
+                "ssimPct": 5.12,
+                "ssimScore": 0.8250
+            },
+            "0.6m": {
+                "source": "Esri Wayback (Maxar ~0.6m)",
+                "beforeImage": "/wayback_nandanvan_2019_before.png",
+                "afterImage": "/wayback_nandanvan_2025_after.png",
+                "colorDiffOverlay": "/wayback_nandanvan_color_overlay.png",
+                "colorOverlay": "/wayback_nandanvan_color_overlay.png",
+                "colorDiffPct": 4.02,
+                "infraPct": 3.89,
+                "vegLossPct": 2.37,
+                "vegGainPct": 2.37,
+                "ssimScore": 0.8255,
+                "ssimPct": 4.20,
+                "note": "0.6m sub-meter Maxar orthophoto mosaic with same-season radiometric calibration."
+            }
+        },
+        "localImages": {
+            "before": "/sentinel_nandanvan_before.png",
+            "after": "/sentinel_nandanvan_after.png",
+            "colorOverlay": "/sentinel_nandanvan_change_overlay.png",
+            "ssimOverlay": "/sentinel_nandanvan_ssim_overlay.png"
         },
         "isPreview": False
     }
