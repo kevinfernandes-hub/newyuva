@@ -1,42 +1,57 @@
 :root {
-  /* Surface Palette: Light / Near-White */
-  --bg-app: #FAFAF9;
+  /* Modern Clean Civic-Tech Theme */
+  --bg-app: #F8FAFC;
   --bg-surface: #FFFFFF;
-  --bg-surface-subtle: #F5F5F3;
-  --bg-surface-hover: #F0EFEA;
-  --bg-surface-active: #EBEAE4;
+  --bg-surface-subtle: #F1F5F9;
+  --bg-surface-hover: #E2E8F0;
+  --bg-surface-active: #CBD5E1;
+  --bg-dark: #0F172A;
+  --bg-dark-card: #1E293B;
   
-  /* Hairline Dividers & Subtle Borders */
-  --border-hairline: #E5E4E0;
-  --border-subtle: #ECEBE7;
-  --border-focus: #C96F3E;
+  /* Borders */
+  --border-hairline: #E2E8F0;
+  --border-subtle: #CBD5E1;
+  --border-focus: #2563EB;
   
-  /* Typography Colors */
-  --text-primary: #1A1D1B;
-  --text-secondary: #565C58;
-  --text-muted: #8A908C;
-  --text-faint: #B5B9B6;
+  /* Typography */
+  --text-primary: #0F172A;
+  --text-secondary: #334155;
+  --text-muted: #64748B;
+  --text-faint: #94A3B8;
+  --text-inverse: #FFFFFF;
   
-  /* Single Confident Accent: Muted Terracotta */
-  --accent-primary: #C96F3E;
-  --accent-primary-hover: #B55F30;
-  --accent-primary-subtle: rgba(201, 111, 62, 0.08);
+  /* Brand & Accents */
+  --accent-primary: #2563EB;        /* Royal Civic Blue */
+  --accent-primary-hover: #1D4ED8;
+  --accent-primary-subtle: rgba(37, 99, 235, 0.08);
   
-  /* Minimal Status Colors */
-  --status-stable: #3D8B7A;    /* Soft teal */
-  --status-elevated: #C98638;  /* Soft amber */
-  --status-flagged: #C96F3E;   /* Terracotta */
+  --accent-terracotta: #EA580C;     /* Warm Infrastructure Orange */
+  --accent-terracotta-subtle: rgba(234, 88, 12, 0.08);
+
+  /* Status Colors */
+  --status-stable: #10B981;         /* Emerald Green */
+  --status-stable-bg: #ECFDF5;
+  --status-stable-border: #A7F3D0;
   
-  /* Type Families */
+  --status-elevated: #F59E0B;       /* Amber */
+  --status-elevated-bg: #FFFBEB;
+  --status-elevated-border: #FDE68A;
+  
+  --status-critical: #EF4444;       /* Crimson */
+  --status-critical-bg: #FEF2F2;
+  --status-critical-border: #FECACA;
+  
+  /* Fonts */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'IBM Plex Mono', monospace;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', monospace;
   
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-slider: 0 2px 8px rgba(0, 0, 0, 0.18), 0 0 1px rgba(0, 0, 0, 0.2);
+  /* Modern Shadows */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06);
+  --shadow-slider: 0 4px 16px rgba(0, 0, 0, 0.35);
   
-  /* Layout Dimensions */
-  --header-height: 56px;
-  --bottom-bar-height: 64px;
+  /* Header Height */
+  --header-height: 72px;
 }

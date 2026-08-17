@@ -195,6 +195,106 @@ export const initialLocations = [
       ssimOverlay: '/civil_lines_ssim_change_overlay.png'
     },
     isPreview: false
+  },
+  {
+    id: 'dharampeth',
+    name: 'Dharampeth, Nagpur',
+    subtitle: 'West Ward VIII — High-Density Residential & Commercial Zone',
+    colorDiff: 2.85,
+    ssimArea: 3.40,
+    status: 'stable',
+    statusLabel: 'Stable Surface',
+    coords: '79.040° E, 21.125° N → 79.080° E, 21.165° N',
+    coordinates: [21.1440, 79.0620],
+    ssimScore: 0.8120,
+    confidence: 'high',
+    confidenceLabel: 'High Confidence',
+    permits: [
+      { id: 'NMC-DHP-2023-1102', plot: 'WHC Road Commercial Redevelop', status: 'matched', date: '20 Nov 2023' }
+    ],
+    tiers: {
+      '10m': {
+        source: 'Sentinel-2 (10m Multi-Spectral)',
+        beforeImage: '/sentinel_dharampeth_before.png',
+        afterImage: '/sentinel_dharampeth_after.png',
+        colorDiffOverlay: '/sentinel_dharampeth_change_overlay.png',
+        colorDiffPct: 2.85,
+        ssimOverlay: '/sentinel_dharampeth_change_overlay.png',
+        ssimPct: 3.40,
+        ssimScore: 0.8120
+      },
+      '0.6m': {
+        source: 'Esri Wayback (Maxar ~0.6m)',
+        beforeImage: '/wayback_dharampeth_2019_before.png',
+        afterImage: '/wayback_dharampeth_2025_after.png',
+        colorDiffOverlay: '/wayback_dharampeth_color_overlay.png',
+        colorOverlay: '/wayback_dharampeth_color_overlay.png',
+        colorDiffPct: 2.85,
+        infraPct: 1.45,
+        vegLossPct: 0.60,
+        vegGainPct: 2.25,
+        ssimScore: 0.8840,
+        ssimPct: 2.10,
+        note: '0.6m sub-meter Maxar orthophoto mosaic with same-season radiometric calibration.'
+      }
+    },
+    localImages: {
+      before: '/sentinel_dharampeth_before.png',
+      after: '/sentinel_dharampeth_after.png',
+      colorOverlay: '/sentinel_dharampeth_change_overlay.png',
+      ssimOverlay: '/sentinel_dharampeth_change_overlay.png'
+    },
+    isPreview: false
+  },
+  {
+    id: 'sitabuldi',
+    name: 'Sitabuldi, Nagpur',
+    subtitle: 'Central Transit Ward — Metro Interchange & Fort Heritage Zone',
+    colorDiff: 3.10,
+    ssimArea: 4.15,
+    status: 'stable',
+    statusLabel: 'Stable Surface',
+    coords: '79.070° E, 21.130° N → 79.100° E, 21.160° N',
+    coordinates: [21.1460, 79.0830],
+    ssimScore: 0.7950,
+    confidence: 'high',
+    confidenceLabel: 'High Confidence',
+    permits: [
+      { id: 'NMC-SBD-2024-0021', plot: 'Metro Station Plaza West', status: 'matched', date: '15 Jan 2024' }
+    ],
+    tiers: {
+      '10m': {
+        source: 'Sentinel-2 (10m Multi-Spectral)',
+        beforeImage: '/sentinel_sitabuldi_before.png',
+        afterImage: '/sentinel_sitabuldi_after.png',
+        colorDiffOverlay: '/sentinel_sitabuldi_change_overlay.png',
+        colorDiffPct: 3.10,
+        ssimOverlay: '/sentinel_sitabuldi_change_overlay.png',
+        ssimPct: 4.15,
+        ssimScore: 0.7950
+      },
+      '0.6m': {
+        source: 'Esri Wayback (Maxar ~0.6m)',
+        beforeImage: '/wayback_sitabuldi_2019_before.png',
+        afterImage: '/wayback_sitabuldi_2025_after.png',
+        colorDiffOverlay: '/wayback_sitabuldi_color_overlay.png',
+        colorOverlay: '/wayback_sitabuldi_color_overlay.png',
+        colorDiffPct: 3.10,
+        infraPct: 1.60,
+        vegLossPct: 0.75,
+        vegGainPct: 2.35,
+        ssimScore: 0.8620,
+        ssimPct: 2.45,
+        note: '0.6m sub-meter Maxar orthophoto mosaic with same-season radiometric calibration.'
+      }
+    },
+    localImages: {
+      before: '/sentinel_sitabuldi_before.png',
+      after: '/sentinel_sitabuldi_after.png',
+      colorOverlay: '/sentinel_sitabuldi_change_overlay.png',
+      ssimOverlay: '/sentinel_sitabuldi_change_overlay.png'
+    },
+    isPreview: false
   }
 ];
 

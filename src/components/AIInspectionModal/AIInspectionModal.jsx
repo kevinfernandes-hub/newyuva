@@ -69,11 +69,17 @@ export function AIInspectionModal({
         }
       ];
 
-  const infraScore = caseData.infra_score ?? (isStable ? 0 : 88);
-  const vegLossScore = caseData.veg_loss_score ?? (isStable ? 0 : 75);
-  const vegGainScore = caseData.veg_gain_score ?? 0;
-  const highresSsimScore = caseData.highres_ssim_score ?? 0.864;
-  const highresSsimPct = caseData.highres_ssim_pct ?? (isStable ? 0.0 : 12.5);
+  const cropDiffPct = activeZoom.diff_pct ?? caseData.diff_pct ?? 0;
+  const cropVegLoss = activeZoom.veg_loss_pct ?? caseData.veg_loss_pct ?? 0;
+  const cropVegGain = activeZoom.veg_gain_pct ?? caseData.veg_gain_pct ?? 0;
+  const cropSsimPct = activeZoom.highres_ssim_pct ?? caseData.highres_ssim_pct ?? 0;
+  const cropSsimScore = activeZoom.highres_ssim_score ?? caseData.highres_ssim_score ?? 0.7412;
+
+  const infraScore = isStable ? 0 : Number((caseData.infra_score ?? cropDiffPct ?? 3.20).toFixed(2));
+  const vegLossScore = isStable ? 0 : Number((caseData.veg_loss_score ?? cropVegLoss ?? 1.80).toFixed(2));
+  const vegGainScore = isStable ? 0 : Number((caseData.veg_gain_score ?? cropVegGain ?? 4.64).toFixed(2));
+  const highresSsimScore = isStable ? 0.9820 : Number(cropSsimScore.toFixed(4));
+  const highresSsimPct = isStable ? 0.0 : Number(cropSsimPct.toFixed(2));
 
   const handlePrintDispatch = () => {
     if (onExportDispatch) {
@@ -143,9 +149,9 @@ export function AIInspectionModal({
             </div>
 
             {/* Overlay Mode Selector */}
-            <div className={styles.overlayModeBar}>
-              <span className={styles.overlayModeLabel}>Active Analysis Layer:</span>
-              <div className={styles.overlayBtnGroup}>
+            <div className={styles.overlayBar}>
+              <span className={styles.overlayLabel}>ACTIVE ANALYSIS LAYER:</span>
+              <div className={styles.overlayBtns}>
                 <button
                   type="button"
                   className={`${styles.overlayBtn} ${overlayMode === 'diff' ? styles.overlayBtnActive : ''}`}
@@ -242,18 +248,18 @@ export function AIInspectionModal({
                 <div className={styles.domainCard}>
                   <div className={styles.domainTopRow}>
                     <span className={styles.domainIconLabel}>🏗 Infrastructure Change</span>
-                    <span className={`${styles.domainValBadge} ${infraScore > 50 ? styles.infraHigh : styles.infraLow}`}>
+                    <span className={`${styles.domainValBadge} ${infraScore > 1.5 ? styles.infraHigh : styles.infraLow}`}>
                       {infraScore}%
                     </span>
                   </div>
                   <div className={styles.domainProgressBar}>
                     <div
-                      className={`${styles.domainProgressFill} ${infraScore > 50 ? styles.fillInfra : styles.fillStable}`}
-                      style={{ width: `${Math.max(4, infraScore)}%` }}
+                      className={`${styles.domainProgressFill} ${infraScore > 1.5 ? styles.fillInfra : styles.fillStable}`}
+                      style={{ width: `${Math.min(100, Math.max(4, infraScore * 6))}%` }}
                     />
                   </div>
                   <span className={styles.domainStatusText}>
-                    {infraScore > 50 ? caseData.infra_status || 'New Construction Active' : 'Surface Stable (No Construction)'}
+                    {infraScore > 1.5 ? caseData.infra_status || 'New Construction Active' : 'Surface Stable (No Construction)'}
                   </span>
                 </div>
 
@@ -261,18 +267,18 @@ export function AIInspectionModal({
                 <div className={styles.domainCard}>
                   <div className={styles.domainTopRow}>
                     <span className={styles.domainIconLabel}>🌲 Vegetation / Canopy Loss</span>
-                    <span className={`${styles.domainValBadge} ${vegLossScore > 50 ? styles.vegHigh : styles.vegLow}`}>
+                    <span className={`${styles.domainValBadge} ${vegLossScore > 1.5 ? styles.vegHigh : styles.vegLow}`}>
                       {vegLossScore}%
                     </span>
                   </div>
                   <div className={styles.domainProgressBar}>
                     <div
-                      className={`${styles.domainProgressFill} ${vegLossScore > 50 ? styles.fillVeg : styles.fillStable}`}
-                      style={{ width: `${Math.max(4, vegLossScore)}%` }}
+                      className={`${styles.domainProgressFill} ${vegLossScore > 1.5 ? styles.fillVeg : styles.fillStable}`}
+                      style={{ width: `${Math.min(100, Math.max(4, vegLossScore * 8))}%` }}
                     />
                   </div>
                   <span className={styles.domainStatusText}>
-                    {vegLossScore > 50 ? caseData.veg_loss_status || 'Biomass Loss / Clearing' : 'Canopy Intact (0.0% Loss)'}
+                    {vegLossScore > 1.5 ? caseData.veg_loss_status || 'Biomass Loss / Clearing' : 'Canopy Intact (0.0% Loss)'}
                   </span>
                 </div>
 
@@ -280,18 +286,18 @@ export function AIInspectionModal({
                 <div className={styles.domainCard}>
                   <div className={styles.domainTopRow}>
                     <span className={styles.domainIconLabel}>🌿 Vegetation Increment / Gain</span>
-                    <span className={`${styles.domainValBadge} ${vegGainScore > 40 ? styles.vegGainHigh : styles.infraLow}`}>
+                    <span className={`${styles.domainValBadge} ${vegGainScore > 1.5 ? styles.vegGainHigh : styles.infraLow}`}>
                       {vegGainScore}%
                     </span>
                   </div>
                   <div className={styles.domainProgressBar}>
                     <div
-                      className={`${styles.domainProgressFill} ${vegGainScore > 40 ? styles.fillVegGain : styles.fillStable}`}
-                      style={{ width: `${Math.max(4, vegGainScore)}%` }}
+                      className={`${styles.domainProgressFill} ${vegGainScore > 1.5 ? styles.fillVegGain : styles.fillStable}`}
+                      style={{ width: `${Math.min(100, Math.max(4, vegGainScore * 8))}%` }}
                     />
                   </div>
                   <span className={styles.domainStatusText}>
-                    {vegGainScore > 40 ? caseData.veg_gain_status || 'Afforestation / Canopy Gain' : 'Baseline Vegetation Preserved'}
+                    {vegGainScore > 1.5 ? caseData.veg_gain_status || 'Afforestation / Canopy Gain' : 'Baseline Vegetation Preserved'}
                   </span>
                 </div>
               </div>

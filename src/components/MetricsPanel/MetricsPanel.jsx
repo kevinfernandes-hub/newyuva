@@ -3,265 +3,267 @@ import styles from './MetricsPanel.module.css';
 
 export function MetricsPanel({
   location,
-  currentScaledColorDiff,
   selectedTier = '10m',
-  onTierChange,
   hotspots = [],
   selectedHotspotId,
   onSelectHotspot,
-  onInspectHotspot,
-  onInspectAll
+  onInspectHotspot
 }) {
-  const isHighRes = selectedTier === '0.6m' && Boolean(location?.tiers?.['0.6m']);
-  const tier06 = location?.tiers?.['0.6m'];
-  const tier10 = location?.tiers?.['10m'];
-
-  // Preserve computed 0.00% accurately using nullish coalescing
-  const s2ColorDiff = location?.colorDiff ?? tier10?.colorDiffPct ?? 0.0;
-  const ssimPct = location?.ssimArea ?? tier10?.ssimPct ?? 0.0;
-  const highresDiff = tier06?.colorDiffPct ?? (s2ColorDiff < 1.0 ? 0.0 : 6.15);
-
-  const displayedColorDiff = isHighRes
-    ? highresDiff
-    : (currentScaledColorDiff ?? s2ColorDiff);
-
   const isStable =
     location?.isSurfaceStable ||
     location?.evidenceVerdict === 'SURFACE_STABLE' ||
-    (s2ColorDiff < 1.0 && ssimPct < 1.0);
+    (location?.colorDiff < 1.0 && location?.ssimArea < 1.0);
 
-  // Selected or top priority hotspot
-  const activeHotspot = hotspots.find((h) => h.hotspot_id === selectedHotspotId) || hotspots[0];
-  const fieldReport = location?.fieldReport;
-  const changeTypes = location?.changeTypes || activeHotspot?.change_types || [];
+  const activeHotspot =
+    hotspots.find((h) => h.hotspot_id === selectedHotspotId) || hotspots[0] || null;
 
-  const infraScore = location?.aiInspection?.infra_score ?? (isStable ? 0 : 88);
-  const vegLossScore = location?.aiInspection?.veg_loss_score ?? (isStable ? 0 : 75);
-  const vegGainScore = location?.aiInspection?.veg_gain_score ?? 0;
-  const highresSsimPct = location?.aiInspection?.highres_ssim_pct ?? (isStable ? 0.0 : 12.5);
-  const highresSsimScore = location?.aiInspection?.highres_ssim_score ?? 0.864;
+  const isHighRes = selectedTier === '0.6m';
+  const tier06 = location?.tiers?.['0.6m'];
+  const tier10 = location?.tiers?.['10m'];
+
+  // Dynamically pull metrics corresponding to the active sensor tier
+  const infraScore = isStable
+    ? 0
+    : isHighRes
+      ? Number((tier06?.infraPct ?? Math.min(25, Number((location?.colorDiff || 3.11).toFixed(2)))).toFixed(2))
+      : Number((tier10?.colorDiffPct ?? location?.colorDiff ?? 7.06).toFixed(2));
+
+  const vegLossScore = isStable
+    ? 0
+    : isHighRes
+      ? Number((tier06?.vegLossPct ?? 0.60).toFixed(2))
+      : Number(((tier10?.ssimPct ?? location?.ssimArea ?? 9.20) * 0.25).toFixed(2));
+
+  const vegGainScore = isStable
+    ? 0
+    : isHighRes
+      ? Number((tier06?.vegGainPct ?? 2.87).toFixed(2))
+      : 0;
+
+  const ssimIndex = isHighRes
+    ? (tier06?.ssimScore ?? 0.7412)
+    : (tier10?.ssimScore ?? location?.ssimScore ?? 0.6840);
+
+  const ssimDivergencePct = isHighRes
+    ? (tier06?.ssimPct ?? 6.85)
+    : (tier10?.ssimPct ?? location?.ssimArea ?? 9.20);
+
+  const handleDownloadNotice = () => {
+    const noticeContent = `
+================================================================================
+NAGPUR MUNICIPAL CORPORATION (NMC)
+TOWN PLANNING & URBAN DEVELOPMENT CELL
+CIVIL LINES, NAGPUR - 440001
+================================================================================
+OFFICIAL FIELD INSPECTION NOTICE (FORM-B)
+Generated via Nagpur EarthWatch Autonomous Satellite Intelligence Platform
+
+Date of Issue: ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+Notice Reference: NMC/TPD/SURV/${new Date().getFullYear()}/${activeHotspot?.hotspot_id || 'NGP-043'}
+
+1. TARGET WARD & PARCEL DETAILS:
+--------------------------------------------------------------------------------
+- Location / Corridor: ${location?.name || 'MIHAN / Outer Ring Road'} (${location?.subtitle || 'Ward IX'})
+- Coordinates: ${activeHotspot?.coords_str || '21.0542° N, 79.0518° E'}
+- Flagged Parcel ID: ${activeHotspot?.hotspot_id || 'MIHAN-043'}
+- Ground Change Area: ${activeHotspot?.area_formatted || '18,450 m²'}
+- Primary Typology: ${activeHotspot?.change_type_label || 'Industrial Facility Expansion'}
+
+2. MULTI-SENSOR SATELLITE EVIDENCE:
+--------------------------------------------------------------------------------
+- Active Sensor Tier:   ${isHighRes ? 'Maxar / Esri Wayback (~0.6m Sub-Meter)' : 'Copernicus Sentinel-2 (10m Multi-Spectral)'}
+- Baseline Acquisition: ${location?.beforeDate || (isHighRes ? '2019-01-31 (Maxar 0.6m)' : '2020-01-15 (Sentinel-2 10m)')}
+- Latest Acquisition:   ${location?.afterDate || (isHighRes ? '2025-01-30 (Maxar 0.6m)' : '2025-01-20 (Sentinel-2 10m)')}
+- ${isHighRes ? 'Infrastructure Envelope Score' : 'Multi-Spectral Delta (ΔE)'}: ${infraScore.toFixed(2)}%
+- Canopy Loss Score:           ${vegLossScore.toFixed(2)}%
+- Afforestation / Gain Score:  ${vegGainScore.toFixed(2)}%
+- SSIM Structural Index:       ${ssimIndex.toFixed(4)} (Divergence: ${ssimDivergencePct.toFixed(2)}%)
+
+3. COMPLIANCE & DIRECTIVE:
+--------------------------------------------------------------------------------
+Development record cross-reference indicates no active sanction on file for this
+envelope (Reference Demonstration Dataset). 
+ACTION REQUIRED: Field verification by Town Planning Officer within 48 hours.
+
+Authorized Signatory,
+Town Planning Directorate, Nagpur Municipal Corporation
+================================================================================
+`;
+
+    const blob = new Blob([noticeContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `NMC_Notice_${activeHotspot?.hotspot_id || 'NGP-043'}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
-    <aside className={styles.rail} aria-label="NMC Town Planning Intelligence">
-      {/* 0. Autonomous Agent Case Brief (If Field Report available) */}
-      {fieldReport && (
-        <div className={`${styles.agentCaseCard} ${isStable ? styles.stableCaseCard : ''}`}>
-          <div className={styles.cardHeader}>
-            <span className={styles.agentCaseTag}>
-              {isStable ? '✓ SURFACE AUDIT' : '⚡ CASE DOSSIER'}
+    <aside className={styles.rail}>
+      {/* 1. Header of Intelligence Rail */}
+      <div className={styles.railHeader}>
+        <div className={styles.headerTitles}>
+          <span className={styles.railTag}>
+            {isHighRes ? '🔍 MAXAR 0.6M SUB-METER AUDIT' : '🛰️ SENTINEL-2 10M SCREENING'}
+          </span>
+          <h3 className={styles.railTitle}>{location?.name || 'MIHAN Corridor'}</h3>
+        </div>
+        <span className={`${styles.statusBadge} ${isStable ? styles.badgeStable : styles.badgeCritical}`}>
+          {isStable ? '✓ SURFACE STABLE' : '⚠️ GROUND TRANSFORMATION'}
+        </span>
+      </div>
+
+      <div className={styles.scrollContent}>
+        {/* 2. Executive Ground Change Verdict */}
+        <div className={styles.card}>
+          <div className={styles.cardHeaderRow}>
+            <span className={styles.cardTitle}>
+              {isHighRes ? '0.6m Aerial Change Breakdown' : '10m Multi-Spectral Breakdown'}
             </span>
-            <span className={styles.caseIdBadge}>{fieldReport.case_id}</span>
+            <span className={styles.verifiedTag}>
+              {isHighRes ? '✓ Sub-Meter Confirmed' : '✓ 10m Granule Scanned'}
+            </span>
           </div>
 
-          <div className={styles.agentCaseBody}>
-            <div className={styles.agentChangeType}>
-              <span className={styles.agentTypeLabel}>{fieldReport.change_type}</span>
-              <span
-                className={`${styles.agentPriority} ${
-                  isStable ? styles.lowPriority : styles[fieldReport.priority?.toLowerCase()] || styles.high
-                }`}
-              >
-                {isStable ? 'SURFACE STABLE' : `${fieldReport.priority || 'HIGH'} PRIORITY`}
+          <div className={styles.domainMeterList}>
+            {/* Infrastructure / Spectral */}
+            <div className={styles.meterItem}>
+              <div className={styles.meterHeader}>
+                <span className={styles.meterName}>
+                  {isHighRes ? '🏗️ Infrastructure & Construction' : '🌈 Multi-Spectral Delta (ΔE)'}
+                </span>
+                <span className={styles.meterVal}>{infraScore.toFixed(2)}%</span>
+              </div>
+              <div className={styles.progressBarBg}>
+                <div
+                  className={styles.progressBarFill}
+                  style={{ width: `${Math.min(100, infraScore * 6)}%`, background: '#2563EB' }}
+                />
+              </div>
+              <span className={styles.meterSub}>
+                {isHighRes
+                  ? (infraScore > 1.5 ? 'New building foundations & structural grading' : 'No major construction detected')
+                  : 'B4/B3/B2 Visible + NIR Reflectance surface variance'}
               </span>
             </div>
 
-            {/* Multi-Domain Category Chips */}
-            {changeTypes && changeTypes.length > 0 && (
-              <div className={styles.changeTypesRow}>
-                {changeTypes.map((ct, idx) => (
-                  <span
-                    key={idx}
-                    className={`${styles.miniChip} ${
-                      ct.domain === 'ENVIRONMENTAL' ? styles.envChip : ct.domain === 'INFRASTRUCTURE' ? styles.infraChip : styles.otherChip
-                    }`}
-                  >
-                    {ct.domain === 'INFRASTRUCTURE' ? '🏗 ' : ct.domain === 'ENVIRONMENTAL' ? '🌲 ' : '✓ '}
-                    {ct.label} ({ct.confidence}%)
-                  </span>
-                ))}
+            {/* Vegetation Loss */}
+            <div className={styles.meterItem}>
+              <div className={styles.meterHeader}>
+                <span className={styles.meterName}>🌲 Tree Canopy / Biomass Loss</span>
+                <span className={styles.meterVal}>{vegLossScore.toFixed(2)}%</span>
+              </div>
+              <div className={styles.progressBarBg}>
+                <div
+                  className={styles.progressBarFill}
+                  style={{ width: `${Math.min(100, vegLossScore * 8)}%`, background: '#EF4444' }}
+                />
+              </div>
+              <span className={styles.meterSub}>
+                {vegLossScore > 1.0 ? 'Tree cover removal & open plot clearance' : 'Canopy baseline intact'}
+              </span>
+            </div>
+
+            {/* Vegetation Gain (Only at 0.6m high-res tier) */}
+            {isHighRes && (
+              <div className={styles.meterItem}>
+                <div className={styles.meterHeader}>
+                  <span className={styles.meterName}>🌿 Afforestation / Vegetation Gain</span>
+                  <span className={styles.meterVal}>{vegGainScore.toFixed(2)}%</span>
+                </div>
+                <div className={styles.progressBarBg}>
+                  <div
+                    className={styles.progressBarFill}
+                    style={{ width: `${Math.min(100, vegGainScore * 8)}%`, background: '#10B981' }}
+                  />
+                </div>
+                <span className={styles.meterSub}>
+                  {vegGainScore > 1.0 ? 'New plantations, green corridors & tree growth' : 'Baseline canopy maintained'}
+                </span>
               </div>
             )}
-
-            <p className={styles.agentNarrative}>{fieldReport.executive_narrative}</p>
-
-            <div className={`${styles.complianceChip} ${isStable ? styles.compliantChip : ''}`}>
-              <span className={`${styles.complianceDot} ${isStable ? styles.greenDot : ''}`} />
-              <span className={styles.complianceText}>{fieldReport.compliance_flag}</span>
-            </div>
           </div>
-
-          <button
-            type="button"
-            className={styles.dispatchActionBtn}
-            onClick={() => (onInspectHotspot ? onInspectHotspot(activeHotspot?.hotspot_id) : null)}
-          >
-            <span>{isStable ? 'Inspect Verified Optical Crops' : 'Inspect Multi-Scale Crops & Export Notice'}</span>
-            <span>→</span>
-          </button>
-        </div>
-      )}
-
-      {/* 1. Explicit Domain Transformation Breakdown: Infrastructure vs. Vegetation Loss & Gain */}
-      <div className={styles.domainBreakdownCard}>
-        <div className={styles.cardHeader}>
-          <span className={styles.cardLabel}>Domain Change Breakdown</span>
-          <span className={styles.badge}>Wayback Precision Indices</span>
         </div>
 
-        <div className={styles.domainRowsGrid}>
-          {/* Infrastructure Index */}
-          <div className={styles.domainStatRow}>
-            <div className={styles.domainMeta}>
-              <span className={styles.domainName}>🏗 Infrastructure Change</span>
-              <span className={styles.domainSubLabel}>
-                {infraScore > 50 ? 'Active Construction & Grading' : 'Zero Construction (Stable)'}
-              </span>
-            </div>
-            <span className={`${styles.domainValPill} ${infraScore > 50 ? styles.pillCritical : styles.pillStable}`}>
-              {infraScore}%
+        {/* 3. Town Planning Compliance Card & Actions */}
+        <div className={styles.card}>
+          <div className={styles.cardHeaderRow}>
+            <span className={styles.cardTitle}>Municipal Compliance & Actions</span>
+            <span className={styles.sanctionBadge}>
+              {isStable ? 'SANCTIONED' : 'UNVERIFIED'}
             </span>
           </div>
 
-          {/* Vegetation Loss Index */}
-          <div className={styles.domainStatRow}>
-            <div className={styles.domainMeta}>
-              <span className={styles.domainName}>🌲 Vegetation / Canopy Loss</span>
-              <span className={styles.domainSubLabel}>
-                {vegLossScore > 50 ? 'Tree Canopy Loss & Clearing' : 'Canopy Intact (Zero Loss)'}
-              </span>
-            </div>
-            <span className={`${styles.domainValPill} ${vegLossScore > 50 ? styles.pillCritical : styles.pillStable}`}>
-              {vegLossScore}%
-            </span>
-          </div>
-
-          {/* Vegetation Increment / Gain Index */}
-          <div className={styles.domainStatRow}>
-            <div className={styles.domainMeta}>
-              <span className={styles.domainName}>🌿 Vegetation Increment</span>
-              <span className={styles.domainSubLabel}>
-                {vegGainScore > 40 ? 'Regrowth / Afforestation Gain' : 'Baseline Vegetation Preserved'}
-              </span>
-            </div>
-            <span className={`${styles.domainValPill} ${vegGainScore > 40 ? styles.pillGain : styles.pillStable}`}>
-              {vegGainScore}%
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Ward Land Transformation Index */}
-      <div className={styles.statCard}>
-        <div className={styles.cardHeader}>
-          <span className={styles.cardLabel}>
-            {isHighRes ? 'Calibrated Ward Transformation' : 'Detected Optical Surface Delta'}
-          </span>
-          <span className={`${styles.badge} ${isHighRes ? styles.badgeHighRes : styles.badgeSentinel}`}>
-            {isHighRes ? '0.6m Orthophoto' : '10m Sentinel-2'}
-          </span>
-        </div>
-
-        <div className={styles.heroRow}>
-          <span className={styles.heroNumber}>{(isStable ? 0.0 : displayedColorDiff).toFixed(2)}%</span>
-          <span className={`${styles.statusPill} ${isStable ? styles.pillStable : displayedColorDiff > 7.0 ? styles.pillCritical : styles.pillModerate}`}>
-            {isStable ? 'Surface Stable' : displayedColorDiff > 7.0 ? 'Active Construction' : 'Moderate Growth'}
-          </span>
-        </div>
-
-        <div className={styles.statFooter}>
-          <span>
-            {isHighRes
-              ? 'Scale-matched to eliminate foliage jitter & isolate structural envelopes'
-              : 'Sentinel-2 multispectral surface change over target ward extent'}
-          </span>
-        </div>
-      </div>
-
-      {/* 3. Flagged Municipal Parcel (Hotspot Dossier) */}
-      {activeHotspot && !isStable ? (
-        <div className={styles.hotspotCard}>
-          <div className={styles.cardHeader}>
-            <span className={styles.cardLabel}>Flagged Development Parcel</span>
-            <span
-              className={`${styles.priorityBadge} ${
-                activeHotspot.priority === 'CRITICAL' ? styles.critical : styles.high
-              }`}
-            >
-              {activeHotspot.priority || 'HIGH'} PRIORITY
-            </span>
-          </div>
-
-          <div className={styles.hotspotInfo}>
-            <h3 className={styles.hotspotTitle}>{activeHotspot.name || `Parcel #${activeHotspot.hotspot_id}`}</h3>
-            <div className={styles.hotspotTags}>
-              <span className={styles.tag}>
-                {activeHotspot.area_formatted ||
-                  `${activeHotspot.area_m2 ? activeHotspot.area_m2.toLocaleString() : '2,840'} m²`}
-              </span>
-              <span className={styles.tag}>{activeHotspot.change_type_label || 'New Construction'}</span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className={styles.inspectBtn}
-            onClick={() => (onInspectHotspot ? onInspectHotspot(activeHotspot.hotspot_id) : null)}
-          >
-            <span>Open Municipal Case Dossier</span>
-            <span className={styles.arrowIcon}>→</span>
-          </button>
-        </div>
-      ) : (
-        <div className={styles.stableParcelCard}>
-          <div className={styles.cardHeader}>
-            <span className={styles.cardLabel}>Municipal Parcel Screening</span>
-            <span className={styles.stableBadge}>✓ 0 Flagged Anomaly</span>
-          </div>
-          <p className={styles.stableParcelText}>
-            No unauthorized structural encroachment or tree-cover clearing detected across this ward extent.
-          </p>
-        </div>
-      )}
-
-      {/* 4. Multi-Sensor Satellite Cross-Audit */}
-      <div className={styles.statCard}>
-        <div className={styles.cardHeader}>
-          <span className={styles.cardLabel}>Satellite Cross-Audit</span>
-          <span className={styles.convergenceBadge}>✓ Verified</span>
-        </div>
-
-        <div className={styles.sensorGrid}>
-          <div className={styles.sensorRow}>
-            <span className={styles.sensorName}>Sentinel-2 Spectral Delta (10m)</span>
-            <span className={styles.sensorVal}>{(isStable ? 0.0 : s2ColorDiff).toFixed(2)}%</span>
-          </div>
-          <div className={styles.sensorRow}>
-            <span className={styles.sensorName}>Structural Texture Dissimilarity (10m)</span>
-            <span className={styles.sensorVal}>{(isStable ? 0.0 : ssimPct).toFixed(2)}%</span>
-          </div>
-          <div className={styles.sensorRow}>
-            <span className={styles.sensorName}>High-Res Orthophoto Delta (0.6m)</span>
-            <span className={styles.sensorVal}>
-              {(isStable ? 0.0 : highresDiff).toFixed(2)}%
-            </span>
-          </div>
-        </div>
-
-        <div className={styles.sensorSummary}>
-          <span>
+          <p className={styles.complianceText}>
             {isStable
-              ? 'Multi-spectral screening and high-resolution audit confirm surface stability (0.0% delta).'
-              : 'Dual-resolution confirmation eliminates atmospheric noise and verifies physical ground changes.'}
-          </span>
-        </div>
-      </div>
+              ? 'Multi-spectral satellite screening confirms zero unauthorized encroachment across this sector.'
+              : 'Potential unauthorized structural emergence detected without active sanction on demonstration record. Field audit recommended.'}
+          </p>
 
-      {/* 5. Batch Field Verification */}
-      {hotspots && hotspots.length > 1 && !isStable && (
-        <button type="button" className={styles.batchBtn} onClick={onInspectAll}>
-          📋 Audit All Flagged Parcels in Ward ({hotspots.length})
-        </button>
-      )}
+          <div className={styles.actionButtonGroup}>
+            <button
+              type="button"
+              className={styles.primaryActionBtn}
+              onClick={() => onInspectHotspot && onInspectHotspot(activeHotspot?.hotspot_id || 'MIHAN-043')}
+            >
+              <span>🔍 Open AI Multi-Level Zoom Inspection</span>
+              <span>→</span>
+            </button>
+
+            <button
+              type="button"
+              className={styles.secondaryActionBtn}
+              onClick={handleDownloadNotice}
+            >
+              <span>📄 Export Official NMC Field Notice</span>
+              <span>↓</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 4. Flagged Development Parcels (Hotspot Queue) */}
+        {!isStable && hotspots.length > 0 && (
+          <div className={styles.card}>
+            <div className={styles.cardHeaderRow}>
+              <span className={styles.cardTitle}>Flagged Parcels ({hotspots.length})</span>
+              <span className={styles.priorityPill}>High Priority</span>
+            </div>
+
+            <div className={styles.hotspotList}>
+              {hotspots.map((h, idx) => {
+                const isSelected = (h.hotspot_id === selectedHotspotId) || (!selectedHotspotId && idx === 0);
+                return (
+                  <div
+                    key={h.hotspot_id || idx}
+                    className={`${styles.hotspotListItem} ${isSelected ? styles.hotspotItemSelected : ''}`}
+                    onClick={() => onSelectHotspot && onSelectHotspot(h.hotspot_id)}
+                  >
+                    <div className={styles.hotspotItemTop}>
+                      <span className={styles.hotspotIdTag}>#{h.hotspot_id}</span>
+                      <span className={styles.hotspotAreaTag}>{h.area_formatted || '18,450 m²'}</span>
+                    </div>
+                    <span className={styles.hotspotNameText}>{h.name || 'Industrial Facility'}</span>
+                    <div className={styles.hotspotItemFooter}>
+                      <span className={styles.hotspotType}>{h.change_type_label || 'New Construction'}</span>
+                      <button
+                        type="button"
+                        className={styles.itemInspectBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onInspectHotspot && onInspectHotspot(h.hotspot_id);
+                        }}
+                      >
+                        Inspect Zoom →
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
     </aside>
   );
 }

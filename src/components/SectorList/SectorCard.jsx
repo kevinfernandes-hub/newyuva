@@ -1,30 +1,40 @@
 import React from 'react';
 import styles from './SectorList.module.css';
 
-export function SectorCard({ location, isSelected, onSelect }) {
+export function SectorCard({ location, isSelected, onSelect, onClick }) {
+  const handleAction = onSelect || onClick;
+  const isStable =
+    location.isSurfaceStable ||
+    location.evidenceVerdict === 'SURFACE_STABLE' ||
+    (location.colorDiff < 1.0 && location.ssimArea < 1.0);
+
+  const priorityClass = isStable
+    ? styles.priorityStable
+    : (location.colorDiff > 12.0 || location.ssimArea > 12.0)
+      ? styles.priorityCritical
+      : styles.priorityHigh;
+
   return (
-    <li
-      className={`${styles.card} ${isSelected ? styles.active : ''} ${location.isPreview ? styles.previewCard : ''} ${location.isLiveAnalyzed ? styles.liveCard : ''}`}
-      onClick={onSelect}
+    <div
+      className={`${styles.card} ${isSelected ? styles.active : ''} ${location.isLiveAnalyzed ? styles.liveCard : ''}`}
+      onClick={handleAction}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          onSelect();
+          if (handleAction) handleAction();
         }
       }}
       tabIndex={0}
-      role="option"
+      role="button"
       aria-selected={isSelected}
     >
       <div className={styles.cardHeader}>
         <div className={styles.nameGroup}>
           <span className={styles.locationName}>{location.name}</span>
-          {location.isLiveAnalyzed && <span className={styles.liveBadge}>LIVE ANALYZED</span>}
-          {location.isPreview && <span className={styles.previewBadge}>PREVIEW</span>}
+          {location.isLiveAnalyzed && <span className={styles.liveBadge}>LIVE CDSE</span>}
         </div>
-        <span className={styles.statusIndicator}>
-          <span className={`${styles.statusDot} ${styles[location.status]}`} />
-          {location.statusLabel}
+        <span className={`${styles.priorityBadge} ${priorityClass}`}>
+          {isStable ? 'STABLE' : (location.colorDiff > 12.0 ? 'CRITICAL' : 'HIGH')}
         </span>
       </div>
 
@@ -32,31 +42,23 @@ export function SectorCard({ location, isSelected, onSelect }) {
 
       <div className={`${styles.metricsGrid} tabular-nums`}>
         <div className={styles.metricItem}>
-          <span className={styles.metricLabel}>Color Delta</span>
-          <span className={styles.metricValue}>{location.colorDiff.toFixed(2)}%</span>
+          <span className={styles.metricLabel}>10m Optical Δ</span>
+          <span className={styles.metricValue}>{(isStable ? 0.0 : location.colorDiff).toFixed(2)}%</span>
         </div>
         <div className={styles.metricItem}>
-          <span className={styles.metricLabel}>SSIM Area</span>
-          <span
-            className={styles.metricValue}
-            style={{ color: location.ssimArea > 15 ? 'var(--accent-primary)' : 'var(--text-primary)' }}
-          >
-            {location.ssimArea.toFixed(2)}%
-          </span>
+          <span className={styles.metricLabel}>SSIM Divergence</span>
+          <span className={styles.metricValue}>{(isStable ? 0.0 : location.ssimArea).toFixed(2)}%</span>
         </div>
       </div>
 
-      {location.isLiveAnalyzed && (
-        <div className={styles.liveMeta}>
-          Analyzed live ({location.beforeDate || '2022'} &rarr; {location.afterDate || '2025'})
-        </div>
-      )}
-
-      {location.isPreview && (
-        <div className={styles.previewNote}>
-          Estimate mode — full pipeline takes ~15–20 min in production.
-        </div>
-      )}
-    </li>
+      <div className={styles.cardFooter}>
+        <span className={styles.timelineTag}>
+          📅 {location.beforeDate || '2022-02-22'} → {location.afterDate || '2025-02-26'}
+        </span>
+        <span className={styles.selectArrow}>→</span>
+      </div>
+    </div>
   );
 }
+
+export default SectorCard;

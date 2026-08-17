@@ -234,6 +234,10 @@ class HeuristicMultimodalVisionModel(ChangeVisionModel):
             needs_more_zoom = False
             zoom_reason = f"Level {max_zoom_level} sub-meter micro-inspection complete."
 
+        # Compute real physical change percentages
+        real_infra_pct = round(float(min(25.0, highres_ssim_pct * 0.45 + edge_energy_pct * 0.7)), 2) if (edge_energy_pct > 1.5 or highres_ssim_pct > 5.0) else 0.0
+        real_veg_loss = round(float(veg_loss_pct), 2)
+        real_veg_gain = round(float(veg_gain_pct), 2)
         summary = f"0.6m Wayback SSIM ({ssim_score:.4f}) & optical differencing confirm {change_types[0]['label']} with {veg_loss_pct:.1f}% vegetation loss and {veg_gain_pct:.1f}% vegetation increment."
 
         return MultimodalChangeResult(
@@ -241,9 +245,9 @@ class HeuristicMultimodalVisionModel(ChangeVisionModel):
             primary_change=primary_change,
             change_types=change_types,
             confidence=overall_conf,
-            infra_score=conf_infra if edge_energy_pct > 1.5 or highres_ssim_pct > 5.0 else 0,
-            veg_loss_score=conf_veg_loss if veg_loss_pct > 1.0 else 0,
-            veg_gain_score=conf_veg_gain if veg_gain_pct > 1.0 else 0,
+            infra_score=real_infra_pct,
+            veg_loss_score=real_veg_loss,
+            veg_gain_score=real_veg_gain,
             highres_ssim_score=round(ssim_score, 4),
             highres_ssim_pct=round(highres_ssim_pct, 2),
             edge_energy_pct=round(edge_energy_pct, 2),

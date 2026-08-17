@@ -6,14 +6,9 @@ export function ViewModeToggle({
   currentMode,
   onModeChange,
   selectedTier = '10m',
-  isHighRes = false,
-  tierNote = ''
+  isHighRes = false
 }) {
   const activeMode = viewMode || currentMode || 'raw';
-  const highResActive = isHighRes || selectedTier === '0.6m';
-
-  const defaultNote =
-    'SSIM is disabled at 0.6m tier (SSIM decorrelates under sub-meter natural texture noise). Switch to 10m Sentinel-2 to view SSIM structural dissimilarity matrix.';
 
   return (
     <div className={styles.segmentedControl} role="group" aria-label="View Mode Toggle">
@@ -21,39 +16,36 @@ export function ViewModeToggle({
         type="button"
         className={`${styles.segmentBtn} ${activeMode === 'raw' ? styles.active : ''}`}
         onClick={() => onModeChange && onModeChange('raw')}
-        title="View side-by-side / split slider of raw baseline and comparison imagery"
+        title="View split swipe slider of baseline and comparison imagery"
       >
-        Raw Split
+        ↔️ Raw Split
       </button>
 
       <button
         type="button"
         className={`${styles.segmentBtn} ${activeMode === 'color' ? styles.active : ''}`}
         onClick={() => onModeChange && onModeChange('color')}
-        title="Spectral color-diff change overlay highlighting verified optical transitions"
+        title="Calibrated optical change overlay"
       >
-        Color-Diff Overlay
+        🟧 Optical Footprint
       </button>
 
       <button
         type="button"
-        className={`${styles.segmentBtn} ${activeMode === 'ssim' ? styles.active : ''} ${
-          highResActive ? styles.segmentBtnDisabled : ''
-        }`}
-        onClick={() => {
-          if (!highResActive && onModeChange) {
-            onModeChange('ssim');
-          }
-        }}
-        disabled={highResActive}
-        title={
-          highResActive
-            ? tierNote || defaultNote
-            : 'Structural Similarity Index (SSIM) matrix detecting structural alterations'
-        }
+        className={`${styles.segmentBtn} ${activeMode === 'ssim' ? styles.active : ''}`}
+        onClick={() => onModeChange && onModeChange('ssim')}
+        title="Structural Similarity Index (SSIM) matrix detecting structural alterations"
       >
-        <span>SSIM Overlay</span>
-        {highResActive && <span className={styles.infoBadge} title={tierNote || defaultNote}>ⓘ N/A</span>}
+        🔲 SSIM Matrix
+      </button>
+
+      <button
+        type="button"
+        className={`${styles.segmentBtn} ${activeMode === 'veg' ? styles.active : ''}`}
+        onClick={() => onModeChange && onModeChange('veg')}
+        title="Excess Green (ExG) canopy loss and increment overlay"
+      >
+        🌿 Vegetation Dynamics
       </button>
     </div>
   );

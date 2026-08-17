@@ -17,6 +17,7 @@ html, body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
 }
 
 #root {
@@ -28,6 +29,10 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
+button {
+  font-family: inherit;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
@@ -35,36 +40,38 @@ html, body {
 
 /* Minimal Scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-hairline);
+  background: var(--border-subtle);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-faint);
+  background: var(--text-muted);
 }
 
-/* Leaflet Overrides for Minimal Theme */
+/* Leaflet map styles */
 .leaflet-container {
-  background: var(--bg-surface-subtle) !important;
+  background: #F1F5F9 !important;
   font-family: var(--font-sans) !important;
+  width: 100%;
+  height: 100%;
 }
 
 .leaflet-bar {
   border: 1px solid var(--border-hairline) !important;
   box-shadow: var(--shadow-sm) !important;
-  border-radius: 6px !important;
+  border-radius: 8px !important;
   overflow: hidden;
 }
 
 .leaflet-bar a {
   background-color: #FFFFFF !important;
-  border-bottom: 1px solid var(--border-subtle) !important;
+  border-bottom: 1px solid var(--border-hairline) !important;
   color: var(--text-primary) !important;
 }
 
@@ -74,22 +81,13 @@ html, body {
 
 .leaflet-popup-content-wrapper {
   background: #FFFFFF !important;
-  border-radius: 6px !important;
+  border-radius: 8px !important;
   box-shadow: var(--shadow-md) !important;
   border: 1px solid var(--border-hairline) !important;
-  padding: 2px 4px !important;
+  padding: 4px 8px !important;
 }
 
 .leaflet-popup-tip {
   background: #FFFFFF !important;
   border: 1px solid var(--border-hairline) !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
 }

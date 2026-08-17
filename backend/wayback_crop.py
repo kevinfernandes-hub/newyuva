@@ -18,7 +18,7 @@ import numpy as np
 from PIL import Image
 
 from .config import STATIC_DIR, RESULTS_DIR
-from .wayback_live import get_wayback_imagery, enhance_submeter_clarity
+from .wayback_live import get_wayback_imagery, enhance_submeter_clarity, match_color_distribution
 
 # Output directory for hotspot crops
 CROPS_STATIC_DIR = STATIC_DIR / "hotspot_crops"
@@ -157,6 +157,9 @@ def generate_aligned_hotspot_crops(
             # Ensure same dimensions
             if crop_before.shape != crop_after.shape:
                 crop_before = cv2.resize(crop_before, (crop_after.shape[1], crop_after.shape[0]))
+
+            # Color balance alignment: neutralize sensor green tint
+            crop_after = match_color_distribution(crop_after, crop_before)
 
             # Enhance optical sub-meter edge definition
             crop_before = enhance_submeter_clarity(crop_before)

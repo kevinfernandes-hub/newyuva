@@ -1,6 +1,6 @@
 .appContainer {
-  display: grid;
-  grid-template-rows: var(--header-height) 1fr var(--bottom-bar-height);
+  display: flex;
+  flex-direction: column;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
@@ -9,13 +9,20 @@
 
 .workspaceGrid {
   display: grid;
-  grid-template-columns: 280px 1fr 310px;
-  height: calc(100vh - var(--header-height) - var(--bottom-bar-height));
+  grid-template-columns: 1fr 390px;
+  height: calc(100vh - var(--header-height));
   overflow: hidden;
   background: var(--bg-app);
 }
 
-@media (max-width: 960px) {
+.mapStageContainer {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 1024px) {
   .appContainer {
     height: auto;
     overflow-y: auto;
@@ -23,7 +30,7 @@
 
   .workspaceGrid {
     grid-template-columns: 1fr;
-    grid-template-rows: auto 440px auto;
+    grid-template-rows: 500px auto;
     height: auto;
     overflow-y: auto;
   }
