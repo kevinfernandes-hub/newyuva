@@ -9,6 +9,228 @@
   height: 100%;
 }
 
+/* Agent Case Dossier Card */
+.agentCaseCard {
+  background: linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%);
+  border: 1.5px solid #BFDBFE;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+}
+
+.agentCaseCard.stableCaseCard {
+  background: linear-gradient(135deg, #F0FDF4 0%, #F8FAFC 100%);
+  border-color: #BBF7D0;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.06);
+}
+
+.agentCaseTag {
+  font-size: 10px;
+  font-weight: 800;
+  color: #1E40AF;
+  letter-spacing: 0.06em;
+}
+
+.caseIdBadge {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+  background: #DBEAFE;
+  color: #1E40AF;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.agentCaseBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agentChangeType {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.agentTypeLabel {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.agentPriority {
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.agentPriority.critical {
+  background: #FEE2E2;
+  color: #B91C1C;
+}
+
+.agentPriority.high {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.agentPriority.lowPriority {
+  background: #DCFCE7;
+  color: #15803D;
+  border: 1px solid #86EFAC;
+}
+
+/* Multi-Domain Category Chips */
+.changeTypesRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.miniChip {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.infraChip {
+  background: #FFF7ED;
+  color: #C2410C;
+  border: 1px solid #FDBA74;
+}
+
+.envChip {
+  background: #F0FDF4;
+  color: #15803D;
+  border: 1px solid #86EFAC;
+}
+
+.otherChip {
+  background: #F8FAFC;
+  color: #475569;
+  border: 1px solid #CBD5E1;
+}
+
+.agentNarrative {
+  margin: 0;
+  font-size: 11px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.complianceChip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.complianceChip.compliantChip {
+  background: #F0FDF4;
+  border-color: #86EFAC;
+  color: #15803D;
+}
+
+.complianceDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #EA580C;
+  flex-shrink: 0;
+}
+
+.complianceDot.greenDot {
+  background: #16A34A;
+}
+
+.dispatchActionBtn {
+  background: linear-gradient(135deg, #1E40AF, #2563EB);
+  color: #FFFFFF;
+  border: none;
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+  transition: all 0.12s ease;
+}
+
+.dispatchActionBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+}
+
+/* Domain Breakdown Card */
+.domainBreakdownCard {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.domainRowsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.domainStatRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.domainMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.domainName {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.domainSubLabel {
+  font-size: 9.5px;
+  color: #64748B;
+}
+
+.domainValPill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
 /* Stat Card */
 .statCard {
   background: #F8FAFC;
@@ -77,9 +299,30 @@
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 20px;
+}
+
+.pillStable {
   background: #ECFDF5;
   color: #047857;
   border: 1px solid #A7F3D0;
+}
+
+.pillModerate {
+  background: #FFFBEB;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+
+.pillCritical {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+}
+
+.pillGain {
+  background: #F0FDF4;
+  color: #059669;
+  border: 1px solid #86EFAC;
 }
 
 .statFooter {
@@ -100,6 +343,32 @@
   flex-direction: column;
   gap: 12px;
   box-shadow: 0 2px 6px rgba(234, 88, 12, 0.06);
+}
+
+.stableParcelCard {
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stableBadge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #15803D;
+  background: #DCFCE7;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.stableParcelText {
+  margin: 0;
+  font-size: 11.5px;
+  color: #166534;
+  line-height: 1.4;
 }
 
 .priorityBadge {

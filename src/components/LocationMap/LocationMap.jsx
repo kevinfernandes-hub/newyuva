@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Rectangle, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Rectangle, Polygon, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import styles from './LocationMap.module.css';
 
@@ -171,6 +171,31 @@ export function LocationMap({
             }}
           />
         )}
+
+        {/* Vector Ground Change Polygons */}
+        {(selectedLocation?.polygons || selectedLocation?.aiInspection?.polygons || selectedLocation?.fieldReport?.polygons || []).map((poly, pIdx) => {
+          if (!poly?.coordinates || poly.coordinates.length < 3) return null;
+          return (
+            <Polygon
+              key={poly.polygon_id || pIdx}
+              positions={poly.coordinates}
+              pathOptions={{
+                color: '#DC2626',
+                weight: 2,
+                fillColor: '#EA580C',
+                fillOpacity: 0.28
+              }}
+            >
+              <Popup className={styles.popupCustom}>
+                <div className={styles.popupContent}>
+                  <strong>{poly.polygon_id || 'Ground Change Polygon'}</strong>
+                  <span>Calculated Area: {poly.area_m2?.toLocaleString()} m²</span>
+                  <span style={{ fontSize: '10px', color: '#64748B' }}>Cadastral Contour Vector</span>
+                </div>
+              </Popup>
+            </Polygon>
+          );
+        })}
 
         {/* Sector Locations Markers */}
         {locations.map((loc) => {

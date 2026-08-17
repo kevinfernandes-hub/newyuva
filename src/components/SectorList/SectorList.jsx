@@ -23,14 +23,15 @@ export function SectorList({
 }) {
   const [viewMode, setViewMode] = useState('dual'); // 'list' | 'map' | 'dual'
 
+  // Token-based matching: handles "dharampeth nagpur", commas, extra spaces, etc.
   const filteredLocations = locations.filter((loc) => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return true;
-    return (
-      loc.name.toLowerCase().includes(q) ||
-      loc.subtitle.toLowerCase().includes(q) ||
-      loc.id.toLowerCase().includes(q)
-    );
+    const rawQ = searchQuery.toLowerCase().trim();
+    if (!rawQ) return true;
+
+    const tokens = rawQ.replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(Boolean);
+    const locText = `${loc.name} ${loc.subtitle || ''} ${loc.id || ''}`.toLowerCase().replace(/[^a-z0-9]/g, ' ');
+
+    return tokens.every((token) => locText.includes(token));
   });
 
   const selectedLocation = locations.find((l) => l.id === selectedId) || locations[0];
@@ -58,50 +59,39 @@ export function SectorList({
           </span>
         </div>
 
-        <div className={styles.viewModeTabs} role="group" aria-label="Rail View Mode">
+        <div className={styles.viewToggleGroup} role="radiogroup" aria-label="Sector panel layout">
           <button
             type="button"
-            className={`${styles.viewBtn} ${viewMode === 'dual' ? styles.viewBtnActive : ''}`}
+            className={`${styles.viewBtn} ${viewMode === 'dual' ? styles.activeViewBtn : ''}`}
             onClick={() => setViewMode('dual')}
-            title="Split Map & List"
+            title="Split map and list view"
           >
             Dual
           </button>
           <button
             type="button"
-            className={`${styles.viewBtn} ${viewMode === 'list' ? styles.viewBtnActive : ''}`}
+            className={`${styles.viewBtn} ${viewMode === 'list' ? styles.activeViewBtn : ''}`}
             onClick={() => setViewMode('list')}
-            title="List Only"
+            title="Compact sector cards list"
           >
             List
           </button>
           <button
             type="button"
-            className={`${styles.viewBtn} ${viewMode === 'map' ? styles.viewBtnActive : ''}`}
+            className={`${styles.viewBtn} ${viewMode === 'map' ? styles.activeViewBtn : ''}`}
             onClick={() => setViewMode('map')}
-            title="Map Only"
+            title="Interactive Nagpur district map"
           >
             Map
           </button>
         </div>
       </div>
 
-      {/* Progressive Live Scanning Feedback Overlay with Multi-Step Checklist */}
-      {isScanning && (
-        <div className={styles.scanningBanner}>
-          <div className={styles.spinner} />
-          <div className={styles.scanningText}>
-            <strong>Scanning & Verifying Urban Change</strong>
-            <span>{scanningStatusText || 'Connecting to Copernicus CDSE & Wayback APIs...'}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Map Section (Shown in Dual or Map mode) */}
-      {(viewMode === 'dual' || viewMode === 'map') && (
-        <div className={`${styles.mapSection} ${viewMode === 'map' ? styles.mapFull : ''}`}>
+      {/* Embedded Map Section */}
+      {(viewMode === 'map' || viewMode === 'dual') && (
+        <div className={viewMode === 'dual' ? styles.mapSectionDual : styles.mapSectionFull}>
           <LocationMap
-            locations={filteredLocations}
+            locations={locations}
             selectedLocation={selectedLocation}
             onSelectLocation={onSelectLocation}
             hotspots={hotspots}
@@ -112,23 +102,28 @@ export function SectorList({
         </div>
       )}
 
-      {/* Sector Cards List (Shown in Dual or List mode) */}
-      {(viewMode === 'dual' || viewMode === 'list') && (
-        <div className={styles.listSection} role="list" aria-label="Sector list">
-          {filteredLocations.length === 0 ? (
-            <div className={styles.emptySearch}>
-              <span>No pre-analyzed sectors match "{searchQuery}".</span>
-              <p>Press <strong>Request Live Analysis</strong> above to geocode and process this area dynamically with Sentinel-2 & Wayback ~0.6m.</p>
-            </div>
+      {/* Sector Cards Feed */}
+      {(viewMode === 'list' || viewMode === 'dual') && (
+        <div className={styles.list}>
+          {filteredLocations.length > 0 ? (
+            filteredLocations.map((loc) => {
+              const isSelected = loc.id === selectedId;
+              return (
+                <SectorCard
+                  key={loc.id}
+                  location={loc}
+                  isSelected={isSelected}
+                  onClick={() => onSelectLocation(loc.id)}
+                />
+              );
+            })
           ) : (
-            filteredLocations.map((loc) => (
-              <SectorCard
-                key={loc.id}
-                location={loc}
-                isSelected={loc.id === selectedId}
-                onSelect={() => onSelectLocation(loc.id)}
-              />
-            ))
+            <div className={styles.empty}>
+              <p>No pre-analyzed sectors match "{searchQuery}".</p>
+              <p className={styles.emptySub}>
+                Click <strong>RUN EARTHWATCH AGENT</strong> above to analyze this area dynamically.
+              </p>
+            </div>
           )}
         </div>
       )}

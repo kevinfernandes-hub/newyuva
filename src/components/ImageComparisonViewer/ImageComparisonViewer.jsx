@@ -620,20 +620,20 @@ export function ImageComparisonViewer({
 
         <div className={`${styles.cornerBadge} ${styles.left}`}>
           {isHighRes
-            ? `2019-01-31 (0.6m Baseline @ ${zoomLevel.toFixed(1)}x)`
+            ? `${(location?.beforeDate || tier06?.beforeDate || '2019-01-31').split(' ')[0]} (0.6m Baseline @ ${zoomLevel.toFixed(1)}x)`
             : location?.beforeDate
-            ? `Baseline (${location.beforeDate})`
-            : `Jan 2022 (10m @ ${zoomLevel.toFixed(1)}x)`}
+            ? `Baseline (${location.beforeDate.split(' ')[0]})`
+            : `Baseline (10m @ ${zoomLevel.toFixed(1)}x)`}
         </div>
         <div className={`${styles.cornerBadge} ${styles.right}`}>
           {isHighRes
             ? viewMode === 'raw'
-              ? `2025-01-30 (0.6m Current @ ${zoomLevel.toFixed(1)}x)`
-              : `0.6m Calibrated Color-Diff (${(tier06?.colorDiffPct || location?.colorDiff || 6.15).toFixed(2)}% @ ${zoomLevel.toFixed(1)}x)`
+              ? `${(location?.afterDate || tier06?.afterDate || '2025-01-30').split(' ')[0]} (0.6m Current @ ${zoomLevel.toFixed(1)}x)`
+              : `0.6m Calibrated Color-Diff (${(tier06?.colorDiffPct ?? location?.colorDiff ?? 0.0).toFixed(2)}% @ ${zoomLevel.toFixed(1)}x)`
             : viewMode === 'raw'
             ? location?.afterDate
-              ? `Current (${location.afterDate})`
-              : `Jan 2025 (10m Current @ ${zoomLevel.toFixed(1)}x)`
+              ? `Current (${location.afterDate.split(' ')[0]})`
+              : `Current (10m @ ${zoomLevel.toFixed(1)}x)`
             : viewMode === 'color'
             ? '10m Color-Diff Overlay'
             : '10m SSIM Mask'}

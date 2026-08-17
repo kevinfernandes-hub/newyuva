@@ -6,6 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from fastapi.responses import StreamingResponse
+import json
+
 from .config import STATIC_DIR
 from .locations_data import PRESET_LOCATIONS
 from .geocoding import geocode_location
@@ -17,6 +20,13 @@ from .pipeline import (
 from .hotspots import get_hotspots_for_location
 from .vision_inspector import execute_zoom_and_verify_agent
 from .wayback_live import check_wayback_availability
+from .agent.orchestrator import EarthWatchOrchestrator, run_earthwatch_agent
+
+
+class AgentRunRequest(BaseModel):
+    location_name: str = Field(..., description="Any searchable location or landmark in Nagpur (e.g. Civil Lines, Sadar, Hingna MIDC, MIHAN, Sitabuldi)")
+    before_date: Optional[str] = Field(None, description="Optional baseline date YYYY-MM-DD")
+    after_date: Optional[str] = Field(None, description="Optional current date YYYY-MM-DD")
 
 app = FastAPI(
     title="Nagpur EarthWatch — Urban Change Intelligence API",
@@ -245,19 +255,82 @@ async def inspect_all_hotspots(req: InspectAllRequest, request: Request):
     }
 
 
-@app.get("/api/inspection/{hotspot_id}")
-async def get_cached_inspection(hotspot_id: str, location_id: str = "mihan", request: Request = None):
-    """
-    Retrieves the inspection case for a specific hotspot (from cache or newly executed).
-    """
-    cache_key = f"{location_id.lower()}_{hotspot_id.upper()}"
-    if cache_key in INSPECTION_CACHE:
-        return {"status": "success", "case": INSPECTION_CACHE[cache_key]}
+# ==========================================
+# CENTRAL AGENTIC ORCHESTRATION ENDPOINTS
+# ==========================================
 
+@app.post("/api/agent/run")
+async def run_agent_investigation(req: AgentRunRequest, request: Request):
+    """
+    Executes the full autonomous EarthWatch Agent workflow:
+    SEARCH -> PLAN -> SCAN -> REASON -> ZOOM -> VERIFY -> CROSS-CHECK -> REPORT
+    """
+    base_url = str(request.base_url).rstrip("/")
+    orchestrator = EarthWatchOrchestrator(base_url=base_url)
+
+    try:
+        result = await orchestrator.execute_investigation(
+            location_query=req.location_name,
+            custom_before=req.before_date,
+            custom_after=req.after_date
+        )
+        return result
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=422,
+            detail={"status": "error", "reason": str(ve)}
+        )
+    except Exception as e:
+        print(f"EarthWatch Agent error on '{req.location_name}': {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={"status": "error", "reason": f"Agent investigation failed: {str(e)}"}
+        )
+
+
+@app.get("/api/agent/stream")
+async def stream_agent_investigation(
+    location_name: str = Query(..., description="Location to investigate"),
+    before_date: Optional[str] = Query(None),
+    after_date: Optional[str] = Query(None),
+    request: Request = None
+):
+    """
+    Streams real-time step-by-step tool execution events as Server-Sent Events (SSE).
+    """
     base_url = str(request.base_url).rstrip("/") if request else "http://localhost:8000"
-    case_file = execute_zoom_and_verify_agent(hotspot_id=hotspot_id, location_id=location_id, base_url=base_url)
-    INSPECTION_CACHE[cache_key] = case_file
-    return {"status": "success", "case": case_file}
+
+    async def event_generator():
+        orchestrator = EarthWatchOrchestrator(base_url=base_url)
+        queue: asyncio.Queue = asyncio.Queue()
+
+        def on_event(evt):
+            queue.put_nowait(evt)
+
+        # Launch orchestrator in background task
+        task = asyncio.create_task(
+            orchestrator.execute_investigation(
+                location_query=location_name,
+                custom_before=before_date,
+                custom_after=after_date,
+                event_callback=on_event
+            )
+        )
+
+        while not task.done() or not queue.empty():
+            try:
+                evt = await asyncio.wait_for(queue.get(), timeout=0.2)
+                yield f"data: {json.dumps(evt)}\n\n"
+            except asyncio.TimeoutError:
+                continue
+
+        try:
+            final_res = await task
+            yield f"data: {json.dumps({'type': 'COMPLETE', 'result': final_res})}\n\n"
+        except Exception as err:
+            yield f"data: {json.dumps({'type': 'ERROR', 'error': str(err)})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 if __name__ == "__main__":

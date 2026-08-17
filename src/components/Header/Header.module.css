@@ -78,6 +78,23 @@
   gap: 16px;
 }
 
+.workflowPill {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.workflowText {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94A3B8;
+  letter-spacing: 0.03em;
+  font-family: var(--font-mono, monospace);
+}
+
 .wardStatus {
   display: flex;
   align-items: center;

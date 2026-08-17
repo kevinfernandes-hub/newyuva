@@ -5,8 +5,8 @@ import { ImageComparisonViewer } from './components/ImageComparisonViewer/ImageC
 import { MetricsPanel } from './components/MetricsPanel/MetricsPanel';
 import { SensitivityCalibration } from './components/SensitivityCalibration/SensitivityCalibration';
 import { InspectionModal } from './components/InspectionModal/InspectionModal';
-import { BuildingDetailModal } from './components/BuildingDetailModal/BuildingDetailModal';
 import { AIInspectionModal } from './components/AIInspectionModal/AIInspectionModal';
+import { AgentProgressModal } from './components/AgentProgressModal/AgentProgressModal';
 import { initialLocations } from './data/locations';
 import { interpolateSensitivity } from './data/calibration';
 import styles from './App.module.css';
@@ -26,6 +26,14 @@ export function App() {
   const [isScanning, setIsScanning] = useState(false);
   const [scanningStatusText, setScanningStatusText] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  
+  // EarthWatch Autonomous Agent State
+  const [isAgentModalOpen, setIsAgentModalOpen] = useState(false);
+  const [agentLogs, setAgentLogs] = useState([]);
+  const [agentCurrentStep, setAgentCurrentStep] = useState(0);
+  const [agentTotalSteps, setAgentTotalSteps] = useState(10);
+  const [isAgentFinished, setIsAgentFinished] = useState(false);
+  const [agentLocationName, setAgentLocationName] = useState('');
   const progressTimersRef = useRef([]);
 
   // Fetch preset locations from backend API on mount
@@ -180,75 +188,59 @@ export function App() {
     }
   }, [hotspotsList, handleInspectHotspot]);
 
-  // Real live analysis request calling POST /api/analyze for new location search
+  // Full Autonomous EarthWatch Agent Execution
   const handleRequestLiveAnalysis = useCallback(
     async (locationName) => {
       const cleanName = locationName.trim();
       if (!cleanName) return;
 
       setErrorMessage('');
-
-      // Check if an existing location matches directly
-      const existing = locationsList.find(
-        (l) =>
-          l.name.toLowerCase().includes(cleanName.toLowerCase()) ||
-          l.id.toLowerCase().includes(cleanName.toLowerCase())
-      );
-
-      if (existing) {
-        handleSelectLocation(existing.id);
-        return;
-      }
-
-      // Start multi-stage progress indicator
+      setAgentLocationName(cleanName);
       setIsScanning(true);
-      setScanningStatusText('1/4 Geocoding location with OpenStreetMap Nominatim...');
-      clearProgressTimers();
-
-      progressTimersRef.current.push(
-        setTimeout(() => {
-          setScanningStatusText('2/4 Querying Copernicus CDSE Sentinel-2 catalog (<15% cloud cover)...');
-        }, 1500)
-      );
-
-      progressTimersRef.current.push(
-        setTimeout(() => {
-          setScanningStatusText('3/4 Downloading Sentinel-2 10m L2A granules & Esri Wayback ~0.6m tiles...');
-        }, 4000)
-      );
-
-      progressTimersRef.current.push(
-        setTimeout(() => {
-          setScanningStatusText('4/4 Computing multi-tier optical deltas, SSIM matrix & candidate hotspots...');
-        }, 8000)
-      );
+      setIsAgentModalOpen(true);
+      setIsAgentFinished(false);
+      setAgentCurrentStep(1);
+      setAgentTotalSteps(10);
+      setAgentLogs([
+        {
+          step: 1,
+          total_steps: 10,
+          title: 'Resolving Municipal AOI & Coordinates',
+          status: 'IN_PROGRESS',
+          detail: `Geocoding '${cleanName}' with OpenStreetMap Nominatim...`
+        }
+      ]);
 
       try {
-        const response = await fetch('/api/analyze', {
+        const response = await fetch('/api/agent/run', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ location_name: cleanName })
         });
-
-        clearProgressTimers();
 
         if (!response.ok) {
           const errData = await response.json().catch(() => ({}));
           const reason =
             errData?.detail?.reason ||
             errData?.reason ||
-            'No clear satellite imagery (<15% cloud cover) available for this exact location in the current time window — try a nearby point or select from analyzed locations.';
+            'No clear satellite imagery available for this exact location in the current time window — please try another location.';
           setErrorMessage(reason);
           setIsScanning(false);
-          setScanningStatusText('');
+          setIsAgentFinished(true);
           return;
         }
 
         const data = await response.json();
 
-        const newId = `live-${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
-        const ssimArea = data.ssim_pct;
-        const colorDiff = data.color_diff_pct;
+        // Populate execution logs
+        if (data.execution_logs && Array.isArray(data.execution_logs)) {
+          setAgentLogs(data.execution_logs);
+          setAgentCurrentStep(10);
+        }
+
+        const newId = `agent-${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
+        const ssimArea = data.ssim_pct || 0.0;
+        const colorDiff = data.color_diff_pct || 0.0;
         const status = ssimArea > 15 ? 'flagged' : colorDiff > 7.0 ? 'elevated' : 'stable';
         const statusLabel =
           status === 'flagged'
@@ -260,56 +252,51 @@ export function App() {
         const newLocation = {
           id: newId,
           name: data.location_name,
-          subtitle: `Live AOI — Analyzed ${data.before_date} → ${data.after_date}`,
+          subtitle: `Autonomous AOI — Analyzed ${data.before_date} → ${data.after_date}`,
           colorDiff,
           ssimArea,
-          ssimScore: data.ssim_score,
+          ssimScore: data.ssim_score || 0.92,
           status,
           statusLabel,
-          coords: data.coords || `${data.lng.toFixed(3)}° E, ${data.lat.toFixed(3)}° N`,
-          coordinates: [data.lat, data.lng],
-          confidence: data.confidence,
+          coords: data.coords_str || `${data.longitude?.toFixed(3)}° E, ${data.latitude?.toFixed(3)}° N`,
+          coordinates: [data.latitude, data.longitude],
+          bbox: data.bbox,
+          confidence: data.ai_inspection?.composite_confidence > 80 ? 'high' : 'needs_review',
           beforeDate: data.before_date,
           afterDate: data.after_date,
+          evidenceVerdict: data.evidence_verdict,
+          evidenceReasoning: data.evidence_reasoning,
+          fieldReport: data.field_report,
+          aiInspection: data.ai_inspection,
+          developmentRecord: data.development_record,
+          polygons: data.ai_inspection?.polygons || data.field_report?.polygons || [],
+          changeTypes: data.ai_inspection?.change_types || [],
+          totalSegmentedAreaM2: data.ai_inspection?.total_segmented_area_m2 || data.field_report?.total_segmented_area_m2 || 0,
           permits: [
             {
-              id: `LIVE-NMC-2024-${Math.floor(1000 + Math.random() * 8000)}`,
-              plot: `${cleanName} Municipal Plot`,
-              status: status === 'flagged' ? 'unmatched' : 'matched',
+              id: data.development_record?.permit_id || `LIVE-NMC-2024-${Math.floor(1000 + Math.random() * 8000)}`,
+              plot: data.development_record?.plot_description || `${cleanName} Municipal Cadastral Plot`,
+              status: data.development_record?.status === 'MATCH_FOUND' ? 'matched' : 'unmatched',
               date: data.after_date
-            },
-            {
-              id: `LIVE-AUDIT-${Math.floor(100 + Math.random() * 800)}`,
-              plot: `${cleanName} Sector Bounds`,
-              status: 'matched',
-              date: data.before_date
             }
           ],
-          tiers: {
+          tiers: data.tiers || {
             '10m': {
               source: 'Sentinel-2 (Live Copernicus CDSE)',
-              beforeImage: data.before_image_url,
-              afterImage: data.after_image_url,
-              colorDiffOverlay: data.color_diff_overlay_url,
+              beforeImage: data.tiers?.['10m']?.beforeImage,
+              afterImage: data.tiers?.['10m']?.afterImage,
+              colorDiffOverlay: data.tiers?.['10m']?.colorDiffOverlay,
               colorDiffPct: colorDiff,
-              ssimOverlay: data.ssim_overlay_url,
+              ssimOverlay: data.tiers?.['10m']?.ssimOverlay,
               ssimPct: ssimArea,
               ssimScore: data.ssim_score
-            },
-            '0.6m': data.tiers?.['0.6m'] || {
-              source: 'Maxar / Esri Wayback (~0.6m Ground Resolution)',
-              beforeImage: data.before_image_url,
-              afterImage: data.after_image_url,
-              colorOverlay: data.color_diff_overlay_url,
-              colorDiffPct: colorDiff,
-              detailCrop: '/wayback_mihan_sameszn_detail_crop.png'
             }
           },
           localImages: {
-            before: data.before_image_url,
-            after: data.after_image_url,
-            colorOverlay: data.color_diff_overlay_url,
-            ssimOverlay: data.ssim_overlay_url
+            before: data.tiers?.['10m']?.beforeImage,
+            after: data.tiers?.['10m']?.afterImage,
+            colorOverlay: data.tiers?.['10m']?.colorDiffOverlay,
+            ssimOverlay: data.tiers?.['10m']?.ssimOverlay
           },
           isLiveAnalyzed: true,
           isPreview: false
@@ -324,16 +311,19 @@ export function App() {
           setSelectedHotspotId(data.hotspots[0].hotspot_id);
         }
 
+        if (data.ai_inspection) {
+          setActiveCaseData(data.ai_inspection);
+        }
+
         setIsScanning(false);
-        setScanningStatusText('');
+        setIsAgentFinished(true);
       } catch (err) {
-        clearProgressTimers();
-        console.error('Live analysis failed:', err);
+        console.error('EarthWatch Agent investigation failed:', err);
         setErrorMessage(
-          'Could not complete live satellite analysis. Please check network connectivity or select from verified preset locations.'
+          'Could not complete autonomous investigation. Please check network connectivity or select another sector.'
         );
         setIsScanning(false);
-        setScanningStatusText('');
+        setIsAgentFinished(true);
       }
     },
     [locationsList, handleSelectLocation]
@@ -545,6 +535,23 @@ export function App() {
           isOpen={isAIModalOpen}
           onClose={() => setIsAIModalOpen(false)}
           caseData={activeCaseData}
+        />
+      )}
+
+      {isAgentModalOpen && (
+        <AgentProgressModal
+          isOpen={isAgentModalOpen}
+          logs={agentLogs}
+          currentStep={agentCurrentStep}
+          totalSteps={agentTotalSteps}
+          locationName={agentLocationName}
+          isFinished={isAgentFinished}
+          errorMessage={errorMessage}
+          onClose={() => setIsAgentModalOpen(false)}
+          onViewCase={() => {
+            setIsAgentModalOpen(false);
+            setIsAIModalOpen(true);
+          }}
         />
       )}
     </div>

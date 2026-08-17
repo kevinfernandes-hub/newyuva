@@ -10,21 +10,26 @@ export function Header() {
         </div>
         <div className={styles.titleColumn}>
           <div className={styles.titleRow}>
-            <h1 className={styles.title}>Nagpur Municipal Corporation</h1>
-            <span className={styles.portalTag}>TOWN PLANNING & VIGILANCE</span>
+            <h1 className={styles.title}>NAGPUR EARTHWATCH</h1>
+            <span className={styles.portalTag}>AGENTIC URBAN INTELLIGENCE</span>
           </div>
           <span className={styles.subtitle}>
-            Satellite-Based Urban Development & Land-Use Surveillance System
+            Autonomous Multi-Resolution Surveillance: Sentinel-2 (10m) ⇄ Wayback (~0.6m) ⇄ AI Vision Inspection
           </span>
         </div>
       </div>
 
       <div className={styles.headerRight}>
+        <div className={styles.workflowPill}>
+          <span className={styles.workflowText}>SEARCH → SCAN → REASON → ZOOM → VERIFY → REPORT</span>
+        </div>
         <div className={styles.wardStatus}>
           <span className={styles.liveIndicator} />
-          <span className={styles.statusText}>PORTAL ACTIVE</span>
+          <span className={styles.statusText}>AGENT READY</span>
         </div>
       </div>
     </header>
   );
 }
+
+export default Header;
