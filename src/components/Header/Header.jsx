@@ -4,13 +4,12 @@ import styles from './Header.module.css';
 export function Header({
   viewMode = 'officer',
   onToggleViewMode,
-  activeTab = 'map',
-  onTabSelect
+  onOpenCaseSummary
 }) {
   return (
     <header className={styles.header}>
       <div className={styles.headerRow}>
-        {/* Left Side: Branding + Interactive Map Pill */}
+        {/* Left Side: Branding + Executive Case Overview Button */}
         <div className={styles.headerLeft}>
           <div className={styles.branding}>
             <div className={styles.emblemBadge}>
@@ -19,29 +18,25 @@ export function Header({
             <div className={styles.titleColumn}>
               <div className={styles.titleRow}>
                 <h1 className={styles.title}>NMC EARTHWATCH</h1>
-                <span className={styles.portalTag}>TOWN PLANNING &amp; VIGILANCE</span>
+                <span className={styles.portalTag}>TOWN PLANNING</span>
+                <button
+                  type="button"
+                  className={styles.caseSummaryBtn}
+                  onClick={onOpenCaseSummary}
+                  title="Open Executive Case Overview & Priorities Hub"
+                >
+                  📊 Case Overview
+                </button>
               </div>
             </div>
           </div>
-
-          {/* Header Map Control Pill */}
-          <nav className={styles.catchyNavPills}>
-            <button
-              type="button"
-              className={`${styles.navPill} ${styles.navPillActive}`}
-              onClick={() => onTabSelect && onTabSelect('map')}
-            >
-              <span className={styles.tabIcon}>🗺️</span>
-              <span>Interactive Map</span>
-            </button>
-          </nav>
         </div>
 
-        {/* Right Side: Mode Switcher & Portal Active Status */}
+        {/* Right Side: Mode Switcher & Portal Active Badge */}
         <div className={styles.headerRight}>
           {viewMode === 'analyst' && (
             <div className={styles.analystBadge}>
-              🔬 Analyst Mode Active
+              🔬 Analyst Mode
             </div>
           )}
 

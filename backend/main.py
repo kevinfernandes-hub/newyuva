@@ -87,27 +87,6 @@ class YoloAnalyzeRequest(BaseModel):
 
 
 # Base Endpoints
-@app.get("/")
-async def root_index():
-    return {
-        "status": "online",
-        "service": "Nagpur EarthWatch Universal Intelligence API",
-        "version": "2.0.0",
-        "documentation": "/docs",
-        "health": "/api/health"
-    }
-
-
-@app.get("/favicon.ico")
-async def favicon():
-    return JSONResponse(status_code=204, content={})
-
-
-@app.get("/.well-known/{path:path}")
-async def well_known_fallback(path: str):
-    return JSONResponse(status_code=204, content={})
-
-
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "service": "Nagpur EarthWatch Universal Intelligence API"}
@@ -749,10 +728,10 @@ def get_priority_model_status():
 async def get_public_png(filename: str):
     file_path = PUBLIC_DIR / f"{filename}.png"
     if file_path.exists():
-        return FileResponse(file_path)
+        return FileResponse(path=str(file_path), media_type="image/png")
     static_file = STATIC_DIR / f"{filename}.png"
     if static_file.exists():
-        return FileResponse(static_file)
+        return FileResponse(path=str(static_file), media_type="image/png")
     raise HTTPException(status_code=404, detail=f"PNG asset '{filename}.png' not found")
 
 
@@ -760,10 +739,10 @@ async def get_public_png(filename: str):
 async def get_public_jpg(filename: str):
     file_path = PUBLIC_DIR / f"{filename}.jpg"
     if file_path.exists():
-        return FileResponse(file_path)
+        return FileResponse(path=str(file_path), media_type="image/jpeg")
     static_file = STATIC_DIR / f"{filename}.jpg"
     if static_file.exists():
-        return FileResponse(static_file)
+        return FileResponse(path=str(static_file), media_type="image/jpeg")
     raise HTTPException(status_code=404, detail=f"JPG asset '{filename}.jpg' not found")
 
 
