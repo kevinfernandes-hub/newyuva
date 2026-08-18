@@ -346,6 +346,82 @@
   to { background-color: rgba(201, 111, 62, 0.12); }
 }
 
+.officerCardGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.officerMetric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.officerMetricFull {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.officerLabel {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.officerValue {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.textAlert {
+  color: #F87171;
+}
+
+.textStable {
+  color: #34D399;
+}
+
+.evidenceTag {
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 3px;
+  padding: 1px 5px;
+  display: inline-block;
+  width: fit-content;
+}
+
+.tagStrong {
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.tagModerate {
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.tagStable {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.actionValue {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #F8FAFC;
+}
+
 @media (max-width: 768px) {
   .rail {
     height: auto;
@@ -354,3 +430,4 @@
     border-bottom: 1px solid var(--border-hairline);
   }
 }
+

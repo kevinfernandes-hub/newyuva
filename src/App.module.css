@@ -7,31 +7,154 @@
   background: var(--bg-app);
 }
 
+/* Action Required Dashboard Summary Row */
+.actionRequiredRow {
+  background: #0B1120;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.actionCard {
+  background: #1E293B;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.actionCard:hover {
+  background: #334155;
+  border-color: #38BDF8;
+  transform: translateY(-1px);
+}
+
+.actionCardIcon {
+  font-size: 20px;
+}
+
+.actionCardVal {
+  font-size: 16px;
+  font-weight: 800;
+  color: #F8FAFC;
+  line-height: 1.1;
+}
+
+.actionCardLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #94A3B8;
+  letter-spacing: 0.04em;
+}
+
 .workspaceGrid {
   display: grid;
-  grid-template-columns: 1fr 390px;
-  height: calc(100vh - var(--header-height));
+  grid-template-columns: 310px 1fr 310px;
+  flex: 1;
   overflow: hidden;
   background: var(--bg-app);
 }
 
-.mapStageContainer {
-  height: 100%;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-}
-
-@media (max-width: 1024px) {
+@media (max-width: 960px) {
   .appContainer {
     height: auto;
     overflow-y: auto;
   }
 
+  .actionRequiredRow {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .workspaceGrid {
     grid-template-columns: 1fr;
-    grid-template-rows: 500px auto;
+    grid-template-rows: auto 440px auto;
     height: auto;
     overflow-y: auto;
   }
+}
+
+/* Floating Bottom Trigger for YOLO Workbench */
+.floatingYoloTrigger {
+  position: fixed;
+  bottom: 12px;
+  right: 24px;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(13, 17, 23, 0.94);
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 15px rgba(24, 144, 255, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 8px 16px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #F8FAFC;
+  user-select: none;
+}
+
+.floatingYoloTrigger:hover {
+  transform: translateY(-2px);
+  border-color: #38BDF8;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.75), 0 0 20px rgba(56, 189, 248, 0.45);
+  background: rgba(22, 27, 34, 0.98);
+}
+
+.triggerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pulseDot {
+  color: #10B981;
+  font-size: 10px;
+  animation: pulseGreen 1.5s infinite;
+}
+
+@keyframes pulseGreen {
+  0% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0.4; transform: scale(0.9); }
+}
+
+.sparkleIcon {
+  font-size: 13px;
+}
+
+.triggerTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #F8FAFC;
+  letter-spacing: -0.01em;
+}
+
+.triggerBadge {
+  font-size: 10px;
+  font-weight: 800;
+  background: rgba(255, 77, 79, 0.2);
+  color: #FF7875;
+  border: 1px solid rgba(255, 77, 79, 0.4);
+  padding: 1px 7px;
+  border-radius: 12px;
+}
+
+.triggerRight {
+  display: flex;
+  align-items: center;
+}
+
+.triggerAction {
+  font-size: 11px;
+  font-weight: 700;
+  color: #38BDF8;
+  letter-spacing: 0.02em;
 }
