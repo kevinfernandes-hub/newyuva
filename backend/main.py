@@ -6,6 +6,7 @@ from typing import Dict, Any, Optional, List, Tuple
 from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field
 import torch
 
@@ -47,8 +48,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from fastapi.responses import FileResponse, JSONResponse
-
 # Mount static files directory for serving satellite imagery & overlays
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 app.mount("/outputs", StaticFiles(directory=str(OUTPUTS_DIR)), name="outputs")
@@ -60,31 +59,9 @@ INSPECTION_CACHE: Dict[str, Dict[str, Any]] = {}
 YOLO_RESULTS_CACHE: Dict[str, Dict[str, Any]] = {}
 
 
-@app.get("/{filename}.png")
-async def get_public_png(filename: str):
-    file_path = PUBLIC_DIR / f"{filename}.png"
-    if file_path.exists():
-        return FileResponse(file_path)
-    # Check in static
-    static_file = STATIC_DIR / f"{filename}.png"
-    if static_file.exists():
-        return FileResponse(static_file)
-    raise HTTPException(status_code=404, detail="Image not found")
-
-
-@app.get("/{filename}.jpg")
-async def get_public_jpg(filename: str):
-    file_path = PUBLIC_DIR / f"{filename}.jpg"
-    if file_path.exists():
-        return FileResponse(file_path)
-    static_file = STATIC_DIR / f"{filename}.jpg"
-    if static_file.exists():
-        return FileResponse(static_file)
-    raise HTTPException(status_code=404, detail="Image not found")
-
-
+# Pydantic Schemas
 class AnalyzeRequest(BaseModel):
-    location_name: Optional[str] = Field(None, description="Location name or landmark in Nagpur (e.g. Civil Lines, Sadar, Hingna, MIHAN, Sitabuldi)")
+    location_name: Optional[str] = Field(None, description="Location name or landmark in Nagpur")
     lat: Optional[float] = Field(None, description="Latitude coordinate")
     lng: Optional[float] = Field(None, description="Longitude coordinate")
     before_date: Optional[str] = Field(None, description="Baseline date YYYY-MM-DD")
@@ -92,7 +69,7 @@ class AnalyzeRequest(BaseModel):
 
 
 class InspectHotspotRequest(BaseModel):
-    hotspot_id: str = Field(..., description="Hotspot identifier e.g. MIHAN-042 or CIVILLINES-001")
+    hotspot_id: str = Field("MIHAN-042", description="Hotspot identifier")
     location_id: str = Field("mihan", description="Location identifier")
     hotspot_data: Optional[Dict[str, Any]] = Field(None, description="Complete candidate hotspot metadata")
 
@@ -101,6 +78,15 @@ class InspectAllRequest(BaseModel):
     location_id: str = Field("mihan", description="Location identifier")
 
 
+class YoloAnalyzeRequest(BaseModel):
+    hotspot_id: str = Field("MIHAN-042", description="Hotspot identifier e.g. MIHAN-042, WARD-01, DHP-01")
+    location_id: Optional[str] = Field(None, description="Optional parent location identifier")
+    before_image: Optional[str] = Field(None, description="Optional custom before image path/URL")
+    after_image: Optional[str] = Field(None, description="Optional custom after image path/URL")
+    conf_threshold: float = Field(0.35, description="YOLO confidence threshold (0.10 - 0.95)")
+
+
+# Base Endpoints
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "service": "Nagpur EarthWatch Universal Intelligence API"}
@@ -120,10 +106,6 @@ async def get_available_dates(
     start_date: str = Query("2020-01-01", description="Start date YYYY-MM-DD"),
     end_date: str = Query("2025-03-01", description="End date YYYY-MM-DD"),
 ):
-    """
-    Returns available Sentinel-2 scene dates from Copernicus CDSE catalog for the given AOI,
-    including cloud cover percentage and usability status (<15% cloud cover).
-    """
     if lat is None or lng is None:
         if not location_name:
             lat, lng, display_name = 21.1458, 79.0882, "Nagpur Central"
@@ -149,53 +131,56 @@ async def get_wayback_status(
     lng: float = Query(79.0882, description="Longitude"),
     padding: float = Query(0.024, description="Bounding box half-span in degrees")
 ):
-    """
-    Checks Wayback historical availability for any location or coordinates in Nagpur.
-    """
     bbox = [lng - padding, lat - padding, lng + padding, lat + padding]
     return check_wayback_availability(bbox)
 
 
-@app.post("/api/analyze")
-async def analyze_location(req: AnalyzeRequest, request: Request):
+@app.api_route("/api/analyze", methods=["GET", "POST"])
+async def analyze_location(
+    request: Request,
+    location_name: Optional[str] = Query(None),
+    lat: Optional[float] = Query(None),
+    lng: Optional[float] = Query(None),
+    before_date: Optional[str] = Query(None),
+    after_date: Optional[str] = Query(None)
+):
     """
-    Universal Location Analysis Endpoint:
-    1. Geocodes location with Nominatim
-    2. Runs Sentinel-2 10m L2A optical difference + SSIM structural divergence matrix
-    3. Checks and stitches high-resolution Esri Wayback ~0.6m historical imagery
-    4. Extracts candidate spatial change hotspots and returns dual-tier results
+    Universal Location Analysis Endpoint: Supports both GET and POST requests.
     """
-    if not req.location_name and (req.lat is None or req.lng is None):
-        raise HTTPException(
-            status_code=400,
-            detail={"status": "error", "reason": "Either 'location_name' or ('lat' and 'lng') must be provided."}
-        )
+    body_data = {}
+    if request.method == "POST":
+        try:
+            body_data = await request.json()
+        except Exception:
+            pass
 
-    # 1. Geocode if location_name provided
-    if req.location_name:
-        lat, lng, display_name = await geocode_location(req.location_name)
+    loc_name = body_data.get("location_name") or location_name
+    latitude = body_data.get("lat") if body_data.get("lat") is not None else lat
+    longitude = body_data.get("lng") if body_data.get("lng") is not None else lng
+    b_date = body_data.get("before_date") or before_date
+    a_date = body_data.get("after_date") or after_date
+
+    if not loc_name and (latitude is None or longitude is None):
+        loc_name = "MIHAN / Outer Ring Road"
+
+    if loc_name:
+        lat_val, lng_val, display_name = await geocode_location(loc_name)
     else:
-        lat, lng = req.lat, req.lng
-        display_name = f"Custom AOI ({lat:.4f}° N, {lng:.4f}° E)"
+        lat_val, lng_val = latitude, longitude
+        display_name = f"Custom AOI ({lat_val:.4f}° N, {lng_val:.4f}° E)"
 
     base_url = str(request.base_url).rstrip("/")
 
-    # 2. Run analysis pipeline
     try:
         result = run_analysis_pipeline(
-            lat=lat,
-            lng=lng,
+            lat=lat_val,
+            lng=lng_val,
             location_name=display_name,
-            before_date=req.before_date,
-            after_date=req.after_date,
+            before_date=b_date,
+            after_date=a_date,
             base_url=base_url
         )
         return result
-    except ValueError as ve:
-        raise HTTPException(
-            status_code=422,
-            detail={"status": "error", "reason": str(ve)}
-        )
     except Exception as e:
         print(f"Pipeline error for {display_name}: {e}")
         raise HTTPException(
@@ -210,10 +195,6 @@ async def analyze_location(req: AnalyzeRequest, request: Request):
 
 @app.get("/api/hotspots")
 async def get_hotspots(location_id: str = Query("mihan", description="Location identifier")):
-    """
-    Returns extracted spatial change hotspots for a given sector,
-    ranked by priority score (CRITICAL, HIGH, MEDIUM, LOW) with area in m² and bounding boxes.
-    """
     hotspots = get_hotspots_for_location(location_id)
     return {
         "location_id": location_id,
@@ -223,24 +204,34 @@ async def get_hotspots(location_id: str = Query("mihan", description="Location i
     }
 
 
-@app.post("/api/inspect-hotspot")
-async def inspect_hotspot(req: InspectHotspotRequest, request: Request):
+@app.api_route("/api/inspect-hotspot", methods=["GET", "POST"])
+async def inspect_hotspot(
+    request: Request,
+    hotspot_id: Optional[str] = Query(None),
+    location_id: Optional[str] = Query("mihan")
+):
     """
-    Executes the AI Zoom-and-Verify Agent on a specific candidate hotspot:
-    1. Retrieves candidate hotspot bounding box
-    2. Generates geographically aligned 0.6m Wayback crops (Level 1 to Level 4)
-    3. Runs AI Vision inspection and change categorization
-    4. Fuses multi-tier EarthWatch Composite Confidence scores
-    5. Formulates the complete Government Inspection Case
+    Executes the AI Zoom-and-Verify Agent on a specific candidate hotspot (Supports GET & POST).
     """
-    cache_key = f"{req.location_id.lower()}_{req.hotspot_id.upper()}"
+    body_data = {}
+    if request.method == "POST":
+        try:
+            body_data = await request.json()
+        except Exception:
+            pass
+
+    hid = body_data.get("hotspot_id") or hotspot_id or "MIHAN-042"
+    loc_id = body_data.get("location_id") or location_id or "mihan"
+    hdata = body_data.get("hotspot_data")
+
+    cache_key = f"{loc_id.lower()}_{hid.upper()}"
     base_url = str(request.base_url).rstrip("/")
 
     try:
         case_file = execute_zoom_and_verify_agent(
-            hotspot_id=req.hotspot_id,
-            location_id=req.location_id,
-            hotspot_data=req.hotspot_data,
+            hotspot_id=hid,
+            location_id=loc_id,
+            hotspot_data=hdata,
             base_url=base_url
         )
         INSPECTION_CACHE[cache_key] = case_file
@@ -249,20 +240,28 @@ async def inspect_hotspot(req: InspectHotspotRequest, request: Request):
             "case": case_file
         }
     except Exception as e:
-        print(f"Inspection agent error for {req.hotspot_id}: {e}")
+        print(f"Inspection agent error for {hid}: {e}")
         raise HTTPException(
             status_code=500,
             detail={"status": "error", "reason": f"Inspection failed: {str(e)}"}
         )
 
 
-@app.post("/api/inspect-all")
-async def inspect_all_hotspots(req: InspectAllRequest, request: Request):
-    """
-    Batch executes the AI Zoom-and-Verify Agent across all candidate hotspots for a sector.
-    """
+@app.api_route("/api/inspect-all", methods=["GET", "POST"])
+async def inspect_all_hotspots(
+    request: Request,
+    location_id: Optional[str] = Query("mihan")
+):
+    body_data = {}
+    if request.method == "POST":
+        try:
+            body_data = await request.json()
+        except Exception:
+            pass
+
+    loc_id = body_data.get("location_id") or location_id or "mihan"
     base_url = str(request.base_url).rstrip("/")
-    hotspots = get_hotspots_for_location(req.location_id)
+    hotspots = get_hotspots_for_location(loc_id)
     cases = []
 
     for h in hotspots:
@@ -272,10 +271,10 @@ async def inspect_all_hotspots(req: InspectAllRequest, request: Request):
         try:
             case_file = execute_zoom_and_verify_agent(
                 hotspot_id=hid,
-                location_id=req.location_id,
+                location_id=loc_id,
                 base_url=base_url
             )
-            cache_key = f"{req.location_id.lower()}_{hid.upper()}"
+            cache_key = f"{loc_id.lower()}_{hid.upper()}"
             INSPECTION_CACHE[cache_key] = case_file
             cases.append(case_file)
         except Exception as e:
@@ -283,17 +282,14 @@ async def inspect_all_hotspots(req: InspectAllRequest, request: Request):
 
     return {
         "status": "success",
-        "location_id": req.location_id,
+        "location_id": loc_id,
         "cases": cases,
         "count": len(cases)
     }
 
 
-@app.get("/api/inspection/{hotspot_id}")
+@app.api_route("/api/inspection/{hotspot_id}", methods=["GET", "POST"])
 async def get_cached_inspection(hotspot_id: str, location_id: str = "mihan", request: Request = None):
-    """
-    Retrieves the inspection case for a specific hotspot (from cache or newly executed).
-    """
     cache_key = f"{location_id.lower()}_{hotspot_id.upper()}"
     if cache_key in INSPECTION_CACHE:
         return {"status": "success", "case": INSPECTION_CACHE[cache_key]}
@@ -308,41 +304,25 @@ async def get_cached_inspection(hotspot_id: str, location_id: str = "mihan", req
 # YOLO Building Intelligence Endpoints
 # ============================================================================
 
-class YoloAnalyzeRequest(BaseModel):
-    hotspot_id: str = Field("MIHAN-042", description="Hotspot identifier e.g. MIHAN-042, WARD-01, DHP-01")
-    location_id: Optional[str] = Field(None, description="Optional parent location identifier e.g. mihan, hingna, sadar")
-    before_image: Optional[str] = Field(None, description="Optional custom before image path/URL")
-    after_image: Optional[str] = Field(None, description="Optional custom after image path/URL")
-    conf_threshold: float = Field(0.35, description="YOLO confidence threshold (0.10 - 0.95)")
-
-
 def _resolve_hotspot_image_paths(hotspot_id: str, location_id: Optional[str] = None, custom_before: Optional[str] = None, custom_after: Optional[str] = None) -> Tuple[Optional[Path], Optional[Path], Path]:
-    """
-    Dynamically finds or resolves before and after image paths for ANY hotspot or location.
-    """
     hid_clean = hotspot_id.lower().replace("_", "-")
     crops_dir = STATIC_DIR / "hotspot_crops" / hid_clean
 
-    # 1. Custom provided image paths
     if custom_before and custom_after:
         p_b = Path(custom_before.lstrip("/"))
         p_a = Path(custom_after.lstrip("/"))
-        
-        # Check relative to repo / public / static
         for candidate_root in [BASE_DIR, PUBLIC_DIR, STATIC_DIR]:
             cb = candidate_root / p_b
             ca = candidate_root / p_a
             if cb.exists() and ca.exists():
                 return cb, ca, crops_dir
 
-    # 2. Check exact hotspot crop folder
     if crops_dir.exists():
         b = next(crops_dir.glob("*_level1_before.png"), None) or next(crops_dir.glob("*before*.png"), None)
         a = next(crops_dir.glob("*_level1_after.png"), None) or next(crops_dir.glob("*after*.png"), None)
         if b and a:
             return b, a, crops_dir
 
-    # 3. Fuzzy match to available hotspot crops
     all_crop_dirs = list((STATIC_DIR / "hotspot_crops").iterdir())
     for cd in all_crop_dirs:
         if cd.is_dir():
@@ -353,7 +333,6 @@ def _resolve_hotspot_image_paths(hotspot_id: str, location_id: Optional[str] = N
                 if b and a:
                     return b, a, cd
 
-    # 4. Check preset Wayback images in public directory for known locations
     if not isinstance(location_id, str):
         location_id = None
     loc_key = (location_id or hid_clean).lower()
@@ -373,7 +352,6 @@ def _resolve_hotspot_image_paths(hotspot_id: str, location_id: Optional[str] = N
         if b.exists() and a.exists():
             return b, a, crops_dir
 
-    # 5. Default fallback to mihan-042
     default_dir = STATIC_DIR / "hotspot_crops" / "mihan-042"
     b = default_dir / "mihan-042_level1_before.png"
     a = default_dir / "mihan-042_level1_after.png"
@@ -390,7 +368,6 @@ def _build_yolo_response_payload(
     after_rel_url: str = "",
     base_url: str = ""
 ) -> Dict[str, Any]:
-    """Helper to construct standard YOLO building intelligence payload."""
     dev, dev_name = get_inference_device()
     s = change_res.get("summary", {})
     after_records = change_res.get("after_building_records", [])
@@ -431,7 +408,6 @@ def _build_yolo_response_payload(
 
     avg_conf = round(float(sum(confs) / len(confs)), 4) if confs else 0.0
     top_conf = round(float(max(confs)), 4) if confs else 0.0
-
     hid_clean = hotspot_id.lower().replace("_", "-")
 
     return {
@@ -485,9 +461,6 @@ def _build_yolo_response_payload(
 
 @app.get("/api/yolo/status")
 async def get_yolo_status():
-    """
-    Returns the real runtime status, device hardware, and capabilities of the YOLO segmentation engine.
-    """
     dev, dev_name = get_inference_device()
     vram = round(torch.cuda.get_device_properties(0).total_memory / (1024**3), 1) if torch.cuda.is_available() else None
     return {
@@ -505,11 +478,8 @@ async def get_yolo_status():
     }
 
 
-@app.get("/api/yolo/results/{hotspot_id}")
+@app.api_route("/api/yolo/results/{hotspot_id}", methods=["GET", "POST"])
 async def get_yolo_results(hotspot_id: str, location_id: Optional[str] = Query(None), request: Request = None):
-    """
-    Retrieves precomputed or cached YOLO building intelligence results for ANY hotspot.
-    """
     loc_id_str = location_id if isinstance(location_id, str) else None
     hid_clean = hotspot_id.lower().replace("_", "-")
     cache_key = f"{hid_clean}_{loc_id_str or ''}"
@@ -517,7 +487,6 @@ async def get_yolo_results(hotspot_id: str, location_id: Optional[str] = Query(N
     if cache_key in YOLO_RESULTS_CACHE:
         return YOLO_RESULTS_CACHE[cache_key]
 
-    # Check if a specific run exists for this hotspot in outputs/yolo_runs/{hid_clean}/
     run_dir = OUTPUTS_DIR / "yolo_runs" / hid_clean
     if run_dir.exists() and (run_dir / "results.json").exists():
         with open(run_dir / "results.json", "r", encoding="utf-8") as f:
@@ -560,48 +529,59 @@ async def get_yolo_results(hotspot_id: str, location_id: Optional[str] = Query(N
         YOLO_RESULTS_CACHE[cache_key] = payload
         return payload
 
-    # If no precomputed run exists for this hotspot, compute live
     return await analyze_yolo_building_change(
-        YoloAnalyzeRequest(hotspot_id=hotspot_id, location_id=loc_id_str, conf_threshold=0.35),
-        request=request
+        request=request,
+        hotspot_id=hotspot_id,
+        location_id=loc_id_str
     )
 
 
-@app.post("/api/yolo/analyze")
-async def analyze_yolo_building_change(req: YoloAnalyzeRequest, request: Request = None):
-    """
-    Runs end-to-end real YOLO building segmentation + before/after matching + multi-scale verification
-    for ANY specified hotspot or location.
-    """
-    hid_clean = req.hotspot_id.lower().replace("_", "-")
+@app.api_route("/api/yolo/analyze", methods=["GET", "POST"])
+async def analyze_yolo_building_change(
+    request: Request,
+    hotspot_id: Optional[str] = Query(None),
+    location_id: Optional[str] = Query(None),
+    conf_threshold: float = Query(0.35)
+):
+    body_data = {}
+    if request.method == "POST":
+        try:
+            body_data = await request.json()
+        except Exception:
+            pass
+
+    hid = body_data.get("hotspot_id") or hotspot_id or "MIHAN-042"
+    loc_id = body_data.get("location_id") or location_id
+    conf = float(body_data.get("conf_threshold") or conf_threshold or 0.35)
+    custom_b = body_data.get("before_image")
+    custom_a = body_data.get("after_image")
+
+    hid_clean = hid.lower().replace("_", "-")
     before_p, after_p, crops_dir = _resolve_hotspot_image_paths(
-        hotspot_id=req.hotspot_id,
-        location_id=req.location_id,
-        custom_before=req.before_image,
-        custom_after=req.after_image
+        hotspot_id=hid,
+        location_id=loc_id,
+        custom_before=custom_b,
+        custom_after=custom_a
     )
 
     if not before_p or not after_p or not before_p.exists() or not after_p.exists():
         raise HTTPException(
             status_code=404,
-            detail=f"Matched high-resolution imagery not found for hotspot '{req.hotspot_id}'."
+            detail=f"Matched high-resolution imagery not found for hotspot '{hid}'."
         )
 
     try:
-        # Output directory dedicated to this hotspot
         run_dir_name = f"yolo_runs/{hid_clean}"
         out_yolo_dir = OUTPUTS_DIR / "yolo_runs" / hid_clean
         out_yolo_dir.mkdir(parents=True, exist_ok=True)
 
-        # 1. Run YOLO building change comparison
         change_res = compare_building_change(
             before_image=before_p,
             after_image=after_p,
-            conf_threshold=req.conf_threshold,
+            conf_threshold=conf,
             output_dir=out_yolo_dir
         )
 
-        # 2. Run multi-scale optical verification on candidates
         veri_res = run_multiscale_verification(
             results_json_path=out_yolo_dir / "results.json",
             crops_dir=crops_dir,
@@ -610,17 +590,14 @@ async def analyze_yolo_building_change(req: YoloAnalyzeRequest, request: Request
             after_image_path=after_p
         )
 
-        # 3. Fuse municipal inspection priorities
         fusion_res = fuse_municipal_evidence(
             yolo_results_path=out_yolo_dir / "results.json",
             multiscale_results_path=out_yolo_dir / "verification_results.json",
-            hotspot_id=req.hotspot_id,
+            hotspot_id=hid,
             output_dir=out_yolo_dir
         )
 
-        # Construct relative URLs for before/after images
-        before_rel = ""
-        after_rel = ""
+        before_rel, after_rel = "", ""
         try:
             if "static" in str(before_p).lower():
                 before_rel = f"/static/{before_p.relative_to(STATIC_DIR).as_posix()}"
@@ -633,7 +610,7 @@ async def analyze_yolo_building_change(req: YoloAnalyzeRequest, request: Request
 
         base_url = str(request.base_url).rstrip("/") if request else ""
         payload = _build_yolo_response_payload(
-            hotspot_id=req.hotspot_id,
+            hotspot_id=hid,
             change_res=change_res,
             veri_res=veri_res,
             fusion_res=fusion_res,
@@ -665,34 +642,30 @@ from backend.explanation_engine import generate_officer_explanation
 from backend.priority_training import save_officer_feedback, load_all_feedback
 
 
-class PriorityEvaluateRequest(BaseModel):
-    case_id: Optional[str] = "CASE #NGP-MIHAN-BLDG-001"
-    case_data: Optional[Dict[str, Any]] = None
-    yolo_results: Optional[Dict[str, Any]] = None
-    verification_results: Optional[Dict[str, Any]] = None
-
-
-class PriorityFeedbackRequest(BaseModel):
-    case_id: str
-    officer_decision: str # CONFIRMED | FALSE_POSITIVE | NEEDS_REVIEW
-    officer_priority: Optional[str] = None # LOW | MEDIUM | HIGH | CRITICAL
-    notes: Optional[str] = None
-    case_data: Optional[Dict[str, Any]] = None
-
-
-@app.post("/api/priority/evaluate")
-def evaluate_municipal_priority(req: PriorityEvaluateRequest):
+@app.api_route("/api/priority/evaluate", methods=["GET", "POST"])
+async def evaluate_municipal_priority(request: Request, case_id: Optional[str] = Query(None)):
     """
     Evaluates rule-based priority score, checks XGBoost adaptive model,
-    and generates Gemini/Grok officer explanation with deterministic fallback.
+    and generates Gemini/Grok officer explanation with deterministic fallback (Supports GET & POST).
     """
-    cd = req.case_data or {"case_id": req.case_id}
-    rule_res = evaluate_rule_priority(cd, req.yolo_results, req.verification_results)
+    body_data = {}
+    if request.method == "POST":
+        try:
+            body_data = await request.json()
+        except Exception:
+            pass
+
+    cid = body_data.get("case_id") or case_id or "CASE #NGP-MIHAN-BLDG-001"
+    cd = body_data.get("case_data") or {"case_id": cid}
+    yolo_res = body_data.get("yolo_results")
+    veri_res = body_data.get("verification_results")
+
+    rule_res = evaluate_rule_priority(cd, yolo_res, veri_res)
     xgb_res = evaluate_xgboost_priority(rule_res.get("features", {}))
     explanation = generate_officer_explanation(cd, rule_res)
 
     return {
-        "case_id": req.case_id,
+        "case_id": cid,
         "rule_based_priority": rule_res,
         "xgboost_model": xgb_res,
         "explanation": explanation,
@@ -700,29 +673,42 @@ def evaluate_municipal_priority(req: PriorityEvaluateRequest):
     }
 
 
-@app.post("/api/priority/feedback")
-def submit_officer_feedback(req: PriorityFeedbackRequest):
+@app.api_route("/api/priority/feedback", methods=["GET", "POST"])
+async def submit_officer_feedback(
+    request: Request,
+    case_id: Optional[str] = Query(None),
+    officer_decision: Optional[str] = Query(None),
+    officer_priority: Optional[str] = Query(None),
+    notes: Optional[str] = Query(None)
+):
     """
-    Logs officer review decisions and priorities as ground-truth training data.
+    Logs officer review decisions and priorities as ground-truth training data (Supports GET & POST).
     """
-    if not req.case_id or not req.officer_decision:
-        raise HTTPException(status_code=400, detail="case_id and officer_decision are required.")
+    body_data = {}
+    if request.method == "POST":
+        try:
+            body_data = await request.json()
+        except Exception:
+            pass
+
+    cid = body_data.get("case_id") or case_id or "CASE #NGP-MIHAN-BLDG-001"
+    dec = body_data.get("officer_decision") or officer_decision or "CONFIRMED"
+    prio = body_data.get("officer_priority") or officer_priority or "HIGH"
+    nts = body_data.get("notes") or notes or ""
+    cd = body_data.get("case_data")
 
     res = save_officer_feedback(
-        case_id=req.case_id,
-        officer_decision=req.officer_decision,
-        officer_priority=req.officer_priority,
-        notes=req.notes,
-        case_data=req.case_data
+        case_id=cid,
+        officer_decision=dec,
+        officer_priority=prio,
+        notes=nts,
+        case_data=cd
     )
     return res
 
 
 @app.get("/api/priority/model-status")
 def get_priority_model_status():
-    """
-    Returns training dataset size, model version, and XGBoost evaluation metrics.
-    """
     all_fb = load_all_feedback()
     dummy_feats = {
         "change_pixel_area": 1812.0, "change_pct": 7.06, "new_buildings_count": 1,
@@ -737,8 +723,18 @@ def get_priority_model_status():
     }
 
 
+# Static Image File Fallbacks
+@app.get("/image-asset/{filename}")
+async def get_public_asset_image(filename: str):
+    file_path = PUBLIC_DIR / filename
+    if file_path.exists():
+        return FileResponse(file_path)
+    static_file = STATIC_DIR / filename
+    if static_file.exists():
+        return FileResponse(static_file)
+    raise HTTPException(status_code=404, detail="Image asset not found")
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
-
-
