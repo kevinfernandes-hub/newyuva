@@ -87,6 +87,27 @@ class YoloAnalyzeRequest(BaseModel):
 
 
 # Base Endpoints
+@app.get("/")
+async def root_index():
+    return {
+        "status": "online",
+        "service": "Nagpur EarthWatch Universal Intelligence API",
+        "version": "2.0.0",
+        "documentation": "/docs",
+        "health": "/api/health"
+    }
+
+
+@app.get("/favicon.ico")
+async def favicon():
+    return JSONResponse(status_code=204, content={})
+
+
+@app.get("/.well-known/{path:path}")
+async def well_known_fallback(path: str):
+    return JSONResponse(status_code=204, content={})
+
+
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "service": "Nagpur EarthWatch Universal Intelligence API"}
