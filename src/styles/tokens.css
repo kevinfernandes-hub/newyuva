@@ -7,51 +7,56 @@
   --bg-surface-active: #CBD5E1;
   --bg-dark: #0F172A;
   --bg-dark-card: #1E293B;
-  
+
   /* Borders */
   --border-hairline: #E2E8F0;
   --border-subtle: #CBD5E1;
   --border-focus: #2563EB;
-  
+
   /* Typography */
   --text-primary: #0F172A;
   --text-secondary: #334155;
   --text-muted: #64748B;
   --text-faint: #94A3B8;
   --text-inverse: #FFFFFF;
-  
+
   /* Brand & Accents */
-  --accent-primary: #2563EB;        /* Royal Civic Blue */
+  --accent-primary: #2563EB;
+  /* Royal Civic Blue */
   --accent-primary-hover: #1D4ED8;
   --accent-primary-subtle: rgba(37, 99, 235, 0.08);
-  
-  --accent-terracotta: #EA580C;     /* Warm Infrastructure Orange */
+
+  --accent-terracotta: #EA580C;
+  /* Warm Infrastructure Orange */
   --accent-terracotta-subtle: rgba(234, 88, 12, 0.08);
 
   /* Status Colors */
-  --status-stable: #10B981;         /* Emerald Green */
+  --status-stable: #10B981;
+  /* Emerald Green */
   --status-stable-bg: #ECFDF5;
   --status-stable-border: #A7F3D0;
-  
-  --status-elevated: #F59E0B;       /* Amber */
+
+  --status-elevated: #F59E0B;
+  /* Amber */
   --status-elevated-bg: #FFFBEB;
   --status-elevated-border: #FDE68A;
-  
-  --status-critical: #EF4444;       /* Crimson */
+
+  --status-critical: #EF4444;
+  /* Crimson */
   --status-critical-bg: #FEF2F2;
   --status-critical-border: #FECACA;
-  
+
   /* Fonts */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', 'IBM Plex Mono', monospace;
-  
+
   /* Modern Shadows */
   --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
   --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
   --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
   --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06);
   --shadow-slider: 0 4px 16px rgba(0, 0, 0, 0.35);
-  
+
   /* Header Height */
   --header-height: 72px;
 }

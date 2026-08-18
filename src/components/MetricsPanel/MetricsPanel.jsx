@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './MetricsPanel.module.css';
+import { AIInsightCard } from '../AIInsightCard/AIInsightCard';
 
 export function MetricsPanel({
   location,
@@ -263,6 +264,13 @@ Town Planning Directorate, Nagpur Municipal Corporation
             </div>
           </div>
         )}
+        {/* 5. AI Change Narrative Card */}
+        <AIInsightCard
+          location={location}
+          selectedTier={selectedTier}
+          hotspots={hotspots}
+          isStable={isStable}
+        />
       </div>
     </aside>
   );

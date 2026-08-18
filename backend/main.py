@@ -21,6 +21,22 @@ from .hotspots import get_hotspots_for_location
 from .vision_inspector import execute_zoom_and_verify_agent
 from .wayback_live import check_wayback_availability
 from .agent.orchestrator import EarthWatchOrchestrator, run_earthwatch_agent
+from .narrate import generate_narrative
+
+
+class NarrateRequest(BaseModel):
+    location_name: str = Field("MIHAN / SEZ", description="Display name of the location")
+    before_date: str = Field("2019-01-31", description="Baseline date YYYY-MM-DD")
+    after_date: str = Field("2025-01-30", description="Current date YYYY-MM-DD")
+    infra_pct: float = Field(0.0, description="Infrastructure/construction delta %")
+    veg_loss_pct: float = Field(0.0, description="Vegetation/canopy loss %")
+    veg_gain_pct: float = Field(0.0, description="Afforestation/veg gain %")
+    ssim_score: float = Field(0.85, description="SSIM structural index (0-1)")
+    ssim_pct: float = Field(0.0, description="SSIM structural divergence %")
+    tier: str = Field("0.6m", description="Active sensor tier: '0.6m' or '10m'")
+    hotspot_count: int = Field(0, description="Number of flagged hotspots")
+    hotspot_types: List[str] = Field(default_factory=list, description="List of change typology labels")
+    is_stable: bool = Field(False, description="Whether the location is surface-stable")
 
 
 class AgentRunRequest(BaseModel):
@@ -70,6 +86,34 @@ class InspectAllRequest(BaseModel):
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "service": "Nagpur EarthWatch Universal Intelligence API"}
+
+
+@app.post("/api/narrate")
+async def narrate_analysis(req: NarrateRequest):
+    """
+    Generates a natural-language satellite change narrative using Gemini Flash 2.0.
+    Returns:
+      - analysis:   Plain-language description of what changed
+      - prediction: Projection of what is likely to happen next 12-24 months
+      - confidence: HIGH | MEDIUM | LOW
+      - tags:       Short change-type labels
+    Falls back to rule-based NLP summary if GEMINI_API_KEY is not set.
+    """
+    result = generate_narrative(
+        location_name=req.location_name,
+        before_date=req.before_date,
+        after_date=req.after_date,
+        infra_pct=req.infra_pct,
+        veg_loss_pct=req.veg_loss_pct,
+        veg_gain_pct=req.veg_gain_pct,
+        ssim_score=req.ssim_score,
+        ssim_pct=req.ssim_pct,
+        tier=req.tier,
+        hotspot_count=req.hotspot_count,
+        hotspot_types=req.hotspot_types,
+        is_stable=req.is_stable,
+    )
+    return {"status": "ok", **result}
 
 
 @app.get("/api/locations")

@@ -138,7 +138,7 @@ export function ImageComparisonViewer({
     canvasAfter.style.width = `${width}px`;
     canvasAfter.style.height = `${height}px`;
 
-    let beforeSrc, afterSrc;
+    let beforeSrc, afterSrc, overlaySrc;
 
     const b06 = tier06?.beforeImage || tier06?.before_image;
     const a06 = tier06?.afterImage || tier06?.after_image;
@@ -169,7 +169,7 @@ export function ImageComparisonViewer({
       location?.local_images?.color_diff_overlay ||
       location?.color_diff_overlay_url ||
       c06 ||
-      a10;
+      null;
 
     const s10 =
       tier10?.ssimOverlay ||
@@ -178,29 +178,31 @@ export function ImageComparisonViewer({
       location?.local_images?.ssim_overlay ||
       location?.ssim_overlay_url ||
       s06 ||
-      a10;
+      null;
 
     if (isHighRes && b06 && a06) {
       beforeSrc = b06;
+      afterSrc = a06; // always the real Wayback after photo as base
       if (viewMode === 'color') {
-        afterSrc = c06 || c10 || a06;
+        overlaySrc = c06 || c10 || null;
       } else if (viewMode === 'ssim') {
-        afterSrc = s06 || s10 || a06;
+        overlaySrc = s06 || s10 || null;
       } else if (viewMode === 'veg') {
-        afterSrc = v06 || c06 || c10 || a06;
+        overlaySrc = v06 || c06 || null;
       } else {
-        afterSrc = a06;
+        overlaySrc = null;
       }
     } else {
       beforeSrc = b10;
+      afterSrc = a10; // always the real Sentinel after photo as base
       if (viewMode === 'color') {
-        afterSrc = c10;
+        overlaySrc = c10 || null;
       } else if (viewMode === 'ssim') {
-        afterSrc = s10;
+        overlaySrc = s10 || null;
       } else if (viewMode === 'veg') {
-        afterSrc = c10;
+        overlaySrc = c10 || null;
       } else {
-        afterSrc = a10;
+        overlaySrc = null;
       }
     }
 
@@ -270,22 +272,42 @@ export function ImageComparisonViewer({
         imgAfter.crossOrigin = 'anonymous';
         imgAfter.src = normalizeImageUrl(afterSrc);
 
-        await Promise.all([
+        const imgOverlay = overlaySrc ? new Image() : null;
+        if (imgOverlay) {
+          imgOverlay.crossOrigin = 'anonymous';
+          imgOverlay.src = normalizeImageUrl(overlaySrc);
+        }
+
+        const loadPromises = [
           new Promise((resolve) => { imgBefore.onload = resolve; imgBefore.onerror = resolve; }),
           new Promise((resolve) => { imgAfter.onload = resolve; imgAfter.onerror = resolve; })
-        ]);
+        ];
+        if (imgOverlay) {
+          loadPromises.push(new Promise((resolve) => { imgOverlay.onload = resolve; imgOverlay.onerror = resolve; }));
+        }
+        await Promise.all(loadPromises);
 
         if (!isSubscribed) return;
 
+        // --- Left panel: Before image ---
         applyTransform(ctxBefore);
         if (imgBefore.width > 0) {
           ctxBefore.drawImage(imgBefore, 0, 0, width, height);
         }
         ctxBefore.restore();
 
+        // --- Right panel: After image (Wayback/Sentinel base) + overlay composited on top ---
         applyTransform(ctxAfter);
         if (imgAfter.width > 0) {
+          ctxAfter.globalAlpha = 1.0;
           ctxAfter.drawImage(imgAfter, 0, 0, width, height);
+        }
+        // Composite the analytical overlay (SSIM / Color / Veg) on top at 65% opacity
+        if (imgOverlay && imgOverlay.width > 0) {
+          ctxAfter.globalCompositeOperation = 'source-over';
+          ctxAfter.globalAlpha = 0.65;
+          ctxAfter.drawImage(imgOverlay, 0, 0, width, height);
+          ctxAfter.globalAlpha = 1.0;
         }
         drawBoxes(ctxAfter);
         ctxAfter.restore();
@@ -420,11 +442,11 @@ export function ImageComparisonViewer({
           <span className={styles.dateTag}>📅 CURRENT: {afterDateLabel}</span>
           <span className={styles.sensorTag}>
             {viewMode === 'color'
-              ? 'Calibrated Optical Footprint'
+              ? (isHighRes ? 'Wayback (0.6m) + Optical Change Overlay' : 'Sentinel-2 + Optical Change')
               : viewMode === 'ssim'
-                ? '0.6m SSIM Structural Disruption'
+                ? (isHighRes ? 'Wayback (0.6m) + SSIM Structural Overlay' : 'Sentinel-2 + SSIM Overlay')
                 : viewMode === 'veg'
-                  ? 'ExG Vegetation Dynamics'
+                  ? (isHighRes ? 'Wayback (0.6m) + Vegetation Dynamics' : 'Sentinel-2 + Veg Dynamics')
                   : isHighRes ? 'Maxar Orthophoto (0.6m)' : 'Sentinel-2 L2A'}
           </span>
         </div>

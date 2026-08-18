@@ -317,7 +317,7 @@ def run_analysis_pipeline(
     )
 
     if wayback_tier:
-        for fname in ["wayback_before.png", "wayback_after.png", "wayback_color_overlay.png", "wayback_color_mask.png"]:
+        for fname in ["wayback_before.png", "wayback_after.png", "wayback_color_overlay.png", "wayback_color_mask.png", "wayback_ssim_overlay.png"]:
             src_f = output_dir / fname
             if src_f.exists():
                 dst_f = public_results / fname
@@ -338,7 +338,7 @@ def run_analysis_pipeline(
                 zoom=17
             )
             if wayback_tier:
-                for fname in ["wayback_before.png", "wayback_after.png", "wayback_color_overlay.png", "wayback_color_mask.png"]:
+                for fname in ["wayback_before.png", "wayback_after.png", "wayback_color_overlay.png", "wayback_color_mask.png", "wayback_ssim_overlay.png"]:
                     src_f = output_dir / fname
                     if src_f.exists():
                         dst_f = public_results / fname
@@ -355,6 +355,8 @@ def run_analysis_pipeline(
             "colorDiffOverlay": f"{base_url}{rel_folder}/wayback_color_overlay.png",
             "colorOverlay": f"{base_url}{rel_folder}/wayback_color_overlay.png",
             "color_diff_overlay_url": f"{base_url}{rel_folder}/wayback_color_overlay.png",
+            "ssimOverlay": f"{base_url}{rel_folder}/wayback_ssim_overlay.png",
+            "ssim_overlay_url": f"{base_url}{rel_folder}/wayback_ssim_overlay.png",
             "colorDiffPct": round(color_diff_pct, 2),
             "infraPct": round(float(color_diff_pct * 0.45), 2),
             "vegLossPct": 0.60,

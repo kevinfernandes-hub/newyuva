@@ -21,6 +21,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import cv2
 import numpy as np
 from PIL import Image
+import requests
+
+# Persistent session with connection pool size matching max thread count (32)
+HTTP_SESSION = requests.Session()
+adapter = requests.adapters.HTTPAdapter(pool_connections=32, pool_maxsize=32)
+HTTP_SESSION.mount("http://", adapter)
+HTTP_SESSION.mount("https://", adapter)
 
 # In-memory LRU tile cache & releases cache
 TILE_CACHE: Dict[str, Image.Image] = {}
@@ -171,24 +178,24 @@ def tile_to_lon_lat(xtile: int, ytile: int, zoom: int) -> Tuple[float, float]:
 
 
 def fetch_tile(url: str, max_retries: int = 2) -> Optional[Image.Image]:
-    """Fetches a single tile with LRU in-memory caching and fallback to ArcGIS online."""
+    """Fetches a single tile with LRU in-memory caching and HTTP connection pooling."""
     if url in TILE_CACHE:
         return TILE_CACHE[url]
 
     for attempt in range(max_retries):
         try:
-            req = urllib.request.Request(
+            resp = HTTP_SESSION.get(
                 url,
-                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
+                timeout=3.0
             )
-            with urllib.request.urlopen(req, timeout=3) as response:
-                img_data = response.read()
-                img = Image.open(io.BytesIO(img_data)).convert("RGB")
+            if resp.status_code == 200:
+                img = Image.open(io.BytesIO(resp.content)).convert("RGB")
                 if len(TILE_CACHE) < 8192:
                     TILE_CACHE[url] = img
                 return img
         except Exception:
-            time.sleep(0.12)
+            time.sleep(0.05)
     return None
 
 
@@ -323,11 +330,13 @@ def compute_calibrated_wayback_diff(
         b_gray = cv2.cvtColor(before_bgr, cv2.COLOR_BGR2GRAY)
         a_gray = cv2.cvtColor(after_bgr, cv2.COLOR_BGR2GRAY)
         ssim_score, ssim_map = ssim_fn(b_gray, a_gray, full=True)
-        ssim_div_mask = (ssim_map < 0.55).astype(np.uint8) * 255
+        # Use 0.40 threshold to isolate true structural constructions and filter false positives
+        ssim_div_mask = (ssim_map < 0.40).astype(np.uint8) * 255
         ssim_div_mask = cv2.morphologyEx(ssim_div_mask, cv2.MORPH_OPEN, kernel)
         ssim_pct = float(np.sum(ssim_div_mask == 255)) / float(total_px) * 100.0
     except Exception:
         ssim_score = 0.7412
+        ssim_div_mask = change_mask.copy()
         ssim_pct = float(change_pct)
 
     # 3. Excess Green (ExG) Vegetation Dynamics
@@ -351,10 +360,16 @@ def compute_calibrated_wayback_diff(
     blended = cv2.addWeighted(after_bgr, 0.65, overlay, 0.35, 0)
     blended = enhance_submeter_clarity(blended)
 
+    ssim_overlay_img = after_bgr.copy()
+    ssim_overlay_img[ssim_div_mask == 255] = [30, 111, 201]
+    ssim_blended = cv2.addWeighted(after_bgr, 0.65, ssim_overlay_img, 0.35, 0)
+    ssim_blended = enhance_submeter_clarity(ssim_blended)
+
     return {
         "diff_pct": round(float(change_pct), 2),
         "mask": change_mask,
         "overlay": blended,
+        "ssim_overlay": ssim_blended,
         "ssim_score": round(float(ssim_score), 4),
         "ssim_pct": round(float(ssim_pct), 2),
         "infra_pct": round(float(infra_pct), 2),
@@ -406,11 +421,13 @@ def get_wayback_imagery(
             after_file = output_dir / "wayback_after.png"
             overlay_file = output_dir / "wayback_color_overlay.png"
             mask_file = output_dir / "wayback_color_mask.png"
+            ssim_overlay_file = output_dir / "wayback_ssim_overlay.png"
 
             cv2.imwrite(str(before_file), before_bgr)
             cv2.imwrite(str(after_file), after_bgr)
             cv2.imwrite(str(overlay_file), metrics["overlay"])
             cv2.imwrite(str(mask_file), metrics["mask"])
+            cv2.imwrite(str(ssim_overlay_file), metrics["ssim_overlay"])
 
             rel_folder = f"/static/results/{output_dir.name}"
             return {
@@ -420,6 +437,8 @@ def get_wayback_imagery(
                 "colorDiffOverlay": f"{base_url}{rel_folder}/wayback_color_overlay.png",
                 "colorOverlay": f"{base_url}{rel_folder}/wayback_color_overlay.png",
                 "color_diff_overlay_url": f"{base_url}{rel_folder}/wayback_color_overlay.png",
+                "ssimOverlay": f"{base_url}{rel_folder}/wayback_ssim_overlay.png",
+                "ssim_overlay_url": f"{base_url}{rel_folder}/wayback_ssim_overlay.png",
                 "colorDiffPct": metrics["diff_pct"],
                 "ssimScore": metrics["ssim_score"],
                 "ssimPct": metrics["ssim_pct"],

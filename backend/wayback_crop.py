@@ -121,7 +121,7 @@ def generate_aligned_hotspot_crops(
 
     # Load or fetch base high-res mosaic
     if mosaic_pair is None:
-        target_bbox = parent_bbox or [lon - 0.02, lat - 0.02, lon + 0.02, lat + 0.02]
+        target_bbox = parent_bbox or [lon - 0.005, lat - 0.005, lon + 0.005, lat + 0.005]
         mosaic_pair = get_wayback_base_images(location_id=location_id, bbox=target_bbox)
 
     zoom_stages = [
