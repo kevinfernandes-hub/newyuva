@@ -20,18 +20,18 @@ from typing import Dict, Any, List, Optional
 from pathlib import Path
 
 
-# Load .env manually if available
-ENV_PATH = Path("backend/.env")
-if ENV_PATH.exists():
-    try:
-        with open(ENV_PATH, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    k, v = line.split("=", 1)
-                    os.environ[k.strip()] = v.strip()
-    except Exception:
-        pass
+# Load .env manually from root or backend directory if available
+for env_candidate in [Path(".env"), Path("backend/.env")]:
+    if env_candidate.exists():
+        try:
+            with open(env_candidate, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        os.environ[k.strip()] = v.strip()
+        except Exception:
+            pass
 
 
 SYSTEM_PROMPT = """You are an officer-explanation assistant for Nagpur Municipal Corporation (NMC).
