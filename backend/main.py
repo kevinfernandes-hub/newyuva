@@ -723,16 +723,27 @@ def get_priority_model_status():
     }
 
 
-# Static Image File Fallbacks
-@app.get("/image-asset/{filename}")
-async def get_public_asset_image(filename: str):
-    file_path = PUBLIC_DIR / filename
+# Static Image File Fallbacks for root asset requests
+@app.get("/{filename}.png")
+async def get_public_png(filename: str):
+    file_path = PUBLIC_DIR / f"{filename}.png"
     if file_path.exists():
         return FileResponse(file_path)
-    static_file = STATIC_DIR / filename
+    static_file = STATIC_DIR / f"{filename}.png"
     if static_file.exists():
         return FileResponse(static_file)
-    raise HTTPException(status_code=404, detail="Image asset not found")
+    raise HTTPException(status_code=404, detail=f"PNG asset '{filename}.png' not found")
+
+
+@app.get("/{filename}.jpg")
+async def get_public_jpg(filename: str):
+    file_path = PUBLIC_DIR / f"{filename}.jpg"
+    if file_path.exists():
+        return FileResponse(file_path)
+    static_file = STATIC_DIR / f"{filename}.jpg"
+    if static_file.exists():
+        return FileResponse(static_file)
+    raise HTTPException(status_code=404, detail=f"JPG asset '{filename}.jpg' not found")
 
 
 if __name__ == "__main__":
