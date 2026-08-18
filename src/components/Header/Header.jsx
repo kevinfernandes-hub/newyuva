@@ -4,15 +4,13 @@ import styles from './Header.module.css';
 export function Header({
   viewMode = 'officer',
   onToggleViewMode,
-  activeTab = 'dashboard',
-  onTabSelect,
-  onOpenYoloModal,
-  onOpenCaseSummary
+  activeTab = 'map',
+  onTabSelect
 }) {
   return (
     <header className={styles.header}>
       <div className={styles.headerRow}>
-        {/* Left Side: Branding + Catchy Navigation Pills */}
+        {/* Left Side: Branding + Interactive Map Pill */}
         <div className={styles.headerLeft}>
           <div className={styles.branding}>
             <div className={styles.emblemBadge}>
@@ -21,51 +19,16 @@ export function Header({
             <div className={styles.titleColumn}>
               <div className={styles.titleRow}>
                 <h1 className={styles.title}>NMC EARTHWATCH</h1>
-                <span className={styles.portalTag}>TOWN PLANNING</span>
-                <button
-                  type="button"
-                  className={styles.caseSummaryBtn}
-                  onClick={onOpenCaseSummary}
-                  title="Open Executive Case Overview & Priorities Overlay"
-                >
-                  📊 Case Overview
-                </button>
+                <span className={styles.portalTag}>TOWN PLANNING &amp; VIGILANCE</span>
               </div>
             </div>
           </div>
 
-          {/* Catchy Left-Aligned Navigation Tabs */}
+          {/* Header Map Control Pill */}
           <nav className={styles.catchyNavPills}>
             <button
               type="button"
-              className={`${styles.navPill} ${activeTab === 'dashboard' ? styles.navPillActive : ''}`}
-              onClick={() => onTabSelect && onTabSelect('dashboard')}
-            >
-              <span className={styles.tabIcon}>📊</span>
-              <span>Dashboard</span>
-            </button>
-
-            <button
-              type="button"
-              className={`${styles.navPill} ${activeTab === 'areas' ? styles.navPillActive : ''}`}
-              onClick={() => onTabSelect && onTabSelect('areas')}
-            >
-              <span className={styles.tabIcon}>🎯</span>
-              <span>Areas to Review</span>
-            </button>
-
-            <button
-              type="button"
-              className={`${styles.navPill} ${activeTab === 'cases' ? styles.navPillActive : ''}`}
-              onClick={() => onTabSelect && onTabSelect('cases')}
-            >
-              <span className={styles.tabIcon}>📂</span>
-              <span>Inspection Cases</span>
-            </button>
-
-            <button
-              type="button"
-              className={`${styles.navPill} ${activeTab === 'map' ? styles.navPillActive : ''}`}
+              className={`${styles.navPill} ${styles.navPillActive}`}
               onClick={() => onTabSelect && onTabSelect('map')}
             >
               <span className={styles.tabIcon}>🗺️</span>
@@ -74,11 +37,11 @@ export function Header({
           </nav>
         </div>
 
-        {/* Right Side: Mode Switcher & Action Triggers */}
+        {/* Right Side: Mode Switcher & Portal Active Status */}
         <div className={styles.headerRight}>
           {viewMode === 'analyst' && (
             <div className={styles.analystBadge}>
-              🔬 Analyst Mode
+              🔬 Analyst Mode Active
             </div>
           )}
 
