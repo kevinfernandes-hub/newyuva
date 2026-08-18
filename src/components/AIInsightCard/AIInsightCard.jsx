@@ -68,7 +68,7 @@ export function AIInsightCard({
     setPhase(0);
 
     try {
-      const res = await fetch('http://localhost:8000/api/narrate', {
+      const res = await fetch('/api/narrate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
