@@ -1,5 +1,5 @@
 """
-Nagpur EarthWatch — Gemini / Grok LLM Officer Explanation Engine
+Nagpur EarthWatch — Gemini / Grok / Groq LLM Officer Explanation Engine
 Phase 5: Plain-Language Municipal Explanation & Deterministic Fallback Layer
 
 Converts structured evidence and rule/XGBoost priority decisions into clear, concise
@@ -29,7 +29,7 @@ if ENV_PATH.exists():
                 line = line.strip()
                 if line and not line.startswith("#") and "=" in line:
                     k, v = line.split("=", 1)
-                    os.environ.setdefault(k.strip(), v.strip())
+                    os.environ[k.strip()] = v.strip()
     except Exception:
         pass
 
@@ -103,7 +103,7 @@ def generate_officer_explanation(
     priority_info: Dict[str, Any]
 ) -> Dict[str, Any]:
     """
-    Generates structured officer explanation using Grok/Gemini API,
+    Generates structured officer explanation using Groq/Grok/Gemini API,
     with automatic fallback to deterministic generator on error or missing key.
     """
     api_key = os.environ.get("GROK_API_KEY") or os.environ.get("GEMINI_API_KEY")
@@ -128,12 +128,44 @@ def generate_officer_explanation(
         "recommended_action": priority_info.get("recommended_action", "FIELD_INSPECTION")
     }
 
+    # 1. Groq API integration (for gsk_ keys)
+    if api_key.startswith("gsk_"):
+        for model_name in ["groq/compound", "qwen/qwen3.6-27b", "openai/gpt-oss-120b", "groq/compound-mini"]:
+            try:
+                url = "https://api.groq.com/openai/v1/chat/completions"
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {api_key}",
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                }
+                body = {
+                    "model": model_name,
+                    "messages": [
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user", "content": f"Generate officer explanation for case: {json.dumps(input_payload)}"}
+                    ],
+                    "temperature": 0.1,
+                    "response_format": {"type": "json_object"}
+                }
+                req = urllib.request.Request(url, data=json.dumps(body).encode("utf-8"), headers=headers, method="POST")
+                with urllib.request.urlopen(req, timeout=6) as response:
+                    if response.status == 200:
+                        resp_bytes = response.read()
+                        resp_json = json.loads(resp_bytes.decode("utf-8"))
+                        content_str = resp_json["choices"][0]["message"]["content"]
+                        parsed = json.loads(content_str)
+                        parsed["explanation_source"] = f"GROQ_LLM ({model_name})"
+                        return parsed
+            except Exception as err:
+                print(f"[Explanation Engine] Groq API ({model_name}) error: {err}")
+
+    # 2. X.AI Grok API integration
     try:
-        # Grok / OpenAI compatible API endpoint
         url = "https://api.x.ai/v1/chat/completions"
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
+            "Authorization": f"Bearer {api_key}",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
         }
         body = {
             "model": "grok-beta",
@@ -155,9 +187,9 @@ def generate_officer_explanation(
                 parsed["explanation_source"] = "GROK_LLM"
                 return parsed
     except Exception as err:
-        # Log error silently and return deterministic fallback
-        print(f"[Explanation Engine] API Error: {err}. Using deterministic fallback.")
-    
+        print(f"[Explanation Engine] X.AI Grok API error: {err}")
+
+    # 3. Fallback to Deterministic Generator
     fallback = generate_deterministic_fallback(case_data, priority_info)
     fallback["engine_note"] = "Generated via deterministic fallback (API timeout/error handled)"
     return fallback

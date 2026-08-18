@@ -1,10 +1,15 @@
 """
 Nagpur EarthWatch — Stage 5B Explanation Engine Unit Test
-Tests Gemini/Grok explanation layer and deterministic fallback.
+Tests Gemini/Grok/Groq explanation layer and deterministic fallback.
 """
 
+import sys
 from backend.priority_engine import evaluate_rule_priority
 from backend.explanation_engine import generate_officer_explanation, generate_deterministic_fallback
+
+# Ensure UTF-8 output encoding for Windows terminal
+if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8')
 
 
 def run_tests():
@@ -38,12 +43,13 @@ def run_tests():
     for v in fallback['what_officer_should_verify']:
         print(f"      [x] {v}")
 
-    # 2. Test Main Explanation Function (Grok / Gemini API or Fallback)
+    # 2. Test Main Explanation Function (Groq / Grok / Gemini API or Fallback)
     exp = generate_officer_explanation(sample_case, rule_res)
     print("\n[2] Explanation Layer Output:")
     print(f"    - Source:  {exp.get('explanation_source')}")
     print(f"    - Engine:  {exp.get('engine_note', 'Active LLM API')}")
     print(f"    - Summary: {exp.get('evidence_summary')}")
+    print(f"    - What Happened: {exp.get('what_happened')}")
 
     print("=" * 70)
     print("Phase 5B Explanation Engine Test Completed Successfully!")
