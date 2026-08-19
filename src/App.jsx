@@ -75,6 +75,7 @@ export function App() {
       setSelectedLocationId(id);
       const defaultHid = id === 'mihan' ? 'MIHAN-042' : id === 'sadar' ? 'SADA-01' : id === 'hingna' ? 'HING-01' : id === 'civil-lines' ? 'CIVI-01' : `${id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 4).toUpperCase()}-01`;
       setSelectedHotspotId(defaultHid);
+      setSearchQuery('');
     },
     []
   );
@@ -311,6 +312,7 @@ export function App() {
         setLocationsList((prev) => [newLocation, ...prev]);
         setSelectedLocationId(newId);
         setSelectedTier('10m');
+        setSearchQuery('');
 
         if (data.hotspots && Array.isArray(data.hotspots) && data.hotspots.length > 0) {
           setHotspotsList(data.hotspots);

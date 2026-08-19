@@ -4,7 +4,7 @@
   "model": "keremberke/yolov8s-building-segmentation",
   "confidence_threshold": 0.35,
   "iou_match_threshold": 0.35,
-  "total_inference_and_matching_time_ms": 3222.07,
+  "total_inference_and_matching_time_ms": 1938.38,
   "image_dimensions": {
     "width": 560,
     "height": 560,

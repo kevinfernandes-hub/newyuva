@@ -42,6 +42,7 @@ export function SectorList({
       {/* Tier 1 / Live Location Search Header */}
       <LocationSearch
         locations={locations}
+        selectedLocation={selectedLocation}
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
         onSelectLocation={onSelectLocation}

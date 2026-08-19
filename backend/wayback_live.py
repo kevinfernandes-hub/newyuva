@@ -50,24 +50,24 @@ FALLBACK_RELEASES: List[WaybackRelease] = [
         "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/13161/{level}/{row}/{col}"
     ),
     WaybackRelease(
-        13192, "2019-01-31", "World Imagery (Wayback 2019-01-31)",
-        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/13192/{level}/{row}/{col}"
+        25944, "2019-01-31", "World Imagery (Wayback 2019-01-31)",
+        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/25944/{level}/{row}/{col}"
     ),
     WaybackRelease(
-        40523, "2022-02-24", "World Imagery (Wayback 2022-02-24)",
-        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/40523/{level}/{row}/{col}"
+        10312, "2022-02-24", "World Imagery (Wayback 2022-02-24)",
+        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/10312/{level}/{row}/{col}"
     ),
     WaybackRelease(
-        45892, "2023-01-26", "World Imagery (Wayback 2023-01-26)",
-        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/45892/{level}/{row}/{col}"
+        11475, "2023-01-11", "World Imagery (Wayback 2023-01-11)",
+        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/11475/{level}/{row}/{col}"
     ),
     WaybackRelease(
-        49059, "2024-02-01", "World Imagery (Wayback 2024-02-01)",
-        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/49059/{level}/{row}/{col}"
+        37965, "2024-02-08", "World Imagery (Wayback 2024-02-08)",
+        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/37965/{level}/{row}/{col}"
     ),
     WaybackRelease(
-        51240, "2025-01-30", "World Imagery (Wayback 2025-01-30)",
-        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/51240/{level}/{row}/{col}"
+        36557, "2025-01-30", "World Imagery (Wayback 2025-01-30)",
+        "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/36557/{level}/{row}/{col}"
     )
 ]
 

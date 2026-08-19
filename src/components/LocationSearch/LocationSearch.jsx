@@ -3,6 +3,7 @@ import styles from './LocationSearch.module.css';
 
 export function LocationSearch({
   locations,
+  selectedLocation,
   searchQuery,
   onSearchChange,
   onSelectLocation,
@@ -14,6 +15,13 @@ export function LocationSearch({
   const [isOpen, setIsOpen] = useState(false);
   const [locationInput, setLocationInput] = useState('');
   const containerRef = useRef(null);
+
+  // Sync input value with the currently selected location
+  useEffect(() => {
+    if (selectedLocation) {
+      setLocationInput(selectedLocation.name);
+    }
+  }, [selectedLocation]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -27,7 +35,7 @@ export function LocationSearch({
   }, []);
 
   const filteredLocations = locations.filter((loc) => {
-    const q = (locationInput || searchQuery).toLowerCase().trim();
+    const q = searchQuery.toLowerCase().trim();
     if (!q) return true;
     return (
       loc.name.toLowerCase().includes(q) ||

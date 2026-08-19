@@ -2,6 +2,81 @@ from typing import List, Dict, Any
 
 PRESET_LOCATIONS: List[Dict[str, Any]] = [
     {
+        "id": "vnit",
+        "name": "VNIT Campus, Nagpur",
+        "subtitle": "West Ward VII — Academic Expansion & Construction Corridor",
+        "colorDiff": 11.84,
+        "ssimArea": 14.25,
+        "status": "flagged",
+        "statusLabel": "Divergent / Flagged",
+        "coords": "79.040° E, 21.115° N → 79.075° E, 21.140° N",
+        "coordinates": [21.1235, 79.0515],
+        "ssimScore": 0.6120,
+        "confidence": "cross_confirmed",
+        "confidenceLabel": "Cross-Resolution Confirmed",
+        "permits": [
+            {"id": "NMC-EDU-2023-8190", "plot": "VNIT Research Park Phase II", "status": "matched", "date": "19 Aug 2023"},
+            {"id": "NMC-HOSTEL-2024-0014", "plot": "Mega Hostel Complex Excavation", "status": "matched", "date": "11 Jan 2024"},
+            {"id": "UNSANCTIONED-vnit-1", "plot": "South Campus Encroachment", "status": "unmatched", "date": "No Record"}
+        ],
+        "polygons": [
+            {
+                "polygon_id": "POLY-VNIT-001",
+                "area_m2": 26800.0,
+                "coordinates": [
+                    [21.1245, 79.0515],
+                    [21.1265, 79.0515],
+                    [21.1265, 79.0540],
+                    [21.1245, 79.0540]
+                ]
+            },
+            {
+                "polygon_id": "POLY-VNIT-002",
+                "area_m2": 18200.0,
+                "coordinates": [
+                    [21.1205, 79.0480],
+                    [21.1230, 79.0480],
+                    [21.1230, 79.0505],
+                    [21.1205, 79.0505]
+                ]
+            }
+        ],
+        "tiers": {
+            "10m": {
+                "source": "Sentinel-2 (Live Copernicus CDSE)",
+                "beforeImage": "http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/before.png",
+                "afterImage": "http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/after.png",
+                "colorDiffOverlay": "http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/color_overlay.png",
+                "colorDiffPct": 11.84,
+                "ssimOverlay": "http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/ssim_overlay.png",
+                "ssimPct": 14.25,
+                "ssimScore": 0.6120
+            },
+            "0.6m": {
+                "source": "Maxar / Esri Wayback (~0.6m High-Res)",
+                "beforeImage": "http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/wayback_before.png",
+                "afterImage": "http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/wayback_after.png",
+                "colorDiffOverlay": "http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/wayback_color_overlay.png",
+                "colorOverlay": "http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/wayback_color_overlay.png",
+                "ssimOverlay": "http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/wayback_ssim_overlay.png",
+                "colorDiffPct": 10.87,
+                "infraPct": 8.45,
+                "vegLossPct": 3.50,
+                "vegGainPct": 1.08,
+                "ssimScore": 0.5412,
+                "ssimPct": 12.30,
+                "note": "Large structural excavations for new academic blocks and campus development resolved at 0.6m."
+            }
+        },
+        "localImages": {
+            "before": "http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/before.png",
+            "after": "http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/after.png",
+            "colorOverlay": "http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/color_overlay.png",
+            "ssimOverlay": "http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/ssim_overlay.png"
+        },
+        "isPreview": False
+    },
+    {
         "id": "mihan",
         "name": "MIHAN / Outer Ring Road",
         "subtitle": "South Ward IX — Aerospace & SEZ Corridor",

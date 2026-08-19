@@ -664,12 +664,14 @@ export function YOLOBuildingIntelligence({
                           <>
                             <div className={styles.cardRow}>
                               <span>Evidence:</span>
-                              <span style={{ color: '#34D399', fontWeight: 'bold' }}>🟢 STRONG</span>
+                              <span style={{ color: b.priority === 'CRITICAL' || b.priority === 'HIGH' ? '#34D399' : b.priority === 'MEDIUM' ? '#F59E0B' : '#94A3B8', fontWeight: 'bold' }}>
+                                {b.priority === 'CRITICAL' || b.priority === 'HIGH' ? '🟢 STRONG' : b.priority === 'MEDIUM' ? '🟡 MODERATE' : '⚪ WEAK'}
+                              </span>
                             </div>
                             <div className={styles.cardRow}>
                               <span>Action:</span>
-                              <span style={{ color: isNew ? '#60A5FA' : '#94A3B8', fontWeight: 'bold' }}>
-                                {isNew ? '🏛️ INSPECT' : 'ROUTINE'}
+                              <span style={{ color: b.priority === 'CRITICAL' ? '#EF4444' : b.priority === 'HIGH' ? '#60A5FA' : b.priority === 'MEDIUM' ? '#F59E0B' : '#94A3B8', fontWeight: 'bold' }}>
+                                {b.recommended_action === 'IMMEDIATE_COMPLIANCE' ? '🚨 IMMEDIATE' : b.recommended_action === 'ROUTINE_AUDIT' ? '📋 AUDIT' : b.recommended_action === 'PERIODIC_MONITORING' ? '📡 MONITOR' : b.recommended_action === 'FIELD_INSPECTION' ? '🏛️ INSPECT' : 'ROUTINE'}
                               </span>
                             </div>
                           </>
@@ -721,11 +723,15 @@ export function YOLOBuildingIntelligence({
                       ? `Existing baseline structure footprint expanded into adjacent parcel area. Footprint area increased significantly.`
                       : `Structure cross-verified as existing persistent footprint from 2019 baseline (High spatial overlap).`;
 
-                  const actionRecommendation = isNew
-                    ? '🏛️ FIELD INSPECTION REQUIRED'
-                    : isExpanded
-                      ? '🏛️ FIELD INSPECTION'
-                      : 'ROUTINE MONITORING';
+                  const actionRecommendation = bldg.recommended_action === 'IMMEDIATE_COMPLIANCE'
+                    ? '🚨 IMMEDIATE ORDER'
+                    : bldg.recommended_action === 'ROUTINE_AUDIT'
+                      ? '📋 COMPLIANCE AUDIT'
+                      : bldg.recommended_action === 'PERIODIC_MONITORING'
+                        ? '📡 PERIODIC MONITORING'
+                        : bldg.recommended_action === 'NO_ACTION'
+                          ? 'ROUTINE MONITORING'
+                          : '🏛️ FIELD INSPECTION';
 
                   return (
                     <div
@@ -749,7 +755,9 @@ export function YOLOBuildingIntelligence({
                         </p>
                         <div className={styles.expMetricsRow}>
                           <span>Footprint Area: <strong>{bldg.after_pixel_area || bldg.pixel_area || 1812} px</strong></span>
-                          <span>Evidence: <strong style={{ color: '#34D399' }}>🟢 STRONG</strong></span>
+                          <span>Evidence: <strong style={{ color: bldg.priority === 'CRITICAL' || bldg.priority === 'HIGH' ? '#34D399' : bldg.priority === 'MEDIUM' ? '#F59E0B' : '#94A3B8' }}>
+                            {bldg.priority === 'CRITICAL' || bldg.priority === 'HIGH' ? '🟢 STRONG' : bldg.priority === 'MEDIUM' ? '🟡 MODERATE' : '⚪ WEAK'}
+                          </strong></span>
                           <span>YOLO Conf: <strong>{((bldg.after_confidence || bldg.confidence || 0.68) * 100).toFixed(1)}%</strong></span>
                         </div>
                       </div>
@@ -807,11 +815,15 @@ export function YOLOBuildingIntelligence({
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
                       <div style={{ background: '#0F172A', padding: '6px 8px', borderRadius: '4px' }}>
                         <div style={{ fontSize: '10px', color: '#94A3B8' }}>EVIDENCE STRENGTH</div>
-                        <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#34D399' }}>🟢 STRONG</div>
+                        <div style={{ fontSize: '12px', fontWeight: 'bold', color: selectedBuilding.priority === 'CRITICAL' || selectedBuilding.priority === 'HIGH' ? '#34D399' : selectedBuilding.priority === 'MEDIUM' ? '#F59E0B' : '#94A3B8' }}>
+                          {selectedBuilding.priority === 'CRITICAL' || selectedBuilding.priority === 'HIGH' ? '🟢 STRONG' : selectedBuilding.priority === 'MEDIUM' ? '🟡 MODERATE' : '⚪ WEAK'}
+                        </div>
                       </div>
                       <div style={{ background: '#0F172A', padding: '6px 8px', borderRadius: '4px' }}>
                         <div style={{ fontSize: '10px', color: '#94A3B8' }}>RECOMMENDED ACTION</div>
-                        <div style={{ fontSize: '11.5px', fontWeight: 'bold', color: '#60A5FA' }}>🏛️ FIELD INSPECTION</div>
+                        <div style={{ fontSize: '11.5px', fontWeight: 'bold', color: selectedBuilding.priority === 'CRITICAL' ? '#EF4444' : selectedBuilding.priority === 'HIGH' ? '#60A5FA' : selectedBuilding.priority === 'MEDIUM' ? '#F59E0B' : '#94A3B8' }}>
+                          {selectedBuilding.recommended_action === 'IMMEDIATE_COMPLIANCE' ? '🚨 IMMEDIATE ORDER' : selectedBuilding.recommended_action === 'ROUTINE_AUDIT' ? '📋 COMPLIANCE AUDIT' : selectedBuilding.recommended_action === 'PERIODIC_MONITORING' ? '📡 PERIODIC MONITORING' : '🏛️ FIELD INSPECTION'}
+                        </div>
                       </div>
                     </div>
 

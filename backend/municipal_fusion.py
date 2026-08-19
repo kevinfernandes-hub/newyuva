@@ -31,7 +31,8 @@ def build_municipal_case(
     Builds an explainable, structured municipal case file for a single candidate building.
     """
     cid = candidate["building_id"]
-    case_id = f"CASE #NGP-MIHAN-{cid}"
+    location_prefix = hotspot_metadata.get("hotspot_id", "").split("-")[0] or "MIHAN"
+    case_id = f"CASE #NGP-{location_prefix}-{cid}"
     location_name = hotspot_metadata.get("name", "MIHAN Sector Corridor")
     location_coords = hotspot_metadata.get("coords_str", "21.0568° N, 79.0435° E")
     macro_severity = float(hotspot_metadata.get("change_percent", 86.4))
@@ -64,7 +65,11 @@ def build_municipal_case(
     risk_score = round(0.25 * f1 + 0.25 * f2 + 0.20 * f3 + 0.15 * f4 + 0.15 * f5, 1)
 
     # 3. Priority Thresholds
-    if risk_score >= 70.0:
+    # For NEW structures (zero IoU with baseline), escalate to CRITICAL regardless of score
+    if iou_match == 0.0 and veri_status in ("NEW", "UNCERTAIN"):
+        priority = "CRITICAL"
+        priority_label = "Critical Priority — Immediate Compliance Check"
+    elif risk_score >= 70.0:
         priority = "HIGH"
         priority_label = "High Priority Field Inspection"
     elif risk_score >= 50.0:

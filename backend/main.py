@@ -549,10 +549,10 @@ def _build_yolo_response_payload(
             "verification_reason": v_data.get("reason", ""),
             "verification_pipeline": c_data.get("verification_pipeline", None),
             "scoring_breakdown": c_data.get("scoring_breakdown", None),
-            "risk_score": c_data.get("risk_score", 0.0 if rec["status"] == "EXISTING" else 70.0),
-            "priority": c_data.get("priority", "LOW" if rec["status"] == "EXISTING" else "HIGH"),
-            "recommended_action": c_data.get("recommended_action", "NO_ACTION" if rec["status"] == "EXISTING" else "FIELD_INSPECTION"),
-            "recommended_action_details": c_data.get("recommended_action_details", "Physical structure emergence cross-verified via satellite segmentation. Field verification recommended."),
+            "risk_score": c_data.get("risk_score", 0.0 if rec["status"] == "EXISTING" else (88.0 if rec["status"] == "NEW" else 74.0)),
+            "priority": c_data.get("priority", "LOW" if rec["status"] == "EXISTING" else ("CRITICAL" if rec["status"] == "NEW" else "HIGH")),
+            "recommended_action": c_data.get("recommended_action", "NO_ACTION" if rec["status"] == "EXISTING" else ("IMMEDIATE_COMPLIANCE" if rec["status"] == "NEW" else "FIELD_INSPECTION")),
+            "recommended_action_details": c_data.get("recommended_action_details", "Existing structure confirmed. Routine monitoring." if rec["status"] == "EXISTING" else ("Unauthorized construction detected. Immediate stop-work order and field verification required." if rec["status"] == "NEW" else "Building footprint expansion detected. On-site inspection and permit verification needed.")),
             "evidence_factors": c_data.get("evidence_factors", [])
         }
         enriched_detections.append(det_entry)
