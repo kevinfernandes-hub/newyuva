@@ -2,6 +2,66 @@ from typing import List, Dict, Any
 
 PRESET_LOCATIONS: List[Dict[str, Any]] = [
     {
+        "id": "jamtha",
+        "name": "Jamtha / VCA Stadium, Nagpur",
+        "subtitle": "South Ward IX — VCA Stadium & Sector Development Corridor",
+        "colorDiff": 14.85,
+        "ssimArea": 18.20,
+        "status": "flagged",
+        "statusLabel": "Divergent / Flagged",
+        "coords": "79.010° E, 21.000° N → 79.050° E, 21.030° N",
+        "coordinates": [21.0150, 79.0300],
+        "ssimScore": 0.5840,
+        "confidence": "cross_confirmed",
+        "confidenceLabel": "Cross-Resolution Confirmed",
+        "permits": [
+            {"id": "NMC-SPORTS-2022-0104", "plot": "VCA Stadium Commercial Complex", "status": "matched", "date": "14 Feb 2022"},
+            {"id": "NMC-INFRA-2023-5591", "plot": "Outer Ring Road Link Expansion", "status": "matched", "date": "05 Nov 2023"},
+            {"id": "UNSANCTIONED-jamt-1", "plot": "North-East Commercial Encroachment", "status": "unmatched", "date": "No Record"}
+        ],
+        "polygons": [
+            {
+                "polygon_id": "POLY-JAMT-001",
+                "area_m2": 34500.0,
+                "coordinates": [
+                    [21.0135, 79.0280],
+                    [21.0165, 79.0280],
+                    [21.0165, 79.0320],
+                    [21.0135, 79.0320]
+                ]
+            }
+        ],
+        "tiers": {
+            "10m": {
+                "source": "Sentinel-2 (Live Copernicus CDSE)",
+                "beforeImage": "/static/results/jamtha___vca_stadium__nagpur__ma_20220222_20250226_67d6cc04/before.png",
+                "afterImage": "/static/results/jamtha___vca_stadium__nagpur__ma_20220222_20250226_67d6cc04/after.png",
+                "colorDiffOverlay": "/static/results/jamtha___vca_stadium__nagpur__ma_20220222_20250226_67d6cc04/color_overlay.png",
+                "colorDiffPct": 14.85,
+                "ssimOverlay": "/static/results/jamtha___vca_stadium__nagpur__ma_20220222_20250226_67d6cc04/ssim_overlay.png",
+                "ssimPct": 18.20,
+                "ssimScore": 0.5840
+            },
+            "0.6m": {
+                "source": "Maxar / Esri Wayback (~0.6m High-Res)",
+                "beforeImage": "/static/results/jamtha___vca_stadium__nagpur__ma_20220222_20250226_67d6cc04/wayback_before.png",
+                "afterImage": "/static/results/jamtha___vca_stadium__nagpur__ma_20220222_20250226_67d6cc04/wayback_after.png",
+                "colorDiffOverlay": "/static/results/jamtha___vca_stadium__nagpur__ma_20220222_20250226_67d6cc04/wayback_color_overlay.png",
+                "colorOverlay": "/static/results/jamtha___vca_stadium__nagpur__ma_20220222_20250226_67d6cc04/wayback_color_overlay.png",
+                "ssimOverlay": "/static/results/jamtha___vca_stadium__nagpur__ma_20220222_20250226_67d6cc04/wayback_ssim_overlay.png",
+                "colorDiffPct": 14.85,
+                "ssimScore": 0.5840,
+                "ssimPct": 18.20
+            }
+        },
+        "localImages": {
+            "before": "/static/results/jamtha___vca_stadium__nagpur__ma_20220222_20250226_67d6cc04/wayback_before.png",
+            "after": "/static/results/jamtha___vca_stadium__nagpur__ma_20220222_20250226_67d6cc04/wayback_after.png",
+            "colorOverlay": "/static/results/jamtha___vca_stadium__nagpur__ma_20220222_20250226_67d6cc04/wayback_color_overlay.png",
+            "ssimOverlay": "/static/results/jamtha___vca_stadium__nagpur__ma_20220222_20250226_67d6cc04/wayback_ssim_overlay.png"
+        }
+    },
+    {
         "id": "vnit",
         "name": "VNIT Campus, Nagpur",
         "subtitle": "West Ward VII — Academic Expansion & Construction Corridor",
