@@ -11,7 +11,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
-import torch
 
 from .config import STATIC_DIR
 from .locations_data import PRESET_LOCATIONS
@@ -33,6 +32,21 @@ from .building_segmentor import (
 )
 from .multiscale_verifier import run_multiscale_verification
 from .municipal_fusion import fuse_municipal_evidence, build_municipal_case
+
+def _get_torch_cuda_info() -> Tuple[bool, Optional[float]]:
+    try:
+        import torch
+        cuda_avail = torch.cuda.is_available()
+        vram = None
+        if cuda_avail:
+            try:
+                vram = round(torch.cuda.get_device_properties(0).total_memory / (1024**3), 1)
+            except Exception:
+                pass
+        return cuda_avail, vram
+    except ImportError:
+        return False, None
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 PUBLIC_DIR = BASE_DIR / "public"
@@ -505,6 +519,7 @@ def _build_yolo_response_payload(
     base_url: str = ""
 ) -> Dict[str, Any]:
     dev, dev_name = get_inference_device()
+    cuda_avail, vram_info = _get_torch_cuda_info()
     s = change_res.get("summary", {})
     after_records = change_res.get("after_building_records", [])
     before_records = change_res.get("before_building_records", [])
@@ -557,8 +572,8 @@ def _build_yolo_response_payload(
             "classes": {0: "Building"},
             "device": dev,
             "device_name": dev_name,
-            "cuda_available": torch.cuda.is_available(),
-            "vram_gb": round(torch.cuda.get_device_properties(0).total_memory / (1024**3), 1) if torch.cuda.is_available() else None,
+            "cuda_available": _get_torch_cuda_info()[0],
+            "vram_gb": _get_torch_cuda_info()[1],
             "confidence_threshold": change_res.get("confidence_threshold", 0.35),
             "iou_match_threshold": change_res.get("iou_match_threshold", 0.35),
             "inference_time_ms": change_res.get("total_inference_and_matching_time_ms", 0.0)
@@ -598,7 +613,7 @@ def _build_yolo_response_payload(
 @app.get("/api/yolo/status")
 async def get_yolo_status():
     dev, dev_name = get_inference_device()
-    vram = round(torch.cuda.get_device_properties(0).total_memory / (1024**3), 1) if torch.cuda.is_available() else None
+    cuda_avail, vram = _get_torch_cuda_info()
     return {
         "status": "READY",
         "model": "keremberke/yolov8s-building-segmentation",
@@ -607,7 +622,7 @@ async def get_yolo_status():
         "classes": {0: "Building"},
         "device": dev,
         "device_name": dev_name,
-        "cuda_available": torch.cuda.is_available(),
+        "cuda_available": cuda_avail,
         "vram_gb": vram,
         "default_confidence_threshold": 0.35,
         "supports_live_inference": True

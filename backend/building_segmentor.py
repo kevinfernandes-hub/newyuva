@@ -20,9 +20,7 @@ from typing import Dict, Any, List, Optional, Union, Tuple
 
 import cv2
 import numpy as np
-import torch
 from huggingface_hub import hf_hub_download
-from ultralytics import YOLO
 
 # Global model cache to avoid repeated reloading
 _MODEL_CACHE: Dict[str, Any] = {}
@@ -33,9 +31,13 @@ def get_inference_device() -> Tuple[str, str]:
     Detects whether CUDA GPU is available and returns (device_string, device_name).
     Prioritizes CUDA on NVIDIA RTX 3050 when PyTorch CUDA is enabled.
     """
-    if torch.cuda.is_available():
-        dev_name = torch.cuda.get_device_name(0)
-        return "cuda:0", f"GPU: {dev_name}"
+    try:
+        import torch
+        if torch.cuda.is_available():
+            dev_name = torch.cuda.get_device_name(0)
+            return "cuda:0", f"GPU: {dev_name}"
+    except ImportError:
+        pass
     return "cpu", "CPU"
 
 
@@ -43,10 +45,12 @@ def load_building_model(
     repo_id: str = "keremberke/yolov8s-building-segmentation",
     filename: str = "best.pt",
     device: Optional[str] = None
-) -> YOLO:
+) -> Any:
     """
     Loads the building-specific YOLO segmentation checkpoint from Hugging Face / cache.
     """
+    from ultralytics import YOLO
+    import torch
     global _MODEL_CACHE
     target_device = device or get_inference_device()[0]
     cache_key = f"{repo_id}:{filename}:{target_device}"
@@ -148,7 +152,7 @@ def run_building_segmentation(
     model = load_building_model(device=selected_device)
 
     start_time = time.perf_counter()
-
+    import torch
     if "cuda" in selected_device and torch.cuda.is_available():
         torch.cuda.empty_cache()
 

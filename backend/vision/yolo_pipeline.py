@@ -22,22 +22,21 @@ from typing import Dict, List, Any, Optional, Tuple
 from pathlib import Path
 import cv2
 import numpy as np
-import torch
 from skimage.metrics import structural_similarity as ssim
-from ultralytics import YOLO
 from huggingface_hub import hf_hub_download
 
 from backend.config import STATIC_DIR, RESULTS_DIR
 
 
 # Global YOLO Model Instance & Cache
-_YOLO_MODEL_INSTANCE: Optional[YOLO] = None
+_YOLO_MODEL_INSTANCE: Optional[Any] = None
 _YOLO_MODEL_INFO: Dict[str, Any] = {}
 _YOLO_INFERENCE_CACHE: Dict[str, Dict[str, Any]] = {}
 
 
 def get_yolo_device_info() -> Dict[str, Any]:
     """Returns PyTorch hardware device status and GPU details."""
+    import torch
     cuda_available = torch.cuda.is_available()
     device_str = "cuda:0" if cuda_available else "cpu"
     gpu_name = torch.cuda.get_device_name(0) if cuda_available else "CPU (Host System)"
