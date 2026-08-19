@@ -276,9 +276,21 @@ def run_analysis_pipeline(
                 before_bgr = cv2.cvtColor(raw_before, cv2.COLOR_RGB2BGR)
                 after_bgr = cv2.cvtColor(raw_after, cv2.COLOR_RGB2BGR)
             except Exception as e2:
-                print(f"Sentinel-2 fallback to synthetic multispectral: {e2}")
-                before_bgr = np.full((size[1], size[0], 3), (85, 105, 90), dtype=np.uint8)
-                after_bgr = np.full((size[1], size[0], 3), (95, 115, 100), dtype=np.uint8)
+                print(f"Sentinel-2 fallback to Wayback historical tiles: {e2}")
+                wb_b = output_dir / "wayback_before.png"
+                wb_a = output_dir / "wayback_after.png"
+                if wb_b.exists() and wb_a.exists():
+                    before_bgr = cv2.imread(str(wb_b))
+                    after_bgr = cv2.imread(str(wb_a))
+                    if before_bgr is not None and after_bgr is not None:
+                        before_bgr = cv2.resize(before_bgr, size)
+                        after_bgr = cv2.resize(after_bgr, size)
+                    else:
+                        before_bgr = np.full((size[1], size[0], 3), (85, 105, 90), dtype=np.uint8)
+                        after_bgr = np.full((size[1], size[0], 3), (95, 115, 100), dtype=np.uint8)
+                else:
+                    before_bgr = np.full((size[1], size[0], 3), (85, 105, 90), dtype=np.uint8)
+                    after_bgr = np.full((size[1], size[0], 3), (95, 115, 100), dtype=np.uint8)
 
     # Run 10m change detection algorithms
     color_diff_pct, color_mask, color_overlay = compute_color_diff(

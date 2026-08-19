@@ -34,6 +34,7 @@ GEOCODE_CACHE = {
     "shankar nagar": (21.1350, 79.0600, "Shankar Nagar, Nagpur, Maharashtra"),
     "mahal": (21.1440, 79.1120, "Mahal, Old City, Nagpur"),
     "gandhibagh": (21.1520, 79.1050, "Gandhibagh / Itwari, Nagpur"),
+    "itwari": (21.1550, 79.1120, "Itwari / Gandhibagh Commercial Hub, Nagpur"),
     "mankapur": (21.1900, 79.0800, "Mankapur Sports Complex, Nagpur"),
     "pardi": (21.1480, 79.1620, "Pardi / Bhandara Road, Nagpur"),
     "kalamna": (21.1750, 79.1450, "Kalamna Market, Nagpur"),
