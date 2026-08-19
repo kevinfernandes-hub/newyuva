@@ -73,6 +73,9 @@ app.mount("/outputs", StaticFiles(directory=str(OUTPUTS_DIR)), name="outputs")
 if PUBLIC_DIR.exists():
     app.mount("/public", StaticFiles(directory=str(PUBLIC_DIR)), name="public")
 
+# Serve built Vite frontend (dist/) in production
+DIST_DIR = BASE_DIR / "dist"
+
 # In-memory inspection cache
 INSPECTION_CACHE: Dict[str, Dict[str, Any]] = {}
 YOLO_RESULTS_CACHE: Dict[str, Dict[str, Any]] = {}
@@ -999,6 +1002,23 @@ async def stream_agent_investigation(
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
+
+# --- SPA Catch-All: Serve Vite frontend for non-API routes ---
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    """Serve the Vite-built frontend. Falls back to index.html for client-side routing."""
+    if DIST_DIR.exists():
+        # Try to serve the exact file first (JS, CSS, images, etc.)
+        file_path = DIST_DIR / full_path
+        if file_path.is_file():
+            return FileResponse(str(file_path))
+        # For all other routes, serve index.html (SPA client-side routing)
+        index_path = DIST_DIR / "index.html"
+        if index_path.exists():
+            return FileResponse(str(index_path))
+    raise HTTPException(status_code=404, detail="Not found")
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=port, reload=os.environ.get("RENDER") is None)

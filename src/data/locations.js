@@ -42,21 +42,21 @@ export const initialLocations = [
     tiers: {
       '10m': {
         source: 'Sentinel-2 (Live Copernicus CDSE)',
-        beforeImage: 'http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/before.png',
-        afterImage: 'http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/after.png',
-        colorDiffOverlay: 'http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/color_overlay.png',
+        beforeImage: '/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/before.png',
+        afterImage: '/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/after.png',
+        colorDiffOverlay: '/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/color_overlay.png',
         colorDiffPct: 11.84,
-        ssimOverlay: 'http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/ssim_overlay.png',
+        ssimOverlay: '/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/ssim_overlay.png',
         ssimPct: 14.25,
         ssimScore: 0.6120
       },
       '0.6m': {
         source: 'Maxar / Esri Wayback (~0.6m High-Res)',
-        beforeImage: 'http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/wayback_before.png',
-        afterImage: 'http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/wayback_after.png',
-        colorDiffOverlay: 'http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/wayback_color_overlay.png',
-        colorOverlay: 'http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/wayback_color_overlay.png',
-        ssimOverlay: 'http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/wayback_ssim_overlay.png',
+        beforeImage: '/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/wayback_before.png',
+        afterImage: '/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/wayback_after.png',
+        colorDiffOverlay: '/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/wayback_color_overlay.png',
+        colorOverlay: '/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/wayback_color_overlay.png',
+        ssimOverlay: '/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/wayback_ssim_overlay.png',
         colorDiffPct: 10.87,
         infraPct: 8.45,
         vegLossPct: 3.50,
@@ -67,10 +67,10 @@ export const initialLocations = [
       }
     },
     localImages: {
-      before: 'http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/before.png',
-      after: 'http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/after.png',
-      colorOverlay: 'http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/color_overlay.png',
-      ssimOverlay: 'http://127.0.0.1:8000/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/ssim_overlay.png'
+      before: '/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/before.png',
+      after: '/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/after.png',
+      colorOverlay: '/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/color_overlay.png',
+      ssimOverlay: '/static/results/vnit_campus__ambazari_road__nagp_20220222_20250226_3272302c/ssim_overlay.png'
     },
     isPreview: false
   },
