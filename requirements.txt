@@ -13,3 +13,5 @@ torch>=2.2,<2.3
 torchvision>=0.17,<0.18
 ultralytics>=8.4
 huggingface_hub>=1.8
+python-dotenv>=1.0.0
+sentinelhub>=3.10.0
