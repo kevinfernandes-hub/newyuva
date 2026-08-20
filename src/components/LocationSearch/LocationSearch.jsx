@@ -37,11 +37,9 @@ export function LocationSearch({
   const filteredLocations = locations.filter((loc) => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return true;
-    return (
-      loc.name.toLowerCase().includes(q) ||
-      loc.subtitle.toLowerCase().includes(q) ||
-      loc.id.toLowerCase().includes(q)
-    );
+    const tokens = q.replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(Boolean);
+    const locText = (loc.name + " " + (loc.subtitle || "") + " " + loc.id).toLowerCase().replace(/[^a-z0-9]/g, " ");
+    return tokens.every((token) => locText.includes(token));
   });
 
   const handleAgentSubmit = (e) => {

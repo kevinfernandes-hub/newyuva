@@ -1,5 +1,123 @@
 export const initialLocations = [
   {
+    id: 'mankapur',
+    name: 'Mankapur Sports Complex, Nagpur',
+    subtitle: 'North Ward X — Mankapur Sports Complex & Indoor Stadium Corridor',
+    colorDiff: 12.40,
+    ssimArea: 15.80,
+    status: 'flagged',
+    statusLabel: 'Divergent / Flagged',
+    coords: '79.060° E, 21.170° N → 79.100° E, 21.210° N',
+    coordinates: [21.1900, 79.0800],
+    ssimScore: 0.6050,
+    confidence: 'cross_confirmed',
+    confidenceLabel: 'Cross-Resolution Confirmed',
+    permits: [
+      { id: 'NMC-SPORTS-2023-4011', plot: 'Mankapur Indoor Stadium Expansion', status: 'matched', date: '22 May 2023' },
+      { id: 'UNSANCTIONED-mank-1', plot: 'North Sports Ground Encroachment', status: 'unmatched', date: 'No Record' }
+    ],
+    polygons: [
+      {
+        polygon_id: 'POLY-MANK-001',
+        area_m2: 24200.0,
+        coordinates: [
+          [21.1885, 79.0780],
+          [21.1915, 79.0780],
+          [21.1915, 79.0820],
+          [21.1885, 79.0820]
+        ]
+      }
+    ],
+    tiers: {
+      '10m': {
+        source: 'Sentinel-2 (Live Copernicus CDSE)',
+        beforeImage: '/static/results/mankapur_sports_complex__nagpur_20220222_20250226_c8e72f3a/before.png',
+        afterImage: '/static/results/mankapur_sports_complex__nagpur_20220222_20250226_c8e72f3a/after.png',
+        colorDiffOverlay: '/static/results/mankapur_sports_complex__nagpur_20220222_20250226_c8e72f3a/color_overlay.png',
+        colorDiffPct: 12.40,
+        ssimOverlay: '/static/results/mankapur_sports_complex__nagpur_20220222_20250226_c8e72f3a/ssim_overlay.png',
+        ssimPct: 15.80,
+        ssimScore: 0.6050
+      },
+      '0.6m': {
+        source: 'Maxar / Esri Wayback (~0.6m High-Res)',
+        beforeImage: '/static/results/mankapur_sports_complex__nagpur_20220222_20250226_c8e72f3a/wayback_before.png',
+        afterImage: '/static/results/mankapur_sports_complex__nagpur_20220222_20250226_c8e72f3a/wayback_after.png',
+        colorDiffOverlay: '/static/results/mankapur_sports_complex__nagpur_20220222_20250226_c8e72f3a/wayback_color_overlay.png',
+        colorOverlay: '/static/results/mankapur_sports_complex__nagpur_20220222_20250226_c8e72f3a/wayback_color_overlay.png',
+        ssimOverlay: '/static/results/mankapur_sports_complex__nagpur_20220222_20250226_c8e72f3a/wayback_ssim_overlay.png',
+        colorDiffPct: 12.40,
+        ssimScore: 0.6050,
+        ssimPct: 15.80
+      }
+    },
+    localImages: {
+      before: '/static/results/mankapur_sports_complex__nagpur_20220222_20250226_c8e72f3a/wayback_before.png',
+      after: '/static/results/mankapur_sports_complex__nagpur_20220222_20250226_c8e72f3a/wayback_after.png',
+      colorOverlay: '/static/results/mankapur_sports_complex__nagpur_20220222_20250226_c8e72f3a/wayback_color_overlay.png',
+      ssimOverlay: '/static/results/mankapur_sports_complex__nagpur_20220222_20250226_c8e72f3a/wayback_ssim_overlay.png'
+    }
+  },
+  {
+    id: 'itwari',
+    name: 'Itwari / Gandhibagh Commercial Hub, Nagpur',
+    subtitle: 'Central Ward IV — Itwari Market & Wholesale Commercial District',
+    colorDiff: 13.50,
+    ssimArea: 16.90,
+    status: 'flagged',
+    statusLabel: 'Divergent / Flagged',
+    coords: '79.090° E, 21.135° N → 79.130° E, 21.175° N',
+    coordinates: [21.1550, 79.1120],
+    ssimScore: 0.5910,
+    confidence: 'cross_confirmed',
+    confidenceLabel: 'Cross-Resolution Confirmed',
+    permits: [
+      { id: 'NMC-COMM-2023-1102', plot: 'Itwari Grain Market Redevelopment', status: 'matched', date: '10 Mar 2023' },
+      { id: 'UNSANCTIONED-itwa-1', plot: 'Gandhibagh Encroachment Annex', status: 'unmatched', date: 'No Record' }
+    ],
+    polygons: [
+      {
+        polygon_id: 'POLY-ITWA-001',
+        area_m2: 29800.0,
+        coordinates: [
+          [21.1535, 79.1100],
+          [21.1565, 79.1100],
+          [21.1565, 79.1140],
+          [21.1535, 79.1140]
+        ]
+      }
+    ],
+    tiers: {
+      '10m': {
+        source: 'Sentinel-2 (Live Copernicus CDSE)',
+        beforeImage: '/static/results/itwari___gandhibagh__nagpur_20220222_20250226_807699a9/before.png',
+        afterImage: '/static/results/itwari___gandhibagh__nagpur_20220222_20250226_807699a9/after.png',
+        colorDiffOverlay: '/static/results/itwari___gandhibagh__nagpur_20220222_20250226_807699a9/color_overlay.png',
+        colorDiffPct: 13.50,
+        ssimOverlay: '/static/results/itwari___gandhibagh__nagpur_20220222_20250226_807699a9/ssim_overlay.png',
+        ssimPct: 16.90,
+        ssimScore: 0.5910
+      },
+      '0.6m': {
+        source: 'Maxar / Esri Wayback (~0.6m High-Res)',
+        beforeImage: '/static/results/itwari___gandhibagh__nagpur_20220222_20250226_807699a9/wayback_before.png',
+        afterImage: '/static/results/itwari___gandhibagh__nagpur_20220222_20250226_807699a9/wayback_after.png',
+        colorDiffOverlay: '/static/results/itwari___gandhibagh__nagpur_20220222_20250226_807699a9/wayback_color_overlay.png',
+        colorOverlay: '/static/results/itwari___gandhibagh__nagpur_20220222_20250226_807699a9/wayback_color_overlay.png',
+        ssimOverlay: '/static/results/itwari___gandhibagh__nagpur_20220222_20250226_807699a9/wayback_ssim_overlay.png',
+        colorDiffPct: 13.50,
+        ssimScore: 0.5910,
+        ssimPct: 16.90
+      }
+    },
+    localImages: {
+      before: '/static/results/itwari___gandhibagh__nagpur_20220222_20250226_807699a9/wayback_before.png',
+      after: '/static/results/itwari___gandhibagh__nagpur_20220222_20250226_807699a9/wayback_after.png',
+      colorOverlay: '/static/results/itwari___gandhibagh__nagpur_20220222_20250226_807699a9/wayback_color_overlay.png',
+      ssimOverlay: '/static/results/itwari___gandhibagh__nagpur_20220222_20250226_807699a9/wayback_ssim_overlay.png'
+    }
+  },
+  {
     id: 'jamtha',
     name: 'Jamtha / VCA Stadium, Nagpur',
     subtitle: 'South Ward IX — VCA Stadium & Sector Development Corridor',

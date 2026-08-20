@@ -197,12 +197,12 @@ export function App() {
 
       setErrorMessage('');
 
-      // Check if an existing location matches directly
-      const existing = locationsList.find(
-        (l) =>
-          l.name.toLowerCase().includes(cleanName.toLowerCase()) ||
-          l.id.toLowerCase().includes(cleanName.toLowerCase())
-      );
+      // Check if an existing location matches directly (smart multi-word token matching)
+      const qTokens = cleanName.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(Boolean);
+      const existing = locationsList.find((l) => {
+        const target = (l.name + " " + (l.subtitle || "") + " " + l.id).toLowerCase().replace(/[^a-z0-9]/g, " ");
+        return qTokens.every((token) => target.includes(token));
+      });
 
       if (existing) {
         handleSelectLocation(existing.id);
