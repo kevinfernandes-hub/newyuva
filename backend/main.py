@@ -240,7 +240,7 @@ async def analyze_location(
         lat_val, lng_val = latitude, longitude
         display_name = f"Custom AOI ({lat_val:.4f}° N, {lng_val:.4f}° E)"
 
-    base_url = str(request.base_url).rstrip("/")
+    base_url = ""
 
     try:
         result = run_analysis_pipeline(
@@ -296,7 +296,7 @@ async def inspect_hotspot(
     hdata = body_data.get("hotspot_data")
 
     cache_key = f"{loc_id.lower()}_{hid.upper()}"
-    base_url = str(request.base_url).rstrip("/")
+    base_url = ""
 
     try:
         case_file = execute_zoom_and_verify_agent(
@@ -331,7 +331,7 @@ async def inspect_all_hotspots(
             pass
 
     loc_id = body_data.get("location_id") or location_id or "mihan"
-    base_url = str(request.base_url).rstrip("/")
+    base_url = ""
     hotspots = get_hotspots_for_location(loc_id)
     cases = []
 
@@ -365,7 +365,7 @@ async def get_cached_inspection(hotspot_id: str, location_id: str = "mihan", req
     if cache_key in INSPECTION_CACHE:
         return {"status": "success", "case": INSPECTION_CACHE[cache_key]}
 
-    base_url = str(request.base_url).rstrip("/") if request else "http://localhost:8000"
+    base_url = "" if request else "http://localhost:8000"
     case_file = execute_zoom_and_verify_agent(hotspot_id=hotspot_id, location_id=location_id, base_url=base_url)
     INSPECTION_CACHE[cache_key] = case_file
     return {"status": "success", "case": case_file}
@@ -679,7 +679,7 @@ async def get_yolo_results(
             except Exception:
                 pass
 
-        base_url = str(request.base_url).rstrip("/") if request else ""
+        base_url = "" if request else ""
         payload = _build_yolo_response_payload(
             hotspot_id=hotspot_id,
             change_res=yolo_data,
@@ -786,7 +786,7 @@ async def analyze_yolo_building_change(
         except Exception:
             pass
 
-        base_url = str(request.base_url).rstrip("/") if request else ""
+        base_url = "" if request else ""
         payload = _build_yolo_response_payload(
             hotspot_id=hid,
             change_res=change_res,
@@ -934,7 +934,7 @@ async def run_agent_investigation(req: AgentRunRequest, request: Request):
     Executes the full autonomous EarthWatch Agent workflow:
     SEARCH -> PLAN -> SCAN -> REASON -> ZOOM -> VERIFY -> CROSS-CHECK -> REPORT
     """
-    base_url = str(request.base_url).rstrip("/")
+    base_url = ""
     orchestrator = EarthWatchOrchestrator(base_url=base_url)
 
     try:
@@ -967,7 +967,7 @@ async def stream_agent_investigation(
     """
     Streams real-time step-by-step tool execution events as Server-Sent Events (SSE).
     """
-    base_url = str(request.base_url).rstrip("/") if request else "http://localhost:8000"
+    base_url = "" if request else "http://localhost:8000"
 
     async def event_generator():
         orchestrator = EarthWatchOrchestrator(base_url=base_url)

@@ -99,7 +99,7 @@ def get_wayback_base_images(
 
 def generate_aligned_hotspot_crops(
     hotspot: Dict[str, Any],
-    base_url: str = "http://localhost:8000",
+    base_url: str = "",
     parent_bbox: Optional[List[float]] = None,
     mosaic_pair: Optional[Tuple[np.ndarray, np.ndarray, List[float]]] = None
 ) -> Dict[str, Any]:

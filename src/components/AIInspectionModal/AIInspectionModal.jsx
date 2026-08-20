@@ -1,3 +1,4 @@
+import { normalizeImageUrl } from '../../utils/url';
 import React, { useState, useEffect } from 'react';
 import styles from './AIInspectionModal.module.css';
 
@@ -289,7 +290,7 @@ export function AIInspectionModal({
                   <span className={styles.subtextBadge}>0.6m Baseline</span>
                 </div>
                 <div className={styles.imgWrap}>
-                  <img src={beforeSrc} alt="Historical Satellite Baseline" className={styles.satelliteImg} />
+                  <img src={normalizeImageUrl(beforeSrc)} alt="Historical Satellite Baseline" className={styles.satelliteImg} />
                 </div>
               </div>
 
@@ -300,7 +301,7 @@ export function AIInspectionModal({
                   <span className={styles.subtextBadge}>0.6m Current Scene</span>
                 </div>
                 <div className={styles.imgWrap}>
-                  <img src={afterSrc} alt="Current Satellite State" className={styles.satelliteImg} />
+                  <img src={normalizeImageUrl(afterSrc)} alt="Current Satellite State" className={styles.satelliteImg} />
                 </div>
               </div>
 
@@ -312,7 +313,7 @@ export function AIInspectionModal({
                     <span className={styles.subtextBadge}>Aligned Analysis</span>
                   </div>
                   <div className={styles.imgWrap}>
-                    <img src={diffSrc} alt="Detected Change Overlay" className={styles.satelliteImg} />
+                    <img src={normalizeImageUrl(diffSrc)} alt="Detected Change Overlay" className={styles.satelliteImg} />
                   </div>
                 </div>
               )}

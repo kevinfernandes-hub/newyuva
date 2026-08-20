@@ -7,11 +7,14 @@ import styles from './ImageComparisonViewer.module.css';
  */
 const normalizeImageUrl = (url) => {
   if (!url || typeof url !== 'string') return '';
-  if (url.includes('localhost:8000/static/')) {
-    return url.replace('http://localhost:8000', '');
+  if (url.includes('/static/')) {
+    return '/static/' + url.split('/static/')[1];
   }
-  if (url.includes('127.0.0.1:8000/static/')) {
-    return url.replace('http://127.0.0.1:8000', '');
+  if (url.includes('/outputs/')) {
+    return '/outputs/' + url.split('/outputs/')[1];
+  }
+  if (url.includes('/public/')) {
+    return '/public/' + url.split('/public/')[1];
   }
   return url;
 };

@@ -2,7 +2,7 @@
   "status": "SUCCESS",
   "scope": "Municipal Evidence Fusion & Inspection Prioritization (Stage 3)",
   "target_corridor": "AIIMS Hospital Complex (Phase II Expansion)",
-  "hotspot_id": "MANK-01",
+  "hotspot_id": "ITWA-01",
   "scoring_model": {
     "formula": "Risk Score = 0.25*F1(YOLO) + 0.25*F2(MultiScale) + 0.20*F3(SSIM) + 0.15*F4(AreaScale) + 0.15*F5(MacroHotspot)",
     "priority_scale": {
@@ -19,38 +19,38 @@
   },
   "cases": [
     {
-      "case_id": "CASE #NGP-MANK-BLDG-001",
+      "case_id": "CASE #NGP-ITWA-BLDG-001",
       "candidate_id": "BLDG-001",
       "location": {
         "name": "AIIMS Hospital Complex (Phase II Expansion)",
         "corridor": "MIHAN / Outer Ring Road, South Ward IX",
         "coordinates": "21.0568\u00b0 N, 79.0435\u00b0 E",
         "centroid_crop_px": [
-          479.08,
-          92.32
+          547.98,
+          104.41
         ],
         "bbox_xyxy": [
-          449.94,
-          71.49,
-          505.57,
-          114.48
+          529.85,
+          82.6,
+          559.78,
+          139.18
         ]
       },
-      "observed_change": "Physical change detected: 1387 px new building footprint observed on 2025-01-30 imagery where unpaved baseline terrain was recorded on 2019-01-31. Bounding box coordinates: [449.94, 71.49, 505.57, 114.48].",
+      "observed_change": "Physical change detected: 1124 px new building footprint observed on 2025-01-30 imagery where unpaved baseline terrain was recorded on 2019-01-31. Bounding box coordinates: [529.85, 82.6, 559.78, 139.18].",
       "physical_change": true,
-      "risk_score": 71.1,
+      "risk_score": 66.7,
       "priority": "CRITICAL",
       "priority_label": "Critical Priority \u2014 Immediate Compliance Check",
-      "building_confidence": 0.3595,
-      "change_area_pixels": 1387,
+      "building_confidence": 0.3771,
+      "change_area_pixels": 1124,
       "ground_area_m2": null,
       "verification_status": "UNCERTAIN",
       "verification_pipeline": {
         "stage1_yolo": {
           "stage_num": 1,
           "name": "YOLOv8 AI Detection",
-          "score_pct": 35.9,
-          "metric_label": "35.9% AI Confidence",
+          "score_pct": 37.7,
+          "metric_label": "37.7% AI Confidence",
           "status": "FLAGGED",
           "badge_color": "yellow",
           "detail": "Neural network detected rectilinear roof envelope and albedo shift (Raw Model Confidence: ~60\u201369%)."
@@ -67,8 +67,8 @@
         "stage3_ssim": {
           "stage_num": 3,
           "name": "Structural SSIM Disruption",
-          "score_pct": 95.5,
-          "metric_label": "95.5% Divergence",
+          "score_pct": 80.5,
+          "metric_label": "80.5% Divergence",
           "status": "STRONG_DISRUPTION",
           "badge_color": "orange",
           "detail": "High structural SSIM mismatch confirms optical surface conversion from soil/scrub to rigid roof."
@@ -77,7 +77,7 @@
           "stage_num": 4,
           "name": "Edge & Texture Gradient",
           "score_pct": 30.0,
-          "metric_label": "+3.9% Edge Density",
+          "metric_label": "+3.5% Edge Density",
           "status": "STRUCTURAL_EDGES",
           "badge_color": "cyan",
           "detail": "Sobel and Laplacian gradient variance confirms sharp rectilinear boundaries of built structure."
@@ -85,32 +85,32 @@
         "stage5_multiscale": {
           "stage_num": 5,
           "name": "Multi-Scale Optical Verification",
-          "score_pct": 60.2,
-          "metric_label": "60.2/100 Evidence Score",
+          "score_pct": 53.0,
+          "metric_label": "53.0/100 Evidence Score",
           "status": "INDEPENDENTLY_VERIFIED",
           "badge_color": "purple",
           "detail": "Cross-checked across multi-level zoom crops to eliminate optical noise and shadow artifacts."
         },
         "composite_verdict": {
-          "final_evidence_score": 71.1,
-          "banner_text": "AI Detected (36%) \u2192 Independently Verified (60%) \u2192 On-Site Municipal Inspection Required",
+          "final_evidence_score": 66.7,
+          "banner_text": "AI Detected (38%) \u2192 Independently Verified (53%) \u2192 On-Site Municipal Inspection Required",
           "governance_note": "AI models alone do not declare violations. Multi-source evidence cross-checks physical emergence before recommending human on-ground inspection."
         }
       },
       "scoring_breakdown": {
-        "f1_yolo_confidence_score": 35.9,
-        "f2_multiscale_evidence_score": 60.2,
-        "f3_ssim_divergence_pct": 95.5,
+        "f1_yolo_confidence_score": 37.7,
+        "f2_multiscale_evidence_score": 53.0,
+        "f3_ssim_divergence_pct": 80.5,
         "f4_footprint_scale_factor": 100.0,
         "f5_macro_hotspot_severity": 86.4,
         "formula": "0.25*F1 + 0.25*F2 + 0.20*F3 + 0.15*F4 + 0.15*F5"
       },
       "evidence_factors": [
-        "Stage 1 (YOLOv8): Building footprint detected on 2025-01-30 high-resolution imagery (Neural Confidence: 0.36)",
+        "Stage 1 (YOLOv8): Building footprint detected on 2025-01-30 high-resolution imagery (Neural Confidence: 0.38)",
         "Stage 2 (Spatial IoU): No corresponding building footprint detected on 2019-01-31 baseline (0.00 spatial overlap / IoU)",
-        "Stage 3 (SSIM): Significant optical divergence across baseline terrain (SSIM Divergence: 95.5%, Mean Pixel Shift: 78.7 px)",
-        "Stage 4 (Edges): Local texture complexity increased (+3.9%) reflecting distinct structural roofline/edges",
-        "Stage 5 (Multi-Scale): Multi-zoom evidence score 60.2/100 confirms physical emergence",
+        "Stage 3 (SSIM): Significant optical divergence across baseline terrain (SSIM Divergence: 80.5%, Mean Pixel Shift: 50.5 px)",
+        "Stage 4 (Edges): Local texture complexity increased (+3.5%) reflecting distinct structural roofline/edges",
+        "Stage 5 (Multi-Scale): Multi-zoom evidence score 53.0/100 confirms physical emergence",
         "Municipal Directive: Candidate requires on-ground field inspection to verify town planning sanction status"
       ],
       "recommended_action": "FIELD_INSPECTION",
@@ -122,5 +122,5 @@
       }
     }
   ],
-  "summary_image": "/Users/kevinfernandes/Documents/4yuva/outputs/yolo_runs/mank-01/priority_summary.jpg"
+  "summary_image": "/Users/kevinfernandes/Documents/4yuva/outputs/yolo_runs/itwa-01/priority_summary.jpg"
 }

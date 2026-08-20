@@ -204,7 +204,7 @@ def execute_zoom_and_verify_agent(
     hotspot_id: str,
     location_id: str = "mihan",
     hotspot_data: Optional[Dict[str, Any]] = None,
-    base_url: str = "http://localhost:8000"
+    base_url: str = ""
 ) -> Dict[str, Any]:
     """
     Main Orchestrator for the AI Zoom-and-Verify Agent.

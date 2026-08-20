@@ -1,3 +1,4 @@
+import { normalizeImageUrl } from '../../utils/url';
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import styles from './YOLOBuildingIntelligence.module.css';
 
@@ -506,28 +507,28 @@ export function YOLOBuildingIntelligence({
                     <span>2019-01-31 Baseline</span>
                     <span className={styles.panelBadge}>BEFORE</span>
                   </div>
-                  <img src={imageUrls.before_image} alt="2019 Baseline" className={styles.matrixImg} />
+                  <img src={normalizeImageUrl(imageUrls.before_image)} alt="2019 Baseline" className={styles.matrixImg} />
                 </div>
                 <div className={styles.matrixPanel}>
                   <div className={styles.panelHeader}>
                     <span>2025-01-30 Current</span>
                     <span className={`${styles.panelBadge} ${styles.afterBadge}`}>AFTER</span>
                   </div>
-                  <img src={imageUrls.after_image} alt="2025 Current" className={styles.matrixImg} />
+                  <img src={normalizeImageUrl(imageUrls.after_image)} alt="2025 Current" className={styles.matrixImg} />
                 </div>
                 <div className={styles.matrixPanel}>
                   <div className={styles.panelHeader}>
                     <span>Footprint Change Overlay</span>
                     <span className={`${styles.panelBadge} ${styles.alertBadge}`}>NEW BLDGS</span>
                   </div>
-                  <img src={imageUrls.change_mask} alt="Change Mask" className={styles.matrixImg} />
+                  <img src={normalizeImageUrl(imageUrls.change_mask)} alt="Change Mask" className={styles.matrixImg} />
                 </div>
                 <div className={styles.matrixPanel}>
                   <div className={styles.panelHeader}>
                     <span>Building Detections</span>
                     <span className={styles.panelBadge}>{detections.length} Detections</span>
                   </div>
-                  <img src={imageUrls.after_annotated} alt="YOLO Annotated" className={styles.matrixImg} />
+                  <img src={normalizeImageUrl(imageUrls.after_annotated)} alt="YOLO Annotated" className={styles.matrixImg} />
                 </div>
               </div>
             ) : (
@@ -540,14 +541,14 @@ export function YOLOBuildingIntelligence({
                         <span>2019-01-31 Baseline (0.6m)</span>
                         <span className={styles.panelBadge}>BEFORE</span>
                       </div>
-                      <img src={imageUrls.before_image} alt="Before" className={styles.canvasImg} />
+                      <img src={normalizeImageUrl(imageUrls.before_image)} alt="Before" className={styles.canvasImg} />
                     </div>
                     <div className={styles.imagePanel}>
                       <div className={styles.panelHeader}>
                         <span>2025-01-30 Current (0.6m)</span>
                         <span className={`${styles.panelBadge} ${styles.afterBadge}`}>AFTER</span>
                       </div>
-                      <img src={imageUrls.after_image} alt="After" className={styles.canvasImg} />
+                      <img src={normalizeImageUrl(imageUrls.after_image)} alt="After" className={styles.canvasImg} />
                     </div>
                   </div>
                 )}
